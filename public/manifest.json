@@ -1,0 +1,21 @@
+{
+  "name": "타닥타닥 — 나의 소설 일기",
+  "short_name": "타닥타닥",
+  "description": "일상의 사건을 소설 문체의 일기로 변환해주는 픽셀 아트 일기 앱",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "lang": "ko",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "productivity"],
+  "screenshots": []
+}

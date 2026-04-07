@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>일기 생성 — 타닥타닥</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <style>
+    .page { min-height:100vh; padding-top:52px; display:grid; grid-template-columns:300px 1fr; height:100vh; position:relative; z-index:1; }
+
+    /* ── Options Panel ─────────────────────────────────────── */
+    .options-panel {
+      border-right:3px solid var(--white); height:calc(100vh - 52px);
+      position:sticky; top:52px; overflow-y:auto; padding:16px 14px;
+      display:flex; flex-direction:column; gap:18px; background:var(--black);
+    }
+    .opt-title { font-family:var(--font-pixel); font-size:7px; color:var(--fire-org);
+      text-transform:uppercase; letter-spacing:.12em; margin-bottom:8px;
+      border-bottom:1px solid #222; padding-bottom:5px; }
+
+    /* Weather selector */
+    .weather-grid { display:flex; flex-wrap:wrap; gap:6px; }
+    .weather-opt {
+      font-family:var(--font-pixel); font-size:6px; padding:6px 10px;
+      border:2px solid var(--gray-3); color:var(--gray-4); cursor:pointer;
+      transition:.1s; background:var(--black);
+      display:flex; flex-direction:column; align-items:center; gap:4px; min-width:44px;
+    }
+    .weather-opt:hover { border-color:var(--white); color:var(--white); }
+    .weather-opt.sel { border-color:var(--fire-org); color:var(--fire-org); }
+    .weather-icon { font-size:14px; line-height:1; }
+
+    /* Perspective */
+    .pv-grid { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+    .pv-card { padding:9px 8px; border:2px solid var(--gray-3); cursor:pointer; transition:.1s; background:var(--black); }
+    .pv-card:hover { border-color:var(--white); }
+    .pv-card.sel { border-color:var(--fire-org); background:rgba(255,90,0,.07); }
+    .pv-name { font-family:var(--font-korean); font-size:11px; font-weight:700; color:var(--white); margin-bottom:3px; }
+    .pv-card.sel .pv-name { color:var(--fire-amb); }
+    .pv-ex { font-family:var(--font-korean); font-size:9px; color:var(--gray-4); font-style:italic; }
+    /* Nickname for 3rd person */
+    #nickname-row { margin-top:6px; display:none; }
+    #nickname-row.show { display:flex; flex-direction:column; gap:4px; }
+    .nickname-label { font-family:var(--font-pixel); font-size:6px; color:var(--fire-org); text-transform:uppercase; letter-spacing:.08em; }
+
+    /* Slider */
+    .slider-wrap { display:flex; flex-direction:column; gap:7px; }
+    .slider-ends { display:flex; justify-content:space-between; font-family:var(--font-pixel); font-size:6px; color:var(--gray-4); text-transform:uppercase; }
+    input[type=range] { -webkit-appearance:none; width:100%; height:8px; background:var(--gray-2); outline:none; cursor:pointer; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:18px; background:var(--white); cursor:pointer; }
+    input[type=range]:focus::-webkit-slider-thumb { background:var(--fire-amb); }
+    .slider-val { font-family:var(--font-pixel); font-size:8px; color:var(--fire-amb); text-align:center; letter-spacing:.1em; text-transform:uppercase; }
+
+    /* Style refs multi-select */
+    .sr-list { display:flex; flex-direction:column; gap:4px; }
+    .sr-item {
+      padding:8px 10px; border:2px solid var(--gray-3); cursor:pointer;
+      transition:.1s; background:var(--black); position:relative;
+    }
+    .sr-item:hover { border-color:var(--white); }
+    .sr-item.sel { border-color:var(--fire-org); background:rgba(255,90,0,.06); }
+    .sr-item .sr-title { font-family:var(--font-korean); font-size:11px; font-weight:700; color:var(--white); }
+    .sr-item.sel .sr-title { color:var(--fire-amb); }
+    .sr-item .sr-ex { font-family:var(--font-korean); font-size:9px; color:var(--gray-4);
+      display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; }
+    .sr-check { position:absolute; top:6px; right:8px; font-family:var(--font-pixel); font-size:8px; color:var(--fire-org); display:none; }
+    .sr-item.sel .sr-check { display:block; }
+    .sr-none { padding:7px 10px; border:2px dashed var(--gray-3); font-family:var(--font-pixel);
+      font-size:7px; color:var(--gray-4); cursor:pointer; text-align:center;
+      letter-spacing:.06em; text-transform:uppercase; transition:.1s; }
+    .sr-none:hover { border-color:var(--white); color:var(--white); }
+    .sr-none.sel { border-color:var(--fire-org); border-style:solid; color:var(--fire-org); }
+
+    /* Add new style ref */
+    .add-sr-toggle { font-family:var(--font-pixel); font-size:6px; color:var(--gray-4);
+      cursor:pointer; letter-spacing:.08em; text-transform:uppercase; padding:4px 2px; }
+    .add-sr-toggle:hover { color:var(--white); }
+    #add-sr-form { display:none; margin-top:6px; }
+    #add-sr-form.show { display:flex; flex-direction:column; gap:5px; }
+    #new-sr-textarea { min-height:70px; }
+
+    /* Generate button */
+    .gen-btn { font-family:var(--font-pixel); font-size:8px; padding:13px 10px; width:100%;
+      border:3px solid var(--fire-amb); box-shadow:inset 0 0 0 2px var(--fire-amb), inset 0 0 0 5px var(--black);
+      background:var(--black); color:var(--fire-tip); cursor:pointer; letter-spacing:.1em;
+      text-transform:uppercase; margin-top:auto; transition:.05s; }
+    .gen-btn:hover { background:var(--fire-amb); color:var(--black); }
+    .gen-btn:active { transform:translate(2px,2px); }
+    .gen-btn:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+
+    /* ── Right Panel ────────────────────────────────────────── */
+    .diary-panel { padding:32px 40px; height:calc(100vh - 52px); overflow-y:auto; background:var(--black); }
+    .diary-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:65%; text-align:center; gap:14px; }
+    .de-ascii { font-family:var(--font-pixel); font-size:10px; color:var(--gray-3); line-height:1.5; }
+    .de-txt { font-family:var(--font-pixel); font-size:7px; color:var(--gray-4); line-height:2.2; letter-spacing:.1em; text-transform:uppercase; }
+
+    /* Generating */
+    .gen-overlay { display:none; flex-direction:column; align-items:center; justify-content:center; height:65%; gap:18px; }
+    .gen-overlay.active { display:flex; }
+    .gen-fire { display:flex; align-items:center; justify-content:center; font-size:80px; }
+    .gen-label { font-family:var(--font-pixel); font-size:9px; color:var(--fire-amb); letter-spacing:.1em; }
+    .gen-sub { font-family:var(--font-pixel); font-size:7px; color:var(--gray-4); letter-spacing:.08em; }
+    .gen-progress { font-family:var(--font-pixel); font-size:9px; color:var(--fire-org); margin-top:4px; min-height:16px; }
+
+    /* Result */
+    #diary-result { display:none; }
+    .diary-meta { border-bottom:2px solid var(--white); padding-bottom:14px; margin-bottom:24px; }
+    .diary-tags { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
+    .diary-title { font-family:var(--font-korean); font-size:20px; font-weight:700; color:var(--white); margin-bottom:6px; }
+    .diary-sub-meta { font-family:var(--font-pixel); font-size:7px; color:var(--gray-4); letter-spacing:.08em; }
+    .diary-content { font-family:var(--font-korean); font-size:15px; line-height:2.1; color:var(--gray-5); white-space:pre-wrap; word-break:keep-all; }
+    .px-cursor { display:inline-block; width:8px; height:16px; background:var(--fire-amb); animation:blink-c .6s steps(1) infinite; vertical-align:bottom; margin-left:2px; }
+    @keyframes blink-c { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+    .diary-actions { display:flex; gap:8px; margin-top:28px; padding-top:18px; border-top:2px solid #222; }
+
+    /* Character section */
+    .char-section { margin-top:28px; padding-top:20px; border-top:2px solid #222; }
+    .char-section-title { font-family:var(--font-pixel); font-size:7px; color:var(--fire-org); text-transform:uppercase; letter-spacing:.1em; margin-bottom:12px; }
+    .char-grid { display:flex; gap:10px; flex-wrap:wrap; }
+    .char-card {
+      background:var(--black); border:2px solid var(--gray-3); padding:10px;
+      cursor:pointer; transition:.1s; display:flex; flex-direction:column; align-items:center;
+      gap:6px; width:80px;
+    }
+    .char-card:hover { border-color:var(--white); }
+    .char-avatar { image-rendering:pixelated; image-rendering:crisp-edges; width:48px; height:48px; }
+    .char-name { font-family:var(--font-korean); font-size:10px; color:var(--gray-5); text-align:center; font-weight:700; }
+    .char-rel { font-family:var(--font-korean); font-size:9px; color:var(--gray-4); text-align:center; }
+    .char-regen { font-family:var(--font-pixel); font-size:6px; color:var(--gray-3); cursor:pointer; margin-top:2px; }
+    .char-regen:hover { color:var(--fire-org); }
+
+    /* Character detail modal */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:200; align-items:center; justify-content:center; }
+    .modal-overlay.open { display:flex; }
+    .modal-box { background:var(--black); border:3px solid var(--white); box-shadow:inset 0 0 0 2px var(--white),inset 0 0 0 5px var(--black); padding:24px; max-width:440px; width:90%; max-height:80vh; overflow-y:auto; }
+    .modal-header { display:flex; align-items:center; gap:14px; margin-bottom:16px; padding-bottom:12px; border-bottom:2px solid var(--gray-2); }
+    .modal-avatar { image-rendering:pixelated; width:64px; height:64px; }
+    .modal-name { font-family:var(--font-korean); font-size:18px; font-weight:700; color:var(--white); }
+    .modal-rel { font-family:var(--font-pixel); font-size:7px; color:var(--fire-org); text-transform:uppercase; letter-spacing:.08em; margin-top:4px; }
+    .modal-section { margin-bottom:12px; }
+    .modal-sec-title { font-family:var(--font-pixel); font-size:7px; color:var(--gray-4); text-transform:uppercase; letter-spacing:.1em; margin-bottom:6px; }
+    .appear-list { display:flex; gap:4px; flex-wrap:wrap; }
+    .episode-item { font-family:var(--font-korean); font-size:12px; color:var(--gray-5); border-left:2px solid var(--gray-2); padding-left:8px; margin-bottom:6px; line-height:1.6; }
+    .modal-close { font-family:var(--font-pixel); font-size:8px; padding:8px 16px; border:2px solid var(--gray-3); color:var(--gray-4); cursor:pointer; transition:.1s; background:var(--black); margin-top:16px; }
+    .modal-close:hover { border-color:var(--white); color:var(--white); }
+
+    /* API key modal */
+    .api-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:300; align-items:center; justify-content:center; }
+    .api-modal-overlay.open { display:flex; }
+    .api-modal { background:var(--black); border:3px solid var(--fire-org); box-shadow:inset 0 0 0 2px var(--fire-org),inset 0 0 0 5px var(--black); padding:28px; max-width:420px; width:90%; }
+    .api-modal h2 { font-family:var(--font-pixel); font-size:10px; color:var(--fire-amb); margin-bottom:12px; letter-spacing:.1em; }
+    .api-modal p { font-family:var(--font-korean); font-size:13px; color:var(--gray-4); margin-bottom:14px; line-height:1.7; }
+    .api-modal small { font-family:var(--font-pixel); font-size:6px; color:var(--text-off); letter-spacing:.06em; display:block; margin-top:6px; }
+    .api-error { font-family:var(--font-pixel); font-size:7px; color:#ff4444; margin-top:8px; min-height:14px; letter-spacing:.06em; }
+  </style>
+</head>
+<body>
+<div class="pixel-stars"></div>
+
+<!-- API Key Modal -->
+<div class="api-modal-overlay" id="api-modal">
+  <div class="api-modal">
+    <h2>API KEY REQUIRED</h2>
+    <p>Claude API 키를 입력하세요.<br>키는 localStorage에만 저장되며 외부로 전송되지 않습니다.</p>
+    <input type="password" class="pixel-input" id="api-key-input" placeholder="sk-ant-api...">
+    <small>⚠ NEVER EXPOSE YOUR KEY IN PRODUCTION. MVP ONLY.</small>
+    <div class="api-error" id="api-error"></div>
+    <div style="margin-top:14px;display:flex;gap:8px;">
+      <button class="pixel-btn pixel-btn-fire" onclick="saveApiKey()">▸ 저장하기</button>
+      <button class="pixel-btn" onclick="closeApiModal()">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- Character Detail Modal -->
+<div class="modal-overlay" id="char-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <img class="modal-avatar" id="m-avatar" alt="">
+      <div>
+        <div class="modal-name" id="m-name"></div>
+        <div class="modal-rel" id="m-rel"></div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-sec-title">등장한 일기</div>
+      <div class="appear-list" id="m-appears"></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-sec-title">에피소드</div>
+      <div id="m-episodes"></div>
+    </div>
+    <button class="modal-close" onclick="closeCharModal()">[ 닫기 ]</button>
+  </div>
+</div>
+
+<!-- Header -->
+<header class="app-header">
+  <a class="app-logo" href="index.html"><span class="logo-korean">타닥타닥</span><span class="logo-en">◀ 모닥불로</span></a>
+  <div class="header-actions">
+    <span class="px-tag px-tag-fire" id="kindling-tag">KINDLING ×0</span>
+    <button class="pixel-btn pixel-btn-sm" onclick="window.location.href='timeline.html'">[타임라인]</button>
+  </div>
+</header>
+
+<div class="page">
+  <!-- LEFT: Options -->
+  <aside class="options-panel">
+
+    <!-- 1. Weather -->
+    <div>
+      <div class="opt-title">► 날씨 <span style="color:var(--text-off);font-size:7px;">(선택)</span></div>
+      <div class="weather-grid">
+        <div class="weather-opt" data-val="맑음"  onclick="selectWeather(this)"><span class="weather-icon">☀</span>맑음</div>
+        <div class="weather-opt" data-val="흐림"  onclick="selectWeather(this)"><span class="weather-icon">☁</span>흐림</div>
+        <div class="weather-opt" data-val="비"    onclick="selectWeather(this)"><span class="weather-icon">☂</span>비</div>
+        <div class="weather-opt" data-val="눈"    onclick="selectWeather(this)"><span class="weather-icon">❄</span>눈</div>
+        <div class="weather-opt" data-val="바람"  onclick="selectWeather(this)"><span class="weather-icon">〰</span>바람</div>
+        <div class="weather-opt" data-val="안개"  onclick="selectWeather(this)"><span class="weather-icon">≋</span>안개</div>
+      </div>
+    </div>
+
+    <!-- 2. Perspective -->
+    <div>
+      <div class="opt-title">► 서술 시점</div>
+      <div class="pv-grid">
+        <div class="pv-card sel" data-val="1인칭주인공" onclick="selectPv(this)">
+          <div class="pv-name">1인칭 주인공</div><div class="pv-ex">"나는 오늘…"</div>
+        </div>
+        <div class="pv-card" data-val="1인칭관찰자" onclick="selectPv(this)">
+          <div class="pv-name">1인칭 관찰자</div><div class="pv-ex">"나는 그를 봤다…"</div>
+        </div>
+        <div class="pv-card" data-val="3인칭관찰자" onclick="selectPv(this)">
+          <div class="pv-name">3인칭 관찰자</div><div class="pv-ex">"그녀는 걸었다…"</div>
+        </div>
+        <div class="pv-card" data-val="3인칭전지적" onclick="selectPv(this)">
+          <div class="pv-name">3인칭 전지적</div><div class="pv-ex">"그가 몰랐던 건…"</div>
+        </div>
+      </div>
+      <!-- Nickname (3rd person only) -->
+      <div id="nickname-row">
+        <div class="nickname-label">▸ 소설 속 내 이름/호칭</div>
+        <input id="nickname-input" class="pixel-input" placeholder="예: 지유, 그녀, 청년" style="font-size:12px;padding:7px 10px;" oninput="saveNickname(this.value)">
+        <div style="font-family:var(--font-pixel);font-size:6px;color:var(--text-off);margin-top:3px;">저장됨 · 다음에 자동 입력</div>
+      </div>
+    </div>
+
+    <!-- 3. Processing Level -->
+    <div>
+      <div class="opt-title">► 가공 정도</div>
+      <div class="slider-wrap">
+        <div class="slider-ends"><span>담백하게</span><span>극적으로</span></div>
+        <input type="range" min="1" max="5" value="3" id="proc-level" oninput="updateLevelLabel(this.value)">
+        <div class="slider-val" id="proc-label">[ NORMAL ]</div>
+      </div>
+    </div>
+
+    <!-- 4. Style References (multi-select + add) -->
+    <div>
+      <div class="opt-title">► 참고 문체 <span style="color:var(--gray-4);font-size:6px;">(복수 선택 가능)</span></div>
+      <div class="sr-list" id="sr-list">
+        <div class="sr-none sel" data-id="" onclick="toggleSrNone(this)">[기본 문체]<span class="sr-check">✓</span></div>
+      </div>
+      <div class="add-sr-toggle" onclick="toggleAddSrForm()" style="margin-top:8px;">+ 새 문체 추가</div>
+      <div id="add-sr-form">
+        <input id="new-sr-title" class="pixel-input" placeholder="문체 이름" style="font-size:12px;padding:6px 8px;">
+        <textarea id="new-sr-textarea" class="pixel-input" placeholder="문체 샘플 텍스트 (최대 10,000자)" maxlength="10000" style="font-size:12px;min-height:70px;"></textarea>
+        <button class="pixel-btn pixel-btn-fire" style="font-size:7px;padding:7px 10px;" onclick="saveNewStyleRef()">▸ 저장 + 선택</button>
+      </div>
+    </div>
+
+    <button class="gen-btn" id="gen-btn" onclick="startGeneration()">▶ GENERATE DIARY ◀</button>
+  </aside>
+
+  <!-- RIGHT: Result -->
+  <main class="diary-panel">
+    <div class="diary-empty" id="diary-empty">
+      <div class="de-ascii">▒▒▒▒▒<br>░░░░░<br>▒▒▒▒▒</div>
+      <div class="de-txt">SET OPTIONS<br>PRESS GENERATE</div>
+    </div>
+    <div class="gen-overlay" id="gen-overlay">
+      <div class="gen-fire">🔥</div>
+      <div class="gen-label">WRITING YOUR STORY</div>
+      <div class="gen-sub">타닥타닥, 이야기가 피어오르는 중</div>
+      <div class="gen-progress" id="gen-progress"></div>
+    </div>
+    <div id="diary-result">
+      <div class="diary-meta">
+        <div class="diary-tags" id="result-tags"></div>
+        <div class="diary-title" id="result-title">2026년 4월 3일</div>
+        <div class="diary-sub-meta" id="result-sub"></div>
+      </div>
+      <div class="diary-content" id="diary-content"></div>
+      <div class="diary-actions">
+        <button class="pixel-btn" onclick="startGeneration()">↺ 다시 생성</button>
+        <button class="pixel-btn" id="edit-direct-btn" onclick="toggleDirectEdit()" style="display:none">[ ✎ 직접 편집 ]</button>
+        <button class="pixel-btn pixel-btn-fire" onclick="saveDiary()">▸ 저장</button>
+      </div>
+      <div class="char-section" id="char-section" style="display:none;">
+        <div class="char-section-title">► 등장인물</div>
+        <div class="char-grid" id="char-grid"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../services/storage.js"></script>
+<script src="../services/claude.js"></script>
+<script src="../services/avatar.js"></script>
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let state = {
+  perspective: '1인칭주인공',
+  processingLevel: 3,
+  weather: null,
+  selectedSrIds: new Set(),  // empty = 기본 문체
+  kindlings: [],
+  keyImageObj: null,  // { mediaType, base64Data, dataUrl }
+  lastDiaryContent: null,
+  lastDiaryId: null,
+  editingDiaryId: null,
+}
+
+const LV_LABELS = {1:'SUBTLE',2:'CALM',3:'NORMAL',4:'DRAMATIC',5:'INTENSE'}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Load kindlings from URL param or sessionStorage
+  const params  = new URLSearchParams(location.search)
+  const sessId  = params.get('session') || sessionStorage.getItem('currentSessionId')
+  if (sessId) {
+    state.kindlings  = StorageService.getKindlings(sessId)
+    state.sessionId  = sessId
+    // localStorage → sessionStorage 순서로 keyImage 조회
+    const _kiKey = 'tadak:key-image:' + sessId
+    let ki = StorageService.getKeyImage(sessId)
+    if (!ki) {
+      const _ss = sessionStorage.getItem(_kiKey)
+      if (_ss) { try { ki = JSON.parse(_ss) } catch { ki = null } }
+    }
+    console.log('[diary] loadState - sessId:', sessId, '/ ki 있음:', !!ki, ki ? ('type=' + typeof ki) : '')
+    // 구형(string) / 신형({ mediaType, base64Data, dataUrl }) 모두 지원
+    if (ki) state.keyImageObj = (typeof ki === 'string') ? { dataUrl: ki, base64Data: ki.split(',')[1], mediaType: ki.match(/^data:([^;,]+)/)?.[1] || 'image/jpeg' } : ki
+    console.log('[diary] loadState - keyImageObj 설정됨:', !!state.keyImageObj)
+    document.getElementById('kindling-tag').textContent = `KINDLING ×${state.kindlings.length}`
+  }
+
+  // 수정 모드 감지
+  const editId = params.get('edit')
+  if (editId) loadDiaryForEdit(editId)
+
+  // Load prefs (nickname)
+  const prefs = StorageService.getPrefs()
+  if (prefs.nickname) document.getElementById('nickname-input').value = prefs.nickname
+
+  // Load style refs from localStorage
+  renderStyleRefs()
+})
+
+// ── Weather ───────────────────────────────────────────────────────────────
+function selectWeather(el) {
+  const already = el.classList.contains('sel')
+  document.querySelectorAll('.weather-opt').forEach(e => e.classList.remove('sel'))
+  if (!already) { el.classList.add('sel'); state.weather = el.dataset.val }
+  else           { state.weather = null }  // 재클릭 시 선택 해제
+}
+
+// ── Perspective ───────────────────────────────────────────────────────────
+function selectPv(el) {
+  document.querySelectorAll('.pv-card').forEach(e => e.classList.remove('sel'))
+  el.classList.add('sel')
+  state.perspective = el.dataset.val
+  const is3rd = state.perspective.startsWith('3인칭')
+  document.getElementById('nickname-row').classList.toggle('show', is3rd)
+}
+
+function saveNickname(val) {
+  StorageService.savePrefs({ nickname: val })
+}
+
+// ── Processing Level ──────────────────────────────────────────────────────
+function updateLevelLabel(v) {
+  state.processingLevel = +v
+  document.getElementById('proc-label').textContent = `[ ${LV_LABELS[v]} ]`
+}
+
+// ── Style References ──────────────────────────────────────────────────────
+function renderStyleRefs() {
+  const list    = StorageService.getStyleRefs()
+  const container = document.getElementById('sr-list')
+  // Keep the "기본 문체" option, rebuild the rest
+  const existing = container.querySelector('.sr-none')
+  container.innerHTML = ''
+  container.appendChild(existing)
+
+  list.forEach(sr => {
+    const div = document.createElement('div')
+    div.className = 'sr-item' + (state.selectedSrIds.has(sr.id) ? ' sel' : '')
+    div.dataset.id = sr.id
+    div.innerHTML = `<div class="sr-title">${esc(sr.title)}</div>
+      <div class="sr-ex">${esc(sr.content.slice(0,60))}…</div>
+      <span class="sr-check">✓</span>`
+    div.onclick = () => toggleSr(div, sr.id)
+    container.appendChild(div)
+  })
+}
+
+function toggleSrNone(el) {
+  state.selectedSrIds.clear()
+  document.querySelectorAll('.sr-item').forEach(e => e.classList.remove('sel'))
+  el.classList.add('sel')
+}
+
+function toggleSr(el, id) {
+  // Deselect "기본 문체"
+  document.querySelector('.sr-none')?.classList.remove('sel')
+  el.classList.toggle('sel')
+  if (el.classList.contains('sel')) state.selectedSrIds.add(id)
+  else state.selectedSrIds.delete(id)
+  // If nothing selected, re-select 기본 문체
+  if (state.selectedSrIds.size === 0) document.querySelector('.sr-none')?.classList.add('sel')
+}
+
+function toggleAddSrForm() {
+  document.getElementById('add-sr-form').classList.toggle('show')
+}
+
+function saveNewStyleRef() {
+  const title   = document.getElementById('new-sr-title').value.trim()
+  const content = document.getElementById('new-sr-textarea').value.trim()
+  if (!title || !content) { alert('제목과 내용을 입력해주세요.'); return }
+  const newRef = { id: 'sr-' + Date.now(), title, content, excerpt: content.slice(0,200), createdAt: new Date().toISOString() }
+  StorageService.saveStyleRef(newRef)
+  state.selectedSrIds.add(newRef.id)
+  document.getElementById('new-sr-title').value   = ''
+  document.getElementById('new-sr-textarea').value = ''
+  document.getElementById('add-sr-form').classList.remove('show')
+  document.querySelector('.sr-none')?.classList.remove('sel')
+  renderStyleRefs()
+}
+
+// ── API Key ───────────────────────────────────────────────────────────────
+function ensureApiKey(onSuccess) {
+  if (StorageService.getApiKey()) { onSuccess(); return }
+  document.getElementById('api-modal').classList.add('open')
+  window._apiKeyCallback = onSuccess
+}
+
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim()
+  if (!key.startsWith('sk-ant')) {
+    document.getElementById('api-error').textContent = '⚠ 유효하지 않은 키 형식입니다.'
+    return
+  }
+  StorageService.setApiKey(key)
+  closeApiModal()
+  if (window._apiKeyCallback) window._apiKeyCallback()
+}
+
+function closeApiModal() {
+  document.getElementById('api-modal').classList.remove('open')
+  document.getElementById('api-error').textContent = ''
+}
+
+// ── Generation ────────────────────────────────────────────────────────────
+async function startGeneration() {
+  ensureApiKey(doGenerate)
+}
+
+let _isGenerating = false
+
+async function doGenerate() {
+  if (_isGenerating) return
+  if (state.kindlings.length === 0) { alert('땔감이 없어요. 먼저 사건을 입력해주세요.'); return }
+  _isGenerating = true
+
+  // UI: show overlay
+  document.getElementById('diary-empty').style.display   = 'none'
+  document.getElementById('diary-result').style.display  = 'none'
+  const ov = document.getElementById('gen-overlay')
+  ov.classList.add('active')
+  const progress = document.getElementById('gen-progress')
+  const btn = document.getElementById('gen-btn')
+  btn.disabled = true
+
+  const setProgress = txt => { progress.textContent = txt }
+
+  try {
+    // Step 1: 이미지는 generateDiary에서 직접 처리 (별도 분석 불필요)
+
+    // Step 2: Gather selected style refs content
+    const allRefs  = StorageService.getStyleRefs()
+    const styleRefs = state.selectedSrIds.size > 0
+      ? allRefs.filter(r => state.selectedSrIds.has(r.id))
+      : []
+
+    // Fetch continuity context from last diary
+    const diaries = StorageService.getDiaries()
+    const continuityContext = diaries.length > 0 ? diaries[0].continuityContext : null
+
+    const prefs = StorageService.getPrefs()
+    const nickname = state.perspective.startsWith('3인칭') ? prefs.nickname : null
+
+    // Step 3: Generate diary
+    setProgress('▸ 일기를 쓰고 있어요...')
+    // 첨부 이미지 로딩
+    const attachments = state.sessionId
+      ? (StorageService.getAttachments ? StorageService.getAttachments(state.sessionId) : [])
+      : []
+    // 체크 1: 이미지 저장 확인
+    console.log('[diary] 체크1 - keyImageObj 있음:', !!state.keyImageObj)
+    console.log('[diary] 체크1 - mediaType:', state.keyImageObj?.mediaType)
+    console.log('[diary] 체크1 - base64Data 길이:', state.keyImageObj?.base64Data?.length)
+    console.log('[diary] 체크1 - dataUrl 앞 50자:', state.keyImageObj?.dataUrl?.slice(0, 50))
+    console.log('[diary] 체크1 - attachments 수:', attachments.length)
+
+    const { content, continuityContext: newCtx } = await ClaudeService.generateDiary({
+      kindlings:        state.kindlings,
+      perspective:      state.perspective,
+      processingLevel:  state.processingLevel,
+      styleRefs,
+      weather:          state.weather,
+      nickname,
+      continuityContext,
+      keyImageObj:      state.keyImageObj,
+      attachments,
+    })
+
+    state.lastDiaryContent = content
+
+    // Step 4: Extract characters (차단된 인물 제외)
+    setProgress('▸ 등장인물 추출 중...')
+    const sessionDate = new Date().toISOString().slice(0,10)
+    const allChars  = await ClaudeService.extractCharacters(content, sessionDate).catch(() => [])
+    const blocked   = StorageService.getBlockedChars ? StorageService.getBlockedChars() : []
+    const rawChars  = allChars.filter(c => !blocked.includes(c.name))
+    if (blocked.length && allChars.length !== rawChars.length) {
+      console.log('[diary] 차단된 인물 제외:', allChars.length - rawChars.length, '명')
+    }
+
+    // Step 5: Save to localStorage
+    const diaryId = state.editingDiaryId || ('diary-' + Date.now())
+    state.lastDiaryId = diaryId
+    const prevDiary = state.editingDiaryId ? (StorageService.getDiary(diaryId) || {}) : {}
+    const diary = {
+      ...prevDiary,
+      id: diaryId,
+      sessionId:   state.sessionId || prevDiary.sessionId || null,
+      content,
+      continuityContext: newCtx,
+      generationOptions: {
+        perspective:     state.perspective,
+        processingLevel: state.processingLevel,
+        weather:         state.weather,
+        styleRefIds:     [...state.selectedSrIds],
+      },
+      kindlings:        state.kindlings,
+      kindlingSnapshot: state.kindlings.map(k => k.text),
+      characters:       rawChars.map(c => ({ name: c.name, relationship: c.relationship })),
+      characterNames:   rawChars.map(c => c.name),
+      keyImage:         state.keyImageObj?.dataUrl || prevDiary.keyImage?.dataUrl || (typeof prevDiary.keyImage === 'string' ? prevDiary.keyImage : null) || null,
+      date:             prevDiary.date || sessionDate,
+      createdAt:        prevDiary.createdAt || new Date().toISOString(),
+      updatedAt:        state.editingDiaryId ? new Date().toISOString() : undefined,
+    }
+    StorageService.saveDiary(diary)
+
+    // Save characters
+    for (const char of rawChars) {
+      StorageService.upsertCharacter(char)
+    }
+
+    // Step 6: Show result
+    ov.classList.remove('active')
+    showResult(content, rawChars, diary)
+
+  } catch (err) {
+    ov.classList.remove('active')
+    if (err.message === 'API_KEY_MISSING') {
+      document.getElementById('api-modal').classList.add('open')
+    } else {
+      document.getElementById('diary-empty').style.display = 'flex'
+      alert('오류: ' + err.message)
+    }
+  } finally {
+    _isGenerating = false
+    btn.disabled = false
+    setProgress('')
+  }
+}
+
+// ── Edit Mode ────────────────────────────────────────────────────────────
+function loadDiaryForEdit(id) {
+  const diary = StorageService.getDiary(id)
+  if (!diary) return
+  state.editingDiaryId = id
+
+  // 킨들링 복원
+  const kls = diary.kindlings
+    || (diary.kindlingSnapshot || []).map((t, i) => ({ id: 'k' + i, text: t }))
+  state.kindlings = kls.map((k, i) => typeof k === 'string' ? { id: 'k' + i, text: k } : k)
+  document.getElementById('kindling-tag').textContent = `KINDLING ×${state.kindlings.length}`
+
+  // 옵션 복원
+  const opts = diary.generationOptions || {}
+  if (opts.weather) {
+    const wEl = document.querySelector(`.weather-opt[data-val="${opts.weather}"]`)
+    if (wEl) selectWeather(wEl)
+  }
+  if (opts.perspective) {
+    const pvEl = document.querySelector(`.pv-card[data-val="${opts.perspective}"]`)
+    if (pvEl) selectPv(pvEl)
+  }
+  if (opts.processingLevel) {
+    const sl = document.getElementById('proc-level')
+    if (sl) { sl.value = opts.processingLevel; updateLevelLabel(opts.processingLevel) }
+    state.processingLevel = opts.processingLevel
+  }
+
+  // 기존 일기 표시
+  if (diary.content) {
+    const savedChars = diary.characters
+      || (diary.characterNames || []).map(n => StorageService.getCharacter(n) || { name: n })
+    showResult(diary.content, savedChars, { ...diary, generationOptions: opts })
+    state.lastDiaryContent = diary.content
+    state.lastDiaryId = id
+  }
+}
+
+let _directEditing = false
+function toggleDirectEdit() {
+  const el  = document.getElementById('diary-content')
+  const btn = document.getElementById('edit-direct-btn')
+  _directEditing = !_directEditing
+  if (_directEditing) {
+    el.contentEditable = 'true'
+    el.style.outline = '2px solid var(--fire-org)'
+    el.style.padding = '4px'
+    btn.textContent = '[ ✔ 편집 완료 ]'
+    el.focus()
+  } else {
+    el.contentEditable = 'false'
+    el.style.outline = ''
+    el.style.padding = ''
+    btn.textContent = '[ ✎ 직접 편집 ]'
+    // 변경 내용 저장
+    state.lastDiaryContent = el.textContent
+    if (state.lastDiaryId) {
+      const d = StorageService.getDiary(state.lastDiaryId)
+      if (d) { d.content = state.lastDiaryContent; StorageService.saveDiary(d) }
+    }
+  }
+}
+
+// ── Show Result ──────────────────────────────────────────────────────────
+function showResult(content, chars, diary) {
+  // Tags
+  const tags = document.getElementById('result-tags')
+  tags.innerHTML = `
+    <span class="px-tag px-tag-fire">▸ GENERATED</span>
+    <span class="px-tag px-tag-white">${diary.generationOptions.perspective}</span>
+    <span class="px-tag px-tag-white">${LV_LABELS[diary.generationOptions.processingLevel]}</span>
+    ${diary.generationOptions.weather ? `<span class="px-tag px-tag-white">${diary.generationOptions.weather}</span>` : ''}
+  `
+
+  document.getElementById('result-title').textContent = diary.date
+  const srNames = diary.generationOptions.styleRefIds.length > 0
+    ? StorageService.getStyleRefs().filter(r => diary.generationOptions.styleRefIds.includes(r.id)).map(r => r.title).join(', ')
+    : '기본 문체'
+  document.getElementById('result-sub').textContent = `STYLE: ${srNames.toUpperCase()}`
+
+  // Typewriter
+  const el = document.getElementById('diary-content')
+  el.textContent = ''
+  const cursor = document.createElement('span')
+  cursor.className = 'px-cursor'
+  el.appendChild(cursor)
+  let i = 0
+  function type() {
+    if (i < content.length) {
+      el.insertBefore(document.createTextNode(content[i]), cursor)
+      i++
+      setTimeout(type, 14 + (content[i] === '\n' ? 100 : 0))
+    } else { cursor.remove() }
+  }
+  type()
+
+  document.getElementById('diary-result').style.display = 'block'
+  document.getElementById('edit-direct-btn').style.display = 'inline-flex'
+
+  // Render characters
+  if (chars.length > 0) {
+    renderCharGrid(chars)
+    document.getElementById('char-section').style.display = 'block'
+  }
+}
+
+// ── Character Grid ────────────────────────────────────────────────────────
+function renderCharGrid(chars) {
+  const grid = document.getElementById('char-grid')
+  grid.innerHTML = ''
+  chars.forEach(char => {
+    const saved = StorageService.getCharacter(char.name) || char
+    const card  = document.createElement('div')
+    card.className = 'char-card'
+    card.onclick   = () => openCharModal(saved.name)
+
+    const canvas = document.createElement('canvas')
+    canvas.className = 'char-avatar'
+    AvatarGenerator.render(canvas, saved)
+
+    card.innerHTML = `<div class="char-name">${esc(char.name)}</div><div class="char-rel">${esc(char.relationship||'')}</div>`
+    card.insertBefore(canvas, card.firstChild)
+
+    const regen = document.createElement('div')
+    regen.className = 'char-regen'
+    regen.textContent = '↺ 아바타 재생성'
+    regen.onclick = async e => {
+      e.stopPropagation()
+      regen.textContent = '...'
+      try {
+        const avatarData = await ClaudeService.describeAvatarColors(char)
+        StorageService.saveCharacterAvatar(char.name, avatarData)
+        const updated = StorageService.getCharacter(char.name)
+        AvatarGenerator.render(canvas, updated || { ...char, avatarData })
+      } catch { alert('재생성 실패') }
+      regen.textContent = '↺ 아바타 재생성'
+    }
+    card.appendChild(regen)
+    grid.appendChild(card)
+  })
+}
+
+// ── Character Modal ───────────────────────────────────────────────────────
+function openCharModal(name) {
+  const char = StorageService.getCharacter(name)
+  if (!char) return
+  document.getElementById('m-name').textContent = char.name
+  document.getElementById('m-rel').textContent  = (char.relationship || '').toUpperCase()
+
+  const avatarImg = document.getElementById('m-avatar')
+  const tmpCanvas = document.createElement('canvas')
+  AvatarGenerator.render(tmpCanvas, char)
+  avatarImg.src = tmpCanvas.toDataURL()
+
+  const appears = document.getElementById('m-appears')
+  appears.innerHTML = (char.appearances || []).map(d =>
+    `<span class="px-tag px-tag-white">${d}</span>`).join('')
+
+  const episodes = document.getElementById('m-episodes')
+  episodes.innerHTML = (char.episodes || []).map(e =>
+    `<div class="episode-item"><b>${e.date}</b> ${esc(e.summary || '')}</div>`).join('')
+
+  document.getElementById('char-modal').classList.add('open')
+}
+
+function closeCharModal() {
+  document.getElementById('char-modal').classList.remove('open')
+}
+
+// ── Save diary to timeline ────────────────────────────────────────────────
+function saveDiary() {
+  if (!state.lastDiaryId) { alert('먼저 일기를 생성해주세요.'); return }
+  // Already saved during generation; just navigate to timeline
+  alert('일기가 저장되었습니다.')
+  window.location.href = 'timeline.html'
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+
+
+</script>
+</body>
+</html>

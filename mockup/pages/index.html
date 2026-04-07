@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>타닥타닥</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <style>
+    /* ── Page Grid ─────────────────────────────────────────── */
+    .page {
+      min-height: 100vh;
+      padding-top: 64px;
+      display: grid;
+      grid-template-columns: 1fr 440px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Left: Bonfire Stage ───────────────────────────────── */
+    .bonfire-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px 100px;
+      min-height: calc(100vh - 52px);
+      position: relative;
+    }
+
+    /* Date display */
+    .scene-date {
+      font-family: var(--font-pixel);
+      font-size: 14px;
+      color: var(--gray-4);
+      letter-spacing: 0.12em;
+      text-align: center;
+      margin-bottom: 28px;
+      text-transform: uppercase;
+    }
+
+    .scene-date .date-main {
+      font-family: var(--font-korean);
+      font-size: 22px;
+      color: var(--gray-5);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    /* Fire container */
+    .bonfire-scene {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    /* Pixel ground strip under logs */
+    .pixel-ground {
+      width: 140px;
+      height: 6px;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          #1a0500 0px, #1a0500 10px,
+          #0a0200 10px, #0a0200 20px
+        );
+    }
+
+    /* ── Flame Gauge ───────────────────────────────────────── */
+    .gauge-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .gauge-label {
+      font-family: var(--font-pixel);
+      font-size: 14px;
+      color: var(--gray-4);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      white-space: nowrap;
+    }
+
+    #gauge-bar {
+      font-family: var(--font-pixel);
+      font-size: 20px;
+      color: var(--fire-amb);
+      letter-spacing: -1px;
+    }
+
+    .gauge-count {
+      font-family: var(--font-pixel);
+      font-size: 16px;
+      color: var(--fire-tip);
+    }
+
+    /* Hint text */
+    #threshold-hint {
+      font-family: var(--font-pixel);
+      font-size: 14px;
+      color: var(--text-dim);
+      text-align: center;
+      letter-spacing: 0.08em;
+      height: 22px;
+      margin-top: 6px;
+    }
+
+    /* ── Key Image ─────────────────────────────────────────── */
+    .key-image-section {
+      margin-top: 28px;
+      width: 220px;
+    }
+
+    .key-image-upload {
+      width: 100%;
+      height: 120px;
+      border: 2px dashed #555;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.15s;
+      background: var(--black);
+      box-sizing: border-box;
+    }
+
+    .key-image-upload:hover { border-color: var(--fire-org); }
+
+    .key-image-upload input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 1;
+    }
+
+    #key-image-preview {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: none;
+      position: absolute; inset: 0;
+    }
+
+    #key-image-placeholder {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      color: var(--text-off);
+      text-align: center;
+      line-height: 2.4;
+      letter-spacing: 0.06em;
+      pointer-events: none;
+    }
+
+    #key-image-remove {
+      display: none;
+      position: absolute;
+      top: 6px; right: 6px;
+      z-index: 2;
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      background: rgba(0,0,0,0.75);
+      border: 1px solid #888;
+      color: #ccc;
+      cursor: pointer;
+      padding: 2px 5px;
+      line-height: 1.4;
+    }
+
+    #key-image-remove:hover { border-color: var(--white); color: var(--white); }
+
+    /* ── Right Panel ────────────────────────────────────────── */
+    .right-panel {
+      border-left: 3px solid var(--white);
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 64px);
+      position: sticky;
+      top: 64px;
+      z-index: 1;
+      background: var(--black);
+    }
+
+    .panel-header {
+      padding: 16px 18px 14px;
+      border-bottom: 2px solid var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-title {
+      font-family: var(--font-pixel);
+      font-size: 16px;
+      color: var(--white);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-title .count-box {
+      background: var(--fire-org);
+      color: var(--black);
+      font-size: 16px;
+      padding: 3px 8px;
+      font-weight: 700;
+    }
+
+    /* Kindling list */
+    .kindling-list-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+
+    #kindling-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* Empty state */
+    #empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+      color: var(--text-off);
+      font-family: var(--font-pixel);
+      font-size: 14px;
+      text-align: center;
+      line-height: 2.4;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    #empty-state .empty-icon {
+      font-size: 36px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+
+    /* Kindling item */
+    .kindling-item {
+      padding: 10px 10px;
+      display: grid;
+      grid-template-columns: 28px 1fr 28px;
+      gap: 6px;
+      align-items: start;
+      opacity: 0;
+      transform: translateX(8px);
+      transition: opacity 0.2s steps(3), transform 0.2s steps(3), border-color 0.1s;
+    }
+
+    .kindling-item.visible { opacity: 1; transform: translateX(0); }
+
+    .k-num {
+      font-family: var(--font-pixel);
+      font-size: 14px;
+      color: var(--fire-org);
+      padding-top: 2px;
+    }
+
+    .k-text {
+      font-family: var(--font-korean);
+      font-size: 16px;
+      color: var(--gray-5);
+      line-height: 1.7;
+      word-break: keep-all;
+    }
+
+    .k-del {
+      font-size: 14px !important;
+      padding: 6px 8px !important;
+      border-width: 1px !important;
+      border-color: var(--gray-3) !important;
+      color: var(--gray-3) !important;
+      background: transparent !important;
+      cursor: pointer;
+    }
+
+    .k-del:hover {
+      border-color: var(--white) !important;
+      color: var(--white) !important;
+      background: transparent !important;
+    }
+
+    /* Input section */
+    .kindling-input-section {
+      padding: 14px;
+      border-top: 2px solid var(--white);
+      background: var(--black);
+    }
+
+    .input-label {
+      font-family: var(--font-pixel);
+      font-size: 14px;
+      color: var(--gray-4);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    #kindling-input { flex: 1; height: 88px; }
+
+    #kindling-add-btn {
+      flex-shrink: 0;
+      width: 56px; height: 56px;
+      font-family: var(--font-pixel);
+      font-size: 20px;
+      font-weight: 700;
+      background: var(--black);
+      border: 3px solid var(--fire-org);
+      color: var(--fire-org);
+      cursor: pointer;
+      transition: background 0.05s, color 0.05s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #kindling-add-btn:hover {
+      background: var(--fire-org);
+      color: var(--black);
+    }
+
+    #kindling-add-btn:active { transform: translate(2px, 2px); }
+
+    .input-hint {
+      margin-top: 8px;
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      color: var(--text-off);
+      letter-spacing: 0.06em;
+    }
+  </style>
+</head>
+<body>
+
+<div class="pixel-stars"></div>
+
+<!-- Header -->
+<header class="app-header">
+  <a class="app-logo" href="index.html">
+    <span class="logo-korean">타닥타닥</span>
+    <span class="logo-en">tadak-tadak</span>
+  </a>
+  <div class="header-actions">
+    <button class="pixel-btn pixel-btn-sm" onclick="window.location.href='timeline.html'">
+      [타임라인]
+    </button>
+    <button class="pixel-btn pixel-btn-sm" onclick="window.location.href='novel.html?from=index'">
+      [나의 이야기]
+    </button>
+    <button class="pixel-btn pixel-btn-sm" onclick="window.location.href='style-ref.html'">
+      [참고 문체]
+    </button>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- LEFT: Bonfire Stage -->
+  <main class="bonfire-stage">
+
+    <div class="scene-date">
+      <span class="date-main">2026년 4월 2일 목요일</span>
+      TODAY / BONFIRE NIGHT
+    </div>
+
+    <!-- Pixel Fire -->
+    <div class="bonfire-scene">
+      <div class="fire-canvas-wrap">
+        <canvas id="fire-canvas"></canvas>
+      </div>
+      <div class="pixel-ground"></div>
+    </div>
+
+    <!-- Flame Gauge -->
+    <div class="gauge-row">
+      <span class="gauge-label">FLAME</span>
+      <span id="gauge-bar">░░░░░</span>
+      <span class="gauge-count">
+        [<span class="kindling-count-display">0</span>/∞]
+      </span>
+    </div>
+    <div id="threshold-hint">땔감 3개 더 필요해요</div>
+
+    <!-- Key Image Upload -->
+    <div class="key-image-section">
+      <div class="key-image-upload">
+        <input type="file" accept="image/*" onchange="handleKeyImageUpload(this)">
+        <img id="key-image-preview" alt="대표 이미지">
+        <div id="key-image-placeholder">
+          오늘의 대표 이미지<br>
+          (선택)
+        </div>
+        <button id="key-image-remove" onclick="removeKeyImage(event)" title="이미지 제거">[x]</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- RIGHT: Kindling Panel -->
+  <aside class="right-panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        KINDLING
+        <span class="count-box kindling-count-display">0</span>
+      </div>
+      <span class="px-tag px-tag-white">CTRL+ENTER</span>
+    </div>
+
+    <div class="kindling-list-wrap">
+      <div id="kindling-list">
+        <div id="empty-state">
+          <div class="empty-icon">▒</div>
+          NO KINDLING YET<br>ADD YOUR STORY
+        </div>
+      </div>
+    </div>
+
+    <div class="kindling-input-section">
+      <div class="input-label">▸ 새 땔감 추가</div>
+      <div class="input-row">
+        <textarea
+          id="kindling-input"
+          class="pixel-input"
+          placeholder="오늘 있었던 일을 조각조각 던져보세요..."
+          maxlength="500"
+        ></textarea>
+        <button id="kindling-add-btn" title="추가 (Ctrl+Enter)">+</button>
+      </div>
+      <div class="input-hint">MAX 500 CHARS</div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- Floating Generate Button -->
+<div class="generate-btn-wrap">
+  <button class="generate-btn">
+    ▶ 일기 쓰기 ◀
+  </button>
+</div>
+
+<script src="../services/storage.js"></script>
+<script src="../scripts/bonfire.js"></script>
+<script>
+  // ── Date display ──────────────────────────────────────────────────────────
+  ;(function() {
+    const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
+    const d = new Date()
+    const y = d.getFullYear(), m = d.getMonth()+1, dd = d.getDate()
+    document.querySelector('.scene-date .date-main').textContent =
+      `${y}년 ${m}월 ${dd}일 ${days[d.getDay()]}`
+  })()
+  // bonfire.js handles all kindling state, localStorage persistence,
+  // event listeners, flame UI, and generate button navigation.
+</script>
+</body>
+</html>

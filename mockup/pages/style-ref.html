@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>참고 문체 — 타닥타닥</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <style>
+    .page {
+      min-height: 100vh;
+      padding-top: 52px;
+      max-width: 680px;
+      margin: 0 auto;
+      padding-left: 28px;
+      padding-right: 28px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .page-heading {
+      padding: 32px 0 0;
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      color: var(--fire-amb);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .page-sub {
+      font-family: var(--font-korean);
+      font-size: 13px;
+      color: var(--gray-4);
+      margin: 12px 0 28px;
+      line-height: 1.7;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--gray-2);
+    }
+
+    .page-sub strong {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--fire-org);
+      font-weight: 400;
+    }
+
+    /* ── Upload zone ─────────────────────────────────────── */
+    .upload-zone {
+      border: 2px dashed var(--gray-3);
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.1s;
+      background: var(--black);
+      margin-bottom: 24px;
+    }
+
+    .upload-zone:hover { border-color: var(--white); }
+    .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+    .upload-zone-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .upload-icon-text {
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      color: var(--gray-4);
+      letter-spacing: 0.1em;
+    }
+
+    .upload-sub-text {
+      font-family: var(--font-pixel);
+      font-size: 6px;
+      color: var(--text-off);
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Paste section ───────────────────────────────────── */
+    .section-title {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--gray-4);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .paste-section { margin-bottom: 28px; }
+
+    #paste-title-input { margin-bottom: 6px; }
+    #paste-content { min-height: 120px; }
+
+    .char-row {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .char-count-label {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--text-off);
+      letter-spacing: 0.06em;
+    }
+
+    #char-count { color: var(--fire-org); }
+
+    .paste-actions { margin-top: 10px; }
+
+    /* ── Style ref list ──────────────────────────────────── */
+    .sr-list-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--gray-2);
+    }
+
+    .sr-list-title {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--gray-4);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .sr-counter {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--fire-org);
+    }
+
+    .sr-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 48px; }
+
+    .sr-card {
+      border: 2px solid var(--gray-3);
+      padding: 14px 14px 10px;
+      background: var(--black);
+      transition: border-color 0.1s;
+    }
+
+    .sr-card:hover { border-color: var(--white); }
+
+    .sr-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .sr-card-title {
+      font-family: var(--font-korean);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    .sr-card-chars {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--gray-4);
+      margin-top: 3px;
+      letter-spacing: 0.06em;
+    }
+
+    .sr-card-excerpt {
+      font-family: var(--font-korean);
+      font-size: 12px;
+      color: var(--gray-4);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.6;
+      margin-bottom: 10px;
+      border-left: 2px solid var(--gray-2);
+      padding-left: 10px;
+    }
+
+    .sr-card-actions {
+      display: flex;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="pixel-stars"></div>
+
+<header class="app-header">
+  <a class="app-logo" href="index.html">
+    <span class="logo-korean">타닥타닥</span>
+    <span class="logo-en">◀ 모닥불로</span>
+  </a>
+</header>
+
+<div class="page">
+  <h1 class="page-heading">참고 문체</h1>
+  <p class="page-sub">
+    내가 쓴 소설, 좋아하는 글, 마음에 드는 문장을 저장해두세요.<br>
+    <strong>MAX 10 FILES · 10,000 CHARS EACH</strong>
+  </p>
+
+  <!-- Upload -->
+  <div class="upload-zone pixel-border-dim">
+    <input type="file" accept=".txt,.md">
+    <div class="upload-zone-inner">
+      <div class="upload-icon-text">[ .TXT / .MD 업로드 ]</div>
+      <div class="upload-sub-text">CLICK OR DROP FILE HERE</div>
+    </div>
+  </div>
+
+  <!-- Paste -->
+  <div class="paste-section">
+    <div class="section-title">► 직접 붙여넣기</div>
+    <input
+      id="paste-title-input"
+      type="text"
+      class="pixel-input"
+      placeholder="문체 이름 (예: 내가 쓴 단편)"
+      maxlength="40"
+    >
+    <textarea
+      id="paste-content"
+      class="pixel-input"
+      placeholder="문체 샘플 텍스트를 여기에 붙여넣으세요..."
+      maxlength="10000"
+      oninput="updateCharCount(this)"
+    ></textarea>
+    <div class="char-row">
+      <span class="char-count-label"><span id="char-count">0</span> / 10,000</span>
+    </div>
+    <div class="paste-actions">
+      <button class="pixel-btn pixel-btn-fire" onclick="savePaste()">
+        ▸ 저장하기
+      </button>
+    </div>
+  </div>
+
+  <!-- List -->
+  <div class="sr-list-header">
+    <span class="sr-list-title">SAVED STYLES</span>
+    <span class="sr-counter" id="sr-counter">0 / 10</span>
+  </div>
+
+  <div class="sr-grid" id="sr-grid"></div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal-overlay" id="preview-modal" onclick="handleOverlayClick(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="preview-title"></div>
+      <button class="modal-close" onclick="closePreview()">[ ✕ ]</button>
+    </div>
+    <div class="modal-body">
+      <div class="preview-text" id="preview-text"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 60px 16px 32px;
+    overflow-y: auto;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    width: 100%;
+    max-width: 640px;
+    background: var(--black);
+    border: 3px solid var(--white);
+    box-shadow: inset 0 0 0 2px var(--white), inset 0 0 0 5px var(--black);
+  }
+  .modal-header {
+    padding: 14px 18px 12px;
+    border-bottom: 2px solid var(--gray-2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .modal-title {
+    font-family: var(--font-korean);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--white);
+  }
+  .modal-close {
+    font-family: var(--font-pixel);
+    font-size: 9px;
+    background: transparent;
+    border: 2px solid var(--gray-3);
+    color: var(--gray-4);
+    cursor: pointer;
+    padding: 6px 10px;
+    flex-shrink: 0;
+    transition: border-color 0.1s, color 0.1s;
+  }
+  .modal-close:hover { border-color: var(--white); color: var(--white); }
+  .modal-body {
+    padding: 20px 24px 24px;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  .preview-text {
+    font-family: var(--font-korean);
+    font-size: 13px;
+    color: var(--gray-5);
+    line-height: 1.9;
+    white-space: pre-wrap;
+    word-break: keep-all;
+  }
+</style>
+
+<script src="../services/storage.js"></script>
+<script>
+  // ── Char count ────────────────────────────────────────────────────────────
+  function updateCharCount(el) {
+    document.getElementById('char-count').textContent = el.value.length
+  }
+
+  // ── Save paste ────────────────────────────────────────────────────────────
+  function savePaste() {
+    const title   = document.getElementById('paste-title-input').value.trim()
+    const content = document.getElementById('paste-content').value.trim()
+    if (!title) { alert('제목을 입력해주세요.'); return }
+    if (!content) { alert('내용을 입력해주세요.'); return }
+
+    const list = StorageService.getStyleRefs()
+    if (list.length >= 10) { alert('최대 10개까지 저장할 수 있어요.'); return }
+
+    const ref = {
+      id: Date.now().toString(),
+      title,
+      content,
+      createdAt: new Date().toISOString(),
+    }
+    StorageService.saveStyleRef(ref)
+
+    document.getElementById('paste-title-input').value = ''
+    document.getElementById('paste-content').value = ''
+    document.getElementById('char-count').textContent = '0'
+
+    renderList()
+  }
+
+  // ── File upload ───────────────────────────────────────────────────────────
+  document.querySelector('.upload-zone input').addEventListener('change', function() {
+    const file = this.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = e => {
+      const content = e.target.result.slice(0, 10000)
+      const title = file.name.replace(/\.[^.]+$/, '').slice(0, 40)
+
+      const list = StorageService.getStyleRefs()
+      if (list.length >= 10) { alert('최대 10개까지 저장할 수 있어요.'); return }
+
+      const ref = {
+        id: Date.now().toString(),
+        title,
+        content,
+        createdAt: new Date().toISOString(),
+      }
+      StorageService.saveStyleRef(ref)
+      renderList()
+    }
+    reader.readAsText(file, 'utf-8')
+    this.value = '' // reset so same file can be re-uploaded
+  })
+
+  // ── Delete ────────────────────────────────────────────────────────────────
+  function deleteRef(id, title) {
+    if (!confirm(`"${title}" 을(를) 삭제할까요?`)) return
+    StorageService.deleteStyleRef(id)
+    renderList()
+  }
+
+  // ── Preview modal ─────────────────────────────────────────────────────────
+  function openPreview(id) {
+    const list = StorageService.getStyleRefs()
+    const ref = list.find(r => r.id === id)
+    if (!ref) return
+    document.getElementById('preview-title').textContent = ref.title
+    document.getElementById('preview-text').textContent = ref.content
+    document.getElementById('preview-modal').classList.add('open')
+    document.body.style.overflow = 'hidden'
+  }
+
+  function closePreview() {
+    document.getElementById('preview-modal').classList.remove('open')
+    document.body.style.overflow = ''
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('preview-modal')) closePreview()
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closePreview()
+  })
+
+  // ── Render list ───────────────────────────────────────────────────────────
+  function renderList() {
+    const list = StorageService.getStyleRefs()
+    const grid = document.getElementById('sr-grid')
+    const counter = document.getElementById('sr-counter')
+
+    counter.textContent = `${list.length} / 10`
+    grid.innerHTML = ''
+
+    if (list.length === 0) {
+      grid.innerHTML = `
+        <div style="font-family:var(--font-pixel);font-size:7px;color:var(--text-off);
+          text-align:center;padding:32px 0;letter-spacing:0.1em;text-transform:uppercase">
+          NO SAVED STYLES
+        </div>
+      `
+      return
+    }
+
+    list.forEach(ref => {
+      const charCount = ref.content.length.toLocaleString()
+      const excerpt = ref.content.replace(/\s+/g, ' ').trim().slice(0, 200)
+
+      const card = document.createElement('div')
+      card.className = 'sr-card'
+      card.innerHTML = `
+        <div class="sr-card-header">
+          <div>
+            <div class="sr-card-title">${ref.title}</div>
+            <div class="sr-card-chars">${charCount} CHARS</div>
+          </div>
+        </div>
+        <div class="sr-card-excerpt">${excerpt}${excerpt.length < ref.content.length ? '…' : ''}</div>
+        <div class="sr-card-actions">
+          <button class="pixel-btn pixel-btn-sm" onclick="openPreview('${ref.id}')">미리보기</button>
+          <button class="pixel-btn pixel-btn-sm" style="border-color:var(--gray-3);color:var(--gray-4)"
+            onclick="deleteRef('${ref.id}', ${JSON.stringify(ref.title)})">삭제</button>
+        </div>
+      `
+      grid.appendChild(card)
+    })
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  renderList()
+</script>
+</body>
+</html>

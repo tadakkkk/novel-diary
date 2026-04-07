@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>일기 타임라인 — 타닥타닥</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <style>
+    .page {
+      min-height: 100vh;
+      padding-top: 64px;
+      max-width: 760px;
+      margin: 0 auto;
+      padding-left: 28px;
+      padding-right: 28px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .page-heading {
+      padding: 32px 0 0;
+      font-family: var(--font-pixel);
+      font-size: 14px;
+      color: var(--fire-amb);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .page-sub {
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      color: var(--gray-4);
+      margin: 12px 0 0;
+      letter-spacing: 0.1em;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--gray-2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ══════════════════════════════════════════
+       CHARACTER ROSTER SECTION
+    ══════════════════════════════════════════ */
+    .char-roster {
+      margin: 24px 0 0;
+      border: 3px solid var(--fire-org);
+      box-shadow: inset 0 0 0 2px var(--fire-org), inset 0 0 0 5px var(--black);
+      background: var(--black);
+    }
+
+    .char-roster-header {
+      padding: 10px 16px 8px;
+      border-bottom: 2px solid var(--fire-org);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .char-roster-title {
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      color: var(--fire-org);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .char-roster-count {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      color: var(--fire-amb);
+    }
+
+    .char-roster-body {
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 16px 12px 12px;
+      /* Custom scrollbar */
+      scrollbar-width: thin;
+      scrollbar-color: var(--fire-org) var(--black);
+    }
+
+    .char-roster-body::-webkit-scrollbar { height: 4px; }
+    .char-roster-body::-webkit-scrollbar-track { background: var(--black); }
+    .char-roster-body::-webkit-scrollbar-thumb { background: var(--fire-org); }
+
+    .char-roster-empty {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      color: var(--text-off);
+      text-align: center;
+      padding: 24px 0 16px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .char-roster-row {
+      display: flex;
+      gap: 12px;
+      width: max-content;
+      padding-bottom: 4px;
+    }
+
+    /* Individual character card in roster */
+    .char-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      padding: 10px 8px 8px;
+      border: 2px solid var(--gray-3);
+      background: var(--black);
+      transition: border-color 0.1s, background 0.1s;
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .char-card:hover {
+      border-color: var(--fire-org);
+      background: rgba(255,90,0,0.06);
+    }
+
+    .char-card canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      display: block;
+    }
+
+    .char-card-name {
+      font-family: var(--font-korean);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--white);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 72px;
+    }
+
+    .char-card-rel {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--gray-4);
+      text-align: center;
+      max-width: 72px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .char-card-appear {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--fire-org);
+      letter-spacing: 0.06em;
+    }
+
+    .char-regen-btn {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--gray-3);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 2px 4px;
+      letter-spacing: 0.06em;
+      transition: color 0.1s;
+    }
+
+    .char-regen-btn:hover { color: var(--fire-org); }
+
+    .char-del-btn {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--gray-3);
+      background: transparent;
+      border: 1px solid var(--gray-3);
+      cursor: pointer;
+      padding: 2px 5px;
+      transition: color 0.1s, border-color 0.1s;
+    }
+    .char-del-btn:hover { color: #ff5555; border-color: #ff5555; }
+
+    .char-desc-btn {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--gray-3);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 2px 4px;
+      transition: color 0.1s;
+    }
+    .char-desc-btn:hover { color: var(--fire-org); }
+
+    .char-card-desc {
+      font-family: var(--font-korean);
+      font-size: 10px;
+      color: var(--gray-4);
+      text-align: center;
+      max-width: 72px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      line-height: 1.4;
+    }
+    .char-card-desc.empty { color: var(--text-off); font-style: italic; }
+
+    /* ── Description edit modal ──────────────── */
+    .desc-edit-box {
+      background: var(--black);
+      border: 3px solid var(--fire-org);
+      box-shadow: inset 0 0 0 2px var(--fire-org), inset 0 0 0 5px var(--black);
+      padding: 24px 28px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .desc-edit-title {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      color: var(--fire-org);
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+    }
+
+    .desc-edit-textarea {
+      width: 100%;
+      min-height: 100px;
+      background: var(--black);
+      border: 2px solid var(--gray-3);
+      color: var(--white);
+      font-family: var(--font-korean);
+      font-size: 14px;
+      padding: 10px 12px;
+      resize: vertical;
+      margin-bottom: 16px;
+      line-height: 1.6;
+      outline: none;
+    }
+    .desc-edit-textarea:focus { border-color: var(--fire-org); }
+
+    .desc-edit-btns {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    /* ── Diary section header ─────────────────── */
+    .diary-section-header {
+      margin: 28px 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--gray-2);
+    }
+
+    .diary-section-title {
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      color: var(--gray-4);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ── Empty State ─────────────────────────── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px;
+      color: var(--text-off);
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      text-align: center;
+      line-height: 2.4;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .empty-icon {
+      font-size: 32px;
+      margin-bottom: 16px;
+      opacity: 0.2;
+    }
+
+    /* ── Diary List ──────────────────────────── */
+    .diary-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-bottom: 60px;
+    }
+
+    /* ── Diary Card ──────────────────────────── */
+    .diary-card {
+      border: 3px solid var(--gray-3);
+      background: var(--black);
+      cursor: pointer;
+      transition: border-color 0.1s;
+      position: relative;
+    }
+
+    .diary-card:hover { border-color: var(--white); }
+    .diary-card:hover .card-read-hint { opacity: 1; }
+
+    .card-inner {
+      display: grid;
+      grid-template-columns: 1fr auto;
+    }
+
+    .card-body { padding: 16px 16px 14px; min-width: 0; }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .card-date {
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      color: var(--fire-amb);
+      letter-spacing: 0.08em;
+    }
+
+    .card-duration {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      color: var(--gray-4);
+    }
+
+    .card-perspective {
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      padding: 2px 7px;
+      border: 1px solid var(--gray-3);
+      color: var(--gray-4);
+    }
+
+    .card-kindling-count {
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      color: var(--text-off);
+    }
+
+    .card-preview {
+      font-family: var(--font-korean);
+      font-size: 14px;
+      color: var(--gray-5);
+      line-height: 1.7;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .card-chars {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .card-char-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .card-char-wrap canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      display: block;
+    }
+
+    .card-char-name {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--gray-4);
+      max-width: 44px;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chars-more {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      color: var(--text-off);
+      align-self: center;
+      padding-bottom: 4px;
+    }
+
+    /* Card thumbnail */
+    .card-thumb {
+      width: 110px;
+      flex-shrink: 0;
+      border-left: 2px solid var(--gray-3);
+      overflow: hidden;
+    }
+
+    .card-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-thumb-empty {
+      width: 110px;
+      height: 100%;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0a0a0a;
+    }
+
+    .card-thumb-empty-text {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--text-off);
+      transform: rotate(-90deg);
+      white-space: nowrap;
+      letter-spacing: 0.06em;
+    }
+
+    .card-read-hint {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      color: var(--fire-org);
+      opacity: 0;
+      transition: opacity 0.1s;
+    }
+
+    /* ── Card actions (delete/edit) ──────────────────── */
+    .card-footer {
+      border-top: 1px solid var(--gray-2);
+      padding: 6px 10px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .card-action-btn {
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      padding: 4px 10px;
+      border: 1px solid var(--gray-3);
+      color: var(--gray-4);
+      background: transparent;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      transition: color 0.1s, border-color 0.1s;
+    }
+
+    .card-action-btn:hover { border-color: var(--white); color: var(--white); }
+    .card-action-del:hover { border-color: #ff5555; color: #ff5555; }
+
+    /* ── Delete confirm modal ────────────────────────── */
+    .delete-confirm-box {
+      background: var(--black);
+      border: 3px solid var(--white);
+      box-shadow: inset 0 0 0 2px var(--white), inset 0 0 0 5px var(--black);
+      padding: 36px 48px;
+      text-align: center;
+    }
+
+    .delete-confirm-text {
+      font-family: var(--font-pixel);
+      font-size: 14px;
+      color: var(--white);
+      margin-bottom: 24px;
+      letter-spacing: 0.08em;
+      line-height: 2;
+    }
+
+    .delete-confirm-btns {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    /* 삭제(빨강), 차단삭제(주황), 취소(흰색) */
+    .delete-confirm-del {
+      font-family: var(--font-korean);
+      font-size: 14px;
+      font-weight: 700;
+      padding: 10px 20px;
+      border: 3px solid #ff5555;
+      color: #ff5555;
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.05s, color 0.05s;
+      min-width: 80px;
+    }
+    .delete-confirm-del:hover { background: #ff5555; color: var(--black); }
+
+    .delete-confirm-block {
+      font-family: var(--font-korean);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 16px;
+      border: 3px solid var(--fire-org);
+      color: var(--fire-org);
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.05s, color 0.05s;
+      line-height: 1.5;
+      min-width: 90px;
+    }
+    .delete-confirm-block:hover { background: var(--fire-org); color: var(--black); }
+
+    .delete-confirm-cancel {
+      font-family: var(--font-korean);
+      font-size: 14px;
+      font-weight: 700;
+      padding: 10px 20px;
+      border: 3px solid var(--white);
+      color: var(--white);
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.05s, color 0.05s;
+      min-width: 80px;
+    }
+    .delete-confirm-cancel:hover { background: var(--white); color: var(--black); }
+
+    /* ══════════════════════════════════════════
+       DIARY MODAL
+    ══════════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 100;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 64px 16px 32px;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal-box {
+      width: 100%;
+      max-width: 680px;
+      background: var(--black);
+      border: 3px solid var(--white);
+      box-shadow: inset 0 0 0 2px var(--white), inset 0 0 0 5px var(--black);
+      position: relative;
+    }
+
+    .modal-header {
+      padding: 16px 20px 14px;
+      border-bottom: 2px solid var(--gray-2);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .modal-date {
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      color: var(--fire-amb);
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+
+    .modal-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .modal-close {
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      background: transparent;
+      border: 2px solid var(--gray-3);
+      color: var(--gray-4);
+      cursor: pointer;
+      padding: 7px 12px;
+      flex-shrink: 0;
+      transition: border-color 0.1s, color 0.1s;
+    }
+
+    .modal-close:hover { border-color: var(--white); color: var(--white); }
+
+    .modal-key-image {
+      width: 100%;
+      max-height: 220px;
+      object-fit: cover;
+      display: block;
+      border-bottom: 2px solid var(--gray-2);
+    }
+
+    .modal-body { padding: 24px 28px 28px; }
+
+    .modal-diary-text {
+      font-family: var(--font-korean);
+      font-size: 15px;
+      color: var(--gray-5);
+      line-height: 2;
+      white-space: pre-wrap;
+      word-break: keep-all;
+    }
+
+    .modal-section-label {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      color: var(--gray-4);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin: 24px 0 12px;
+      padding-top: 18px;
+      border-top: 1px solid var(--gray-2);
+    }
+
+    .modal-chars-grid {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .modal-char-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .modal-char-item canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      border: 1px solid var(--gray-3);
+    }
+
+    .modal-char-item:hover canvas { border-color: var(--fire-org); }
+
+    .modal-char-name {
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      color: var(--gray-4);
+      max-width: 72px;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .modal-char-rel {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--text-off);
+      text-align: center;
+    }
+
+    .modal-kindling-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .modal-kindling-item {
+      font-family: var(--font-korean);
+      font-size: 13px;
+      color: var(--gray-4);
+      display: flex;
+      gap: 10px;
+      padding: 9px 12px;
+      border-left: 2px solid var(--gray-2);
+      line-height: 1.6;
+    }
+
+    .modal-kindling-num {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      color: var(--fire-org);
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+
+    /* ══════════════════════════════════════════
+       CHARACTER DETAIL MODAL
+    ══════════════════════════════════════════ */
+    #char-modal { z-index: 200; }
+    #desc-confirm-modal, #desc-edit-modal, #char-delete-modal { z-index: 300; }
+
+    .char-modal-box {
+      width: 100%;
+      max-width: 440px;
+      background: var(--black);
+      border: 3px solid var(--fire-org);
+      box-shadow: inset 0 0 0 2px var(--fire-org), inset 0 0 0 5px var(--black);
+    }
+
+    .char-modal-header {
+      padding: 16px 20px 14px;
+      border-bottom: 2px solid rgba(255,90,0,0.4);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .char-modal-avatar canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      display: block;
+    }
+
+    .char-modal-info { flex: 1; min-width: 0; }
+
+    .char-modal-name {
+      font-family: var(--font-korean);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 4px;
+    }
+
+    .char-modal-rel-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .char-modal-rel {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      color: var(--fire-org);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+    }
+    .char-modal-rel:hover { opacity: 0.75; }
+
+    .char-modal-rel-edit-icon {
+      font-size: 10px;
+      color: var(--gray-3);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      transition: color 0.1s;
+      flex-shrink: 0;
+    }
+    .char-modal-rel-edit-icon:hover { color: var(--fire-org); }
+
+    .char-modal-rel-input {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      color: var(--fire-org);
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--fire-org);
+      outline: none;
+      width: 160px;
+      letter-spacing: 0.08em;
+      padding: 0 0 2px;
+    }
+
+    .char-modal-regen {
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      color: var(--gray-3);
+      background: transparent;
+      border: 1px solid var(--gray-3);
+      cursor: pointer;
+      padding: 4px 8px;
+      transition: color 0.1s, border-color 0.1s;
+    }
+
+    .char-modal-regen:hover { color: var(--fire-org); border-color: var(--fire-org); }
+
+    .char-modal-close {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      background: transparent;
+      border: 2px solid var(--gray-3);
+      color: var(--gray-4);
+      cursor: pointer;
+      padding: 6px 10px;
+      align-self: flex-start;
+      transition: border-color 0.1s, color 0.1s;
+      flex-shrink: 0;
+    }
+
+    .char-modal-close:hover { border-color: var(--fire-org); color: var(--fire-org); }
+
+    .char-modal-body { padding: 16px 20px 20px; }
+
+    .char-modal-section {
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      color: var(--gray-4);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin: 16px 0 8px;
+      padding-top: 12px;
+      border-top: 1px solid var(--gray-2);
+    }
+
+    .char-modal-section:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+
+    .char-appear-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .appear-chip {
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      color: var(--fire-amb);
+      border: 1px solid var(--fire-org);
+      padding: 3px 8px;
+      letter-spacing: 0.06em;
+    }
+
+    .char-episode-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .char-episode-item {
+      font-family: var(--font-korean);
+      font-size: 13px;
+      color: var(--gray-5);
+      border-left: 2px solid var(--fire-org);
+      padding: 6px 10px;
+      line-height: 1.6;
+    }
+
+    .char-episode-date {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--gray-4);
+      margin-bottom: 3px;
+      letter-spacing: 0.06em;
+    }
+  </style>
+</head>
+<body>
+
+<div class="pixel-stars"></div>
+
+<header class="app-header">
+  <a class="app-logo" href="index.html">
+    <span class="logo-korean">타닥타닥</span>
+    <span class="logo-en">◀ 모닥불로</span>
+  </a>
+</header>
+
+<div class="page">
+  <h1 class="page-heading">일기 타임라인</h1>
+  <div class="page-sub">
+    <span id="diary-count-label">LOADING...</span>
+    <button class="pixel-btn pixel-btn-sm pixel-btn-fire" onclick="window.location.href='index.html'">
+      ▸ 새 일기 쓰기
+    </button>
+    <button class="pixel-btn pixel-btn-sm" onclick="window.location.href='novel.html?from=timeline'">
+      📖 나의 이야기 보기
+    </button>
+  </div>
+
+  <!-- ── Character Roster ─────────────────────────────────────────────────── -->
+  <div class="char-roster">
+    <div class="char-roster-header">
+      <span class="char-roster-title">▸ 등장인물</span>
+      <span class="char-roster-count" id="char-roster-count">0명</span>
+    </div>
+    <div class="char-roster-body">
+      <div class="char-roster-row" id="char-roster-row">
+        <div class="char-roster-empty">NO CHARACTERS YET</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Diary List ──────────────────────────────────────────────────────── -->
+  <div class="diary-section-header">
+    <span class="diary-section-title">DIARIES</span>
+  </div>
+  <div id="timeline-root"></div>
+</div>
+
+<!-- ── Full Diary Modal ─────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="diary-modal" onclick="if(event.target===this)closeModal('diary-modal')">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-date" id="modal-date"></div>
+        <div class="modal-meta-row">
+          <span class="px-tag px-tag-white" id="modal-perspective"></span>
+          <span class="card-duration" id="modal-duration"></span>
+          <span class="card-kindling-count" id="modal-kindling-count"></span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('diary-modal')">[ ✕ ]</button>
+    </div>
+    <img class="modal-key-image" id="modal-key-image" style="display:none" alt="">
+    <div class="modal-body">
+      <div class="modal-diary-text" id="modal-diary-text"></div>
+      <div class="modal-section-label" id="modal-chars-label" style="display:none">등장인물</div>
+      <div class="modal-chars-grid" id="modal-chars-grid"></div>
+      <div class="modal-section-label" id="modal-kindlings-label" style="display:none">오늘의 땔감</div>
+      <div class="modal-kindling-list" id="modal-kindlings-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Character Detail Modal ───────────────────────────────────────────── -->
+<div class="modal-overlay" id="char-modal" onclick="if(event.target===this)closeModal('char-modal')">
+  <div class="char-modal-box" onclick="event.stopPropagation()">
+    <div class="char-modal-header">
+      <div class="char-modal-avatar" id="char-modal-avatar"></div>
+      <div class="char-modal-info">
+        <div class="char-modal-name" id="char-modal-name"></div>
+        <div class="char-modal-rel-wrap">
+          <span class="char-modal-rel" id="char-modal-rel" title="클릭해서 수정"></span>
+          <button class="char-modal-rel-edit-icon" id="char-modal-rel-edit-icon" title="수정">✏</button>
+          <input class="char-modal-rel-input" id="char-modal-rel-input" type="text" style="display:none" maxlength="60">
+        </div>
+        <button class="char-modal-regen" id="char-modal-regen">↺ 아바타 다시 생성</button>
+      </div>
+      <button class="char-modal-close" onclick="closeModal('char-modal')">[ ✕ ]</button>
+    </div>
+    <div class="char-modal-body">
+      <div class="char-modal-section">등장 일기</div>
+      <div class="char-appear-chips" id="char-modal-appear"></div>
+      <div class="char-modal-section">에피소드</div>
+      <div class="char-episode-list" id="char-modal-episodes"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Description Edit Modal ───────────────────────────────────────────── -->
+<div class="modal-overlay" id="desc-edit-modal" onclick="if(event.target===this)closeModal('desc-edit-modal')">
+  <div class="desc-edit-box" onclick="event.stopPropagation()">
+    <div class="desc-edit-title" id="desc-edit-title">설명 수정</div>
+    <textarea class="desc-edit-textarea pixel-input" id="desc-edit-textarea" placeholder="인물 설명을 입력하세요..."></textarea>
+    <div class="desc-edit-btns">
+      <button class="delete-confirm-del" onclick="saveDescription()">저장</button>
+      <button class="delete-confirm-cancel" onclick="closeModal('desc-edit-modal')">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Description Save Confirm Modal ──────────────────────────────────── -->
+<div class="modal-overlay" id="desc-confirm-modal" onclick="if(event.target===this)closeModal('desc-confirm-modal')">
+  <div class="delete-confirm-box" onclick="event.stopPropagation()" style="max-width:320px;padding:28px 32px">
+    <div class="delete-confirm-text" style="font-size:13px;margin-bottom:20px">설명을 수정할까요?</div>
+    <div class="delete-confirm-btns">
+      <button class="delete-confirm-del"    onclick="confirmSaveDescription()">저장</button>
+      <button class="delete-confirm-cancel" onclick="closeModal('desc-confirm-modal')">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Character Delete Modal ───────────────────────────────────────────── -->
+<div class="modal-overlay" id="char-delete-modal" onclick="if(event.target===this)closeModal('char-delete-modal')">
+  <div class="delete-confirm-box" onclick="event.stopPropagation()" style="max-width:400px;padding:32px 36px">
+    <div class="delete-confirm-text" id="char-delete-text"></div>
+    <div class="delete-confirm-btns" style="gap:10px">
+      <button class="delete-confirm-del"    onclick="executeDeleteChar('once')">이번만<br>삭제</button>
+      <button class="delete-confirm-block"  onclick="executeDeleteChar('block')">앞으로도<br>등록 안함</button>
+      <button class="delete-confirm-cancel" onclick="closeModal('char-delete-modal')">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Diary Delete Confirm Modal ──────────────────────────────────────── -->
+<div class="modal-overlay" id="delete-modal" onclick="if(event.target===this)closeModal('delete-modal')">
+  <div class="delete-confirm-box" onclick="event.stopPropagation()">
+    <div class="delete-confirm-text">정말 삭제할까요?<br><span style="font-size:10px;color:var(--gray-4)">되돌릴 수 없어요</span></div>
+    <div class="delete-confirm-btns">
+      <button class="delete-confirm-del"    onclick="executeDelete()">삭제</button>
+      <button class="delete-confirm-cancel" onclick="closeModal('delete-modal')">취소</button>
+    </div>
+  </div>
+</div>
+
+<script src="../services/storage.js"></script>
+<script src="../services/avatar.js"></script>
+<script>
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function formatDate(iso) {
+    if (!iso) return '날짜 없음'
+    const d = new Date(iso)
+    const days = ['일','월','화','수','목','금','토']
+    return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`
+  }
+
+  function formatDateShort(iso) {
+    if (!iso) return ''
+    const d = new Date(iso)
+    return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open')
+    document.body.style.overflow = ''
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeModal('char-modal')
+      closeModal('diary-modal')
+    }
+  })
+
+  // ── Avatar canvas helper ──────────────────────────────────────────────────
+  function makeAvatar(character, displayW) {
+    const canvas = document.createElement('canvas')
+    ensureSeed(character)
+    AvatarGenerator.render(canvas, character)
+    const aspect = AvatarGenerator.CH / AvatarGenerator.CW
+    canvas.style.width  = displayW + 'px'
+    canvas.style.height = Math.round(displayW * aspect) + 'px'
+    canvas.title = character.name
+    canvas.dataset.charName = character.name  // 단일 소스 동기화용
+    return canvas
+  }
+
+  // Ensure character has a seed; save to localStorage if newly assigned
+  function ensureSeed(character) {
+    if (!character.avatarData) character.avatarData = {}
+    if (character.avatarData.seed == null) {
+      character.avatarData.seed = AvatarGenerator.seedFromName(character.name)
+      StorageService.upsertCharacter(character)
+    }
+  }
+
+  // ── Character Roster ──────────────────────────────────────────────────────
+  let currentCharModalName = null
+
+  function renderCharRoster() {
+    const chars = StorageService.getCharacters()
+    const row   = document.getElementById('char-roster-row')
+    const count = document.getElementById('char-roster-count')
+
+    count.textContent = `${chars.length}명`
+    row.innerHTML = ''
+
+    if (chars.length === 0) {
+      row.innerHTML = '<div class="char-roster-empty">NO CHARACTERS YET</div>'
+      return
+    }
+
+    chars.forEach(char => {
+      ensureSeed(char)
+
+      const card = document.createElement('div')
+      card.className = 'char-card'
+      card.addEventListener('click', () => openCharModal(char.name))
+
+      const canvas = makeAvatar(char, 48)
+      const nameEl = document.createElement('div')
+      nameEl.className = 'char-card-name'
+      nameEl.textContent = char.name
+
+      const relEl = document.createElement('div')
+      relEl.className = 'char-card-rel'
+      relEl.textContent = char.relationship || ''
+
+      const appearEl = document.createElement('div')
+      appearEl.className = 'char-card-appear'
+      appearEl.textContent = `${(char.appearances || []).length}회`
+
+      const regenBtn = document.createElement('button')
+      regenBtn.className = 'char-regen-btn'
+      regenBtn.textContent = '↺'
+      regenBtn.title = '아바타 다시 생성'
+      regenBtn.addEventListener('click', e => {
+        e.stopPropagation()
+        regenAvatar(char.name)
+      })
+
+      const descEl = document.createElement('div')
+      descEl.className = 'char-card-desc' + (char.description ? '' : ' empty')
+      descEl.textContent = char.description || '설명 없음'
+
+      const delBtn = document.createElement('button')
+      delBtn.className = 'char-del-btn'
+      delBtn.textContent = '✕'
+      delBtn.title = '인물 삭제'
+      delBtn.addEventListener('click', e => {
+        e.stopPropagation()
+        confirmDeleteChar(char.name)
+      })
+
+      const descBtn = document.createElement('button')
+      descBtn.className = 'char-desc-btn'
+      descBtn.textContent = '✎'
+      descBtn.title = '설명 수정'
+      descBtn.addEventListener('click', e => {
+        e.stopPropagation()
+        openDescEdit(char.name)
+      })
+
+      const btnRow = document.createElement('div')
+      btnRow.style.cssText = 'display:flex;gap:4px;justify-content:center;margin-top:2px'
+      btnRow.append(regenBtn, descBtn, delBtn)
+
+      card.append(canvas, nameEl, relEl, descEl, appearEl, btnRow)
+      row.appendChild(card)
+    })
+  }
+
+  function regenAvatar(name) {
+    const char = StorageService.getCharacter(name)
+    if (!char) return
+    if (!char.avatarData) char.avatarData = {}
+    char.avatarData.seed = AvatarGenerator.generateSeed()
+    StorageService.upsertCharacter(char)
+
+    // 로스터 즉시 업데이트 (data-char-name 캔버스)
+    const escaped = name.replace(/"/g, '\\"')
+    document.querySelectorAll(`canvas[data-char-name="${escaped}"]`).forEach(c => {
+      AvatarGenerator.render(c, char)
+    })
+
+    // 일기 카드 전체 재렌더 — getDiaryChars가 항상 live storage 참조하므로
+    // 재렌더 시 새 seed가 반영됨 (근본적 동기화)
+    const root = document.getElementById('timeline-root')
+    if (root) { root.innerHTML = ''; renderTimeline() }
+
+    // 인물 상세 모달이 열려 있으면 아바타 즉시 교체
+    if (currentCharModalName === name) {
+      const wrap = document.getElementById('char-modal-avatar')
+      if (wrap) { wrap.innerHTML = ''; wrap.appendChild(makeAvatar(char, 72)) }
+    }
+  }
+
+  // ── Character Detail Modal ────────────────────────────────────────────────
+  function openCharModal(name) {
+    const char = StorageService.getCharacter(name)
+    if (!char) return
+    ensureSeed(char)
+    currentCharModalName = name
+
+    // Avatar (large)
+    const avatarWrap = document.getElementById('char-modal-avatar')
+    avatarWrap.innerHTML = ''
+    avatarWrap.appendChild(makeAvatar(char, 72))
+
+    document.getElementById('char-modal-name').textContent = char.name
+    const relText = char.description || char.relationship || '인물'
+    document.getElementById('char-modal-rel').textContent = relText
+
+    // 인라인 편집 트리거
+    document.getElementById('char-modal-rel').onclick = () => startRelInlineEdit()
+    document.getElementById('char-modal-rel-edit-icon').onclick = () => startRelInlineEdit()
+
+    // Regen button — regenAvatar가 roster + cards + modal 전부 동기화
+    document.getElementById('char-modal-regen').onclick = () => {
+      regenAvatar(char.name)
+    }
+
+    // Appearances
+    const appearChips = document.getElementById('char-modal-appear')
+    appearChips.innerHTML = ''
+    const appearances = char.appearances || []
+    if (appearances.length === 0) {
+      appearChips.innerHTML = '<span style="font-family:var(--font-pixel);font-size:9px;color:var(--text-off)">없음</span>'
+    } else {
+      appearances.slice(-10).forEach(dateStr => {
+        const chip = document.createElement('span')
+        chip.className = 'appear-chip'
+        chip.textContent = dateStr
+        appearChips.appendChild(chip)
+      })
+    }
+
+    // Episodes
+    const episodeList = document.getElementById('char-modal-episodes')
+    episodeList.innerHTML = ''
+    const episodes = char.episodes || []
+    if (episodes.length === 0) {
+      episodeList.innerHTML = '<div style="font-family:var(--font-korean);font-size:13px;color:var(--text-off)">에피소드 없음</div>'
+    } else {
+      episodes.slice(-8).forEach(ep => {
+        const item = document.createElement('div')
+        item.className = 'char-episode-item'
+        item.innerHTML = `<div class="char-episode-date">${ep.date || ''}</div><div>${ep.summary || ep.role || ''}</div>`
+        episodeList.appendChild(item)
+      })
+    }
+
+    document.getElementById('char-modal').classList.add('open')
+    document.body.style.overflow = 'hidden'
+  }
+
+  // ── Diary Modal ───────────────────────────────────────────────────────────
+  function openDiaryModal(diaryId) {
+    const diary = StorageService.getDiary(diaryId)
+    if (!diary) return
+
+    document.getElementById('modal-date').textContent = formatDate(diary.createdAt)
+    document.getElementById('modal-perspective').textContent = diary.generationOptions?.perspective || '1인칭주인공'
+    document.getElementById('modal-duration').textContent = diary.generationOptions?.weather || ''
+    document.getElementById('modal-kindling-count').textContent =
+      diary.kindlings ? `땔감 ${diary.kindlings.length}개` : ''
+
+    const imgEl = document.getElementById('modal-key-image')
+    const kiSrc = diary.keyImage?.dataUrl || (typeof diary.keyImage === 'string' ? diary.keyImage : null)
+    if (kiSrc) { imgEl.src = kiSrc; imgEl.style.display = 'block' }
+    else imgEl.style.display = 'none'
+
+    document.getElementById('modal-diary-text').textContent = diary.content || ''
+
+    // Characters in diary modal
+    const charsGrid  = document.getElementById('modal-chars-grid')
+    const charsLabel = document.getElementById('modal-chars-label')
+    charsGrid.innerHTML = ''
+    const chars = getDiaryChars(diary)
+    charsLabel.style.display = chars.length ? 'block' : 'none'
+    chars.forEach(c => {
+      ensureSeed(c)
+      const wrap = document.createElement('div')
+      wrap.className = 'modal-char-item'
+      wrap.addEventListener('click', () => {
+        closeModal('diary-modal')
+        openCharModal(c.name)
+      })
+      const canvas = makeAvatar(c, 48)
+      const nameEl = document.createElement('div')
+      nameEl.className = 'modal-char-name'
+      nameEl.textContent = c.name
+      const relEl = document.createElement('div')
+      relEl.className = 'modal-char-rel'
+      relEl.textContent = c.relationship || ''
+      wrap.append(canvas, nameEl, relEl)
+      charsGrid.appendChild(wrap)
+    })
+
+    // Kindlings
+    const kindlingsList  = document.getElementById('modal-kindlings-list')
+    const kindlingsLabel = document.getElementById('modal-kindlings-label')
+    kindlingsList.innerHTML = ''
+    const kindlings = diary.kindlings || []
+    kindlingsLabel.style.display = kindlings.length ? 'block' : 'none'
+    kindlings.forEach((k, i) => {
+      const item = document.createElement('div')
+      item.className = 'modal-kindling-item'
+      item.innerHTML = `<span class="modal-kindling-num">${String(i+1).padStart(2,'0')}</span><span>${k.text||''}</span>`
+      kindlingsList.appendChild(item)
+    })
+
+    document.getElementById('diary-modal').classList.add('open')
+    document.body.style.overflow = 'hidden'
+  }
+
+  // ── Diary Card ────────────────────────────────────────────────────────────
+  // 항상 live CHARACTERS storage를 참조 (단일 소스), 차단 인물 제외
+  function getDiaryChars(diary) {
+    const names = diary.characterNames
+      || (diary.characters || []).map(c => c.name)
+    return names
+      .map(name => StorageService.getCharacter(name) || { name })
+      .filter(c => !StorageService.isBlocked(c.name))
+  }
+
+  function renderDiaryCard(diary) {
+    const card = document.createElement('div')
+    card.className = 'diary-card'
+    card.addEventListener('click', () => openDiaryModal(diary.id))
+
+    const preview = (diary.content || '').replace(/\s+/g, ' ').trim().slice(0, 120)
+    const chars   = getDiaryChars(diary)
+
+    card.innerHTML = `
+      <div class="card-inner">
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-date">${formatDateShort(diary.createdAt)}</span>
+            ${diary.generationOptions?.weather     ? `<span class="card-duration">${diary.generationOptions.weather}</span>` : ''}
+            ${diary.generationOptions?.perspective ? `<span class="card-perspective">${diary.generationOptions.perspective}</span>` : ''}
+            ${(diary.kindlings||[]).length ? `<span class="card-kindling-count">땔감 ${diary.kindlings.length}개</span>` : ''}
+          </div>
+          <div class="card-preview">${preview}${preview.length < (diary.content||'').length ? '…' : ''}</div>
+          <div class="card-chars" id="cc-${diary.id}">
+            ${chars.length ? '<span class="chars-more" style="font-size:9px;color:var(--text-off)">등장:</span>' : ''}
+          </div>
+        </div>
+        <div class="card-thumb">
+          ${(() => { const src = diary.keyImage?.dataUrl || (typeof diary.keyImage === 'string' ? diary.keyImage : null); return src ? `<img src="${src}" alt="" loading="lazy">` : '<div class="card-thumb-empty"><span class="card-thumb-empty-text">NO IMAGE</span></div>' })()}
+        </div>
+      </div>
+      <div class="card-footer">
+        <button class="card-action-btn card-action-del" onclick="event.stopPropagation();confirmDeleteDiary('${diary.id}')">[ 삭제 ]</button>
+        <button class="card-action-btn" onclick="event.stopPropagation();editDiary('${diary.id}')">[ 수정 ]</button>
+      </div>
+      <span class="card-read-hint">▸ 읽기</span>
+    `
+
+    if (chars.length) {
+      setTimeout(() => {
+        const charsEl = document.getElementById(`cc-${diary.id}`)
+        if (!charsEl) return
+        chars.slice(0, 6).forEach(c => {
+          ensureSeed(c)
+          const wrap = document.createElement('div')
+          wrap.className = 'card-char-wrap'
+          const canvas = makeAvatar(c, 28)
+          const nameEl = document.createElement('div')
+          nameEl.className = 'card-char-name'
+          nameEl.textContent = c.name
+          wrap.append(canvas, nameEl)
+          charsEl.appendChild(wrap)
+        })
+        if (chars.length > 6) {
+          const more = document.createElement('span')
+          more.className = 'chars-more'
+          more.textContent = `+${chars.length - 6}`
+          charsEl.appendChild(more)
+        }
+      }, 0)
+    }
+
+    return card
+  }
+
+  // ── Main render ───────────────────────────────────────────────────────────
+  function renderTimeline() {
+    const diaries = StorageService.getDiaries()
+    const root    = document.getElementById('timeline-root')
+    const countLbl = document.getElementById('diary-count-label')
+
+    countLbl.textContent = `${diaries.length} DIARI${diaries.length === 1 ? 'Y' : 'ES'}`
+
+    if (diaries.length === 0) {
+      root.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">▒▒</div>
+          DIARY EMPTY<br>
+          GO WRITE YOUR FIRST STORY
+        </div>
+      `
+    } else {
+      const list = document.createElement('div')
+      list.className = 'diary-list'
+      diaries.forEach(d => list.appendChild(renderDiaryCard(d)))
+      root.appendChild(list)
+    }
+  }
+
+  // ── 인물 설명 편집 ───────────────────────────────────────────────────────
+  let _pendingDescChar = null
+  let _pendingDescText = ''
+
+  // ── 인라인 관계/설명 편집 ────────────────────────────────────────────────
+  function startRelInlineEdit() {
+    const relSpan  = document.getElementById('char-modal-rel')
+    const editIcon = document.getElementById('char-modal-rel-edit-icon')
+    const input    = document.getElementById('char-modal-rel-input')
+    if (input.style.display !== 'none') return  // 이미 편집 중
+    input.value = relSpan.textContent
+    relSpan.style.display  = 'none'
+    editIcon.style.display = 'none'
+    input.style.display    = ''
+    input.focus()
+    input.select()
+  }
+
+  function cancelRelInlineEdit() {
+    document.getElementById('char-modal-rel').style.display        = ''
+    document.getElementById('char-modal-rel-edit-icon').style.display = ''
+    document.getElementById('char-modal-rel-input').style.display  = 'none'
+  }
+
+  function commitRelInlineEdit() {
+    const input = document.getElementById('char-modal-rel-input')
+    if (input.style.display === 'none') return  // 이미 처리됨 (Enter 후 blur 방지)
+    const newVal = input.value.trim()
+    cancelRelInlineEdit()
+    if (!newVal || newVal === document.getElementById('char-modal-rel').textContent) return
+    _pendingDescChar = currentCharModalName
+    _pendingDescText = newVal
+    document.getElementById('desc-confirm-modal').classList.add('open')
+    document.body.style.overflow = 'hidden'
+  }
+
+  // 인라인 input 키/blur 처리 (DOMContentLoaded 이후 한 번만 등록)
+  document.getElementById('char-modal-rel-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter')  { e.preventDefault(); commitRelInlineEdit() }
+    if (e.key === 'Escape') { e.preventDefault(); cancelRelInlineEdit() }
+  })
+  document.getElementById('char-modal-rel-input').addEventListener('blur', () => {
+    // 약간의 딜레이: 확인 모달 버튼 클릭과 충돌 방지
+    setTimeout(commitRelInlineEdit, 120)
+  })
+
+  function openDescEdit(name) {
+    const char = StorageService.getCharacter(name)
+    if (!char) return
+    _pendingDescChar = name
+    document.getElementById('desc-edit-title').textContent = `"${name}" 설명 수정`
+    document.getElementById('desc-edit-textarea').value = char.description || ''
+    document.getElementById('desc-edit-modal').classList.add('open')
+    document.body.style.overflow = 'hidden'
+    setTimeout(() => document.getElementById('desc-edit-textarea').focus(), 60)
+  }
+
+  function saveDescription() {
+    _pendingDescText = document.getElementById('desc-edit-textarea').value.trim()
+    closeModal('desc-edit-modal')
+    document.getElementById('desc-confirm-modal').classList.add('open')
+    document.body.style.overflow = 'hidden'
+  }
+
+  function confirmSaveDescription() {
+    if (!_pendingDescChar) return
+    const char = StorageService.getCharacter(_pendingDescChar)
+    if (char) {
+      char.description = _pendingDescText
+      StorageService.upsertCharacter(char)
+    }
+    closeModal('desc-confirm-modal')
+    renderCharRoster()
+    // 모달이 열려있으면 rel 텍스트 즉시 반영
+    if (currentCharModalName === _pendingDescChar) {
+      const relSpan = document.getElementById('char-modal-rel')
+      if (relSpan) relSpan.textContent = _pendingDescText
+    }
+    _pendingDescChar = null
+    _pendingDescText = ''
+  }
+
+  // ── 인물 삭제 + 차단 ─────────────────────────────────────────────────────
+  let _pendingDeleteCharName = null
+
+  function confirmDeleteChar(name) {
+    _pendingDeleteCharName = name
+    const el = document.getElementById('char-delete-text')
+    el.innerHTML = `"${name}"을 등장인물에서 삭제할까요?<br><br>`
+      + `<span style="font-size:10px;color:var(--gray-4);line-height:2">`
+      + `앞으로 이 이름이 일기에 나와도<br>자동 등록하지 않을까요?</span>`
+    document.getElementById('char-delete-modal').classList.add('open')
+    document.body.style.overflow = 'hidden'
+  }
+
+  function executeDeleteChar(mode) {
+    const name = _pendingDeleteCharName
+    if (!name) return
+
+    StorageService.deleteCharacter(name)
+    if (mode === 'block') StorageService.blockChar(name)
+
+    _pendingDeleteCharName = null
+    closeModal('char-delete-modal')
+
+    // 로스터 + 일기 카드 전체 재렌더
+    renderCharRoster()
+    const root = document.getElementById('timeline-root')
+    if (root) { root.innerHTML = ''; renderTimeline() }
+  }
+
+  // ── 일기 삭제 / 수정 ──────────────────────────────────────────────────────
+  let _pendingDeleteId = null
+
+  function confirmDeleteDiary(id) {
+    _pendingDeleteId = id
+    document.getElementById('delete-modal').classList.add('open')
+    document.body.style.overflow = 'hidden'
+  }
+
+  function executeDelete() {
+    if (!_pendingDeleteId) return
+    const diary = StorageService.getDiary(_pendingDeleteId)
+
+    // 등장인물 appearances/episodes에서 해당 일기 날짜 제거
+    if (diary) {
+      const chars = getDiaryChars(diary)
+      const diaryDate = diary.date
+      chars.forEach(c => {
+        const char = StorageService.getCharacter(c.name)
+        if (!char) return
+        char.appearances = (char.appearances || []).filter(d => d !== diaryDate)
+        char.episodes    = (char.episodes    || []).filter(e => e.date !== diaryDate)
+        StorageService.upsertCharacter(char)
+      })
+    }
+
+    StorageService.deleteDiary(_pendingDeleteId)
+    _pendingDeleteId = null
+    closeModal('delete-modal')
+
+    // 타임라인 새로고침
+    document.getElementById('timeline-root').innerHTML = ''
+    renderTimeline()
+    renderCharRoster()
+  }
+
+  function editDiary(id) {
+    window.location.href = `diary.html?edit=${encodeURIComponent(id)}`
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  renderCharRoster()
+  renderTimeline()
+</script>
+</body>
+</html>

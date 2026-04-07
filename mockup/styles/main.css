@@ -1,0 +1,400 @@
+/* =============================================
+   타닥타닥 — Pixel Art Design System
+   Undertale × Claude Code terminal aesthetic
+   ============================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+  /* Core Palette */
+  --black:   #000000;
+  --white:   #ffffff;
+  --gray-1:  #1a1a1a;
+  --gray-2:  #2a2a2a;
+  --gray-3:  #444444;
+  --gray-4:  #888888;
+  --gray-5:  #bbbbbb;
+
+  /* Fire Colors */
+  --fire-tip:  #ffe680;
+  --fire-amb:  #ffaa00;
+  --fire-org:  #ff5a00;
+  --fire-drk:  #c43a00;
+  --fire-emb:  #6b1a00;
+  --fire-coal: #1a0500;
+
+  /* Semantic */
+  --bg:       #000000;
+  --surface:  #0e0e0e;
+  --surface-2:#161616;
+  --border:   #ffffff;
+  --text:     #ffffff;
+  --text-dim: #888888;
+  --text-off: #444444;
+  --accent:   #ff8c00;
+
+  /* Typography */
+  --font-pixel: 'Press Start 2P', 'Courier New', monospace;
+  --font-korean: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  --font-mono: 'D2Coding', 'Consolas', 'Courier New', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-korean);
+  font-size: 14px;
+  line-height: 1.6;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Scrollbar — pixel style */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-thumb { background: var(--gray-3); }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-4); }
+
+/* =============================================
+   Pixel Stars Background
+   ============================================= */
+.pixel-stars {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  /* Pixel-dot stars via box-shadow trick */
+  overflow: hidden;
+}
+
+.pixel-stars::before,
+.pixel-stars::after {
+  content: '';
+  position: absolute;
+  width: 2px; height: 2px;
+  background: transparent;
+}
+
+.pixel-stars::before {
+  box-shadow:
+    8vw 6vh 0 0 rgba(255,255,255,0.9),
+    22vw 12vh 0 0 rgba(255,255,255,0.6),
+    38vw 4vh 0 0 rgba(255,255,255,0.8),
+    52vw 9vh 0 0 rgba(255,255,255,0.5),
+    67vw 7vh 0 0 rgba(255,255,255,0.7),
+    83vw 14vh 0 0 rgba(255,255,255,0.9),
+    14vw 22vh 0 0 rgba(255,255,255,0.4),
+    30vw 18vh 0 0 rgba(255,255,255,0.6),
+    47vw 28vh 0 0 rgba(255,255,255,0.3),
+    72vw 20vh 0 0 rgba(255,255,255,0.7),
+    91vw 8vh 0 0 rgba(255,255,255,0.5),
+    5vw 32vh 0 0 rgba(255,255,255,0.4),
+    60vw 25vh 0 0 rgba(255,255,255,0.6),
+    78vw 32vh 0 0 rgba(255,255,255,0.3);
+}
+
+.pixel-stars::after {
+  box-shadow:
+    18vw 5vh 0 0 rgba(255,200,100,0.5),
+    43vw 11vh 0 0 rgba(255,200,100,0.4),
+    75vw 6vh 0 0 rgba(255,200,100,0.6),
+    55vw 16vh 0 0 rgba(255,200,100,0.3),
+    33vw 28vh 0 0 rgba(255,200,100,0.4);
+}
+
+/* =============================================
+   Pixel Box Borders (Undertale style)
+   Outer white → black gap → inner white
+   ============================================= */
+.pixel-box {
+  border: 3px solid var(--white);
+  box-shadow: inset 0 0 0 2px var(--white), inset 0 0 0 5px var(--black);
+  padding: 16px;
+  background: var(--black);
+  position: relative;
+}
+
+.pixel-panel {
+  border: 3px solid var(--white);
+  background: var(--black);
+}
+
+/* Simple single pixel border */
+.pixel-border {
+  border: 2px solid var(--white);
+  background: var(--black);
+}
+
+/* Dim border for secondary elements */
+.pixel-border-dim {
+  border: 2px solid var(--gray-3);
+  background: var(--black);
+}
+
+.pixel-border-dim:hover {
+  border-color: var(--white);
+}
+
+/* Fire-accented border */
+.pixel-border-fire {
+  border: 2px solid var(--fire-org);
+  background: var(--black);
+}
+
+/* =============================================
+   Pixel Buttons
+   ============================================= */
+.pixel-btn {
+  font-family: var(--font-pixel);
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 12px 20px;
+  background: var(--black);
+  color: var(--white);
+  border: 3px solid var(--white);
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  transition: background 0.05s, color 0.05s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+.pixel-btn:hover,
+.pixel-btn:focus {
+  background: var(--white);
+  color: var(--black);
+  outline: none;
+}
+
+.pixel-btn:active {
+  transform: translate(2px, 2px);
+}
+
+/* Fire primary button */
+.pixel-btn-fire {
+  border-color: var(--fire-org);
+  color: var(--fire-org);
+  background: var(--black);
+}
+
+.pixel-btn-fire:hover {
+  background: var(--fire-org);
+  color: var(--black);
+}
+
+/* Small variant */
+.pixel-btn-sm {
+  font-size: 12px;
+  padding: 8px 14px;
+  border-width: 2px;
+}
+
+/* =============================================
+   Pixel Input / Textarea
+   ============================================= */
+.pixel-input {
+  width: 100%;
+  background: var(--black);
+  border: 2px solid var(--gray-3);
+  color: var(--white);
+  font-family: var(--font-korean);
+  font-size: 16px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.1s;
+  resize: none;
+  display: block;
+}
+
+.pixel-input:focus {
+  border-color: var(--white);
+  box-shadow: inset 0 0 0 1px var(--white);
+}
+
+.pixel-input::placeholder {
+  color: var(--text-off);
+}
+
+/* =============================================
+   Pixel Flame Gauge  [███░░]
+   ============================================= */
+.pixel-gauge {
+  font-family: var(--font-pixel);
+  font-size: 20px;
+  color: var(--fire-org);
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pixel-gauge .gauge-label {
+  font-size: 14px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.pixel-gauge .gauge-bar {
+  color: var(--fire-amb);
+  letter-spacing: -1px;
+}
+
+.pixel-gauge .gauge-count {
+  font-size: 16px;
+  color: var(--fire-tip);
+}
+
+/* =============================================
+   Pixel Fire Canvas wrapper
+   ============================================= */
+.fire-canvas-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.6s steps(3);
+  transform-origin: bottom center;
+}
+
+#fire-canvas {
+  /* Canvas is 70×120, display at 2x */
+  width: 140px;
+  height: 240px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  display: block;
+}
+
+/* =============================================
+   Pixel Generate Button (floating)
+   ============================================= */
+.generate-btn-wrap {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  opacity: 0;
+  transition: transform 0.3s steps(4), opacity 0.2s;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.generate-btn-wrap.visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.generate-btn {
+  font-family: var(--font-pixel);
+  font-size: 16px;
+  padding: 16px 36px;
+  background: var(--black);
+  color: var(--fire-tip);
+  border: 3px solid var(--fire-amb);
+  box-shadow:
+    inset 0 0 0 2px var(--fire-amb),
+    inset 0 0 0 5px var(--black),
+    0 0 0 1px var(--fire-drk);
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  animation: fire-btn-pulse 1.2s steps(2) infinite alternate;
+}
+
+@keyframes fire-btn-pulse {
+  from { border-color: var(--fire-amb); color: var(--fire-tip); }
+  to   { border-color: var(--fire-tip); color: var(--fire-amb); }
+}
+
+.generate-btn:hover {
+  background: var(--fire-org);
+  color: var(--black);
+  border-color: var(--fire-tip);
+  animation: none;
+}
+
+/* =============================================
+   Pixel Particles (kindling add effect)
+   ============================================= */
+@keyframes px-particle {
+  0%   { opacity: 1; transform: translate(0, 0); }
+  100% { opacity: 0; transform: translate(var(--vx), var(--vy)); }
+}
+
+/* =============================================
+   App Header
+   ============================================= */
+.app-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  background: var(--black);
+  border-bottom: 3px solid var(--white);
+  z-index: 100;
+}
+
+.app-logo {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.logo-korean {
+  font-family: var(--font-korean);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--fire-amb);
+  letter-spacing: 0.05em;
+}
+
+.logo-en {
+  font-family: var(--font-pixel);
+  font-size: 12px;
+  color: var(--gray-4);
+  letter-spacing: 0.1em;
+}
+
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* =============================================
+   Pixel Tag / Badge
+   ============================================= */
+.px-tag {
+  font-family: var(--font-pixel);
+  font-size: 12px;
+  padding: 5px 10px;
+  border: 2px solid;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.px-tag-fire {
+  border-color: var(--fire-org);
+  color: var(--fire-org);
+  background: var(--black);
+}
+
+.px-tag-white {
+  border-color: var(--gray-3);
+  color: var(--gray-4);
+  background: var(--black);
+}

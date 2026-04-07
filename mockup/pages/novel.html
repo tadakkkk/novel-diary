@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>나의 이야기 — 타닥타닥</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo&family=Noto+Serif+KR:wght@700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset / Base ─────────────────────────────────────────────────────── */
+    body { background: #000; overflow-x: hidden; }
+
+    /* ── Header ───────────────────────────────────────────────────────────── */
+    .novel-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      height: 52px; border-bottom: 2px solid var(--white);
+      background: #000;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px;
+    }
+    .hdr-back {
+      font-family: var(--font-pixel); font-size: 11px; color: var(--gray-4);
+      background: none; border: none; cursor: pointer; letter-spacing: 0.08em;
+    }
+    .hdr-back:hover { color: var(--white); }
+    .hdr-title {
+      font-family: var(--font-pixel); font-size: 13px; color: var(--white);
+      letter-spacing: 0.1em;
+    }
+    .hdr-change {
+      font-family: var(--font-pixel); font-size: 10px;
+      background: none; border: 1px solid var(--gray-3); color: var(--gray-4);
+      padding: 5px 10px; cursor: pointer; letter-spacing: 0.06em;
+    }
+    .hdr-change:hover { border-color: var(--white); color: var(--white); }
+
+    /* ── Picker Modal ─────────────────────────────────────────────────────── */
+    #picker-modal {
+      position: fixed; inset: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.92);
+    }
+    .picker-box {
+      width: 400px; border: 3px solid var(--white);
+      background: #000; padding: 28px 28px 24px;
+    }
+    .picker-title {
+      font-family: var(--font-pixel); font-size: 13px; color: var(--white);
+      letter-spacing: 0.1em; margin-bottom: 22px;
+    }
+    .picker-presets {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+    }
+    .preset-btn {
+      font-family: var(--font-pixel); font-size: 10px;
+      background: #000; color: var(--gray-4);
+      border: 1px solid var(--gray-3); padding: 6px 10px;
+      cursor: pointer; letter-spacing: 0.05em;
+    }
+    .preset-btn:hover { border-color: var(--white); color: var(--white); }
+    .preset-btn.active { border-color: var(--fire-org); color: var(--fire-org); }
+    .picker-row { display: flex; gap: 12px; margin-bottom: 16px; }
+    .picker-field { flex: 1; }
+    .picker-field label {
+      font-family: var(--font-pixel); font-size: 10px; color: var(--gray-4);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      display: block; margin-bottom: 6px;
+    }
+    .picker-field input[type="date"] {
+      width: 100%; font-family: var(--font-pixel); font-size: 10px;
+      background: #000; color: var(--white);
+      border: 2px solid var(--gray-3); padding: 8px 10px; outline: none;
+    }
+    .picker-field input[type="date"]:focus { border-color: var(--white); }
+    .picker-info {
+      font-family: var(--font-pixel); font-size: 10px; color: var(--text-dim);
+      margin-bottom: 16px; letter-spacing: 0.05em;
+    }
+    .picker-info span { color: var(--fire-tip); }
+    .picker-open-btn {
+      width: 100%; font-family: var(--font-pixel); font-size: 12px;
+      background: var(--white); color: #000;
+      border: none; padding: 13px; cursor: pointer; letter-spacing: 0.1em;
+    }
+    .picker-open-btn:hover { background: var(--fire-tip); }
+    .picker-open-btn:disabled {
+      background: var(--gray-3); color: var(--gray-4); cursor: not-allowed;
+    }
+
+    /* ── No-diaries state ─────────────────────────────────────────────────── */
+    #no-diaries {
+      display: none; padding-top: 52px;
+      flex-direction: column; align-items: center; justify-content: center;
+      min-height: 100vh;
+      font-family: var(--font-pixel); font-size: 12px; color: var(--gray-4);
+      letter-spacing: 0.08em; text-align: center; line-height: 2.8;
+    }
+    #no-diaries .nd-icon { font-size: 36px; margin-bottom: 20px; opacity: 0.3; }
+
+    /* ── Book Stage ───────────────────────────────────────────────────────── */
+    #book-stage {
+      display: none;
+      padding-top: 72px;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* ── Book Spread ──────────────────────────────────────────────────────── */
+    .book-wrap { position: relative; }
+    .book-spread {
+      display: flex;
+      width: 900px;
+      box-shadow: 0 0 0 3px #fff, 6px 6px 0 0 #333;
+      position: relative;
+    }
+    .book-page {
+      flex: 1;
+      height: 630px;
+      overflow: hidden;
+      background: #1a1a1a;
+      position: relative;
+      padding: 36px 32px 48px;
+    }
+    .book-page-left  { border-right: 4px solid #111; }
+    .book-page-right { border-left:  2px solid #262626; }
+    .book-spine {
+      width: 8px; flex-shrink: 0;
+      background: linear-gradient(90deg, #5a3e00 0%, #a06c00 45%, #5a3e00 100%);
+    }
+
+    /* ── Page Number ──────────────────────────────────────────────────────── */
+    .page-num {
+      position: absolute; bottom: 18px;
+      font-family: var(--font-pixel); font-size: 9px; color: #666;
+      letter-spacing: 0.1em;
+    }
+    .book-page-left  .page-num { left: 32px; }
+    .book-page-right .page-num { right: 32px; }
+
+    /* ── Cover Pages ──────────────────────────────────────────────────────── */
+    .endpaper {
+      display: flex; align-items: center; justify-content: center;
+      height: 100%;
+    }
+    .endpaper-pattern {
+      font-family: var(--font-pixel); font-size: 12px; color: #2a2a2a;
+      line-height: 2.2; letter-spacing: 0.25em; text-align: center;
+      user-select: none;
+    }
+    .cover-page {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; height: 100%;
+    }
+    .cover-fire  { font-size: 44px; margin-bottom: 18px; }
+    .cover-title {
+      font-family: 'Noto Serif KR', serif; font-weight: 700;
+      font-size: 20px; color: #d4881e; letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+    .cover-count {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 14px; color: #888; margin-bottom: 6px;
+    }
+    .cover-period {
+      font-family: var(--font-pixel); font-size: 9px;
+      color: #555; letter-spacing: 0.08em; margin-bottom: 24px;
+    }
+    .cover-divider {
+      width: 48px; height: 1px; background: #d4881e;
+      margin: 0 auto 22px;
+    }
+    .cover-close {
+      font-family: var(--font-pixel); font-size: 10px;
+      background: #000; color: #888;
+      border: 1px solid #444; padding: 8px 14px;
+      cursor: pointer; letter-spacing: 0.06em;
+    }
+    .cover-close:hover { border-color: var(--white); color: var(--white); }
+
+    /* ── Diary Pages ──────────────────────────────────────────────────────── */
+    .diary-date {
+      font-family: 'Noto Serif KR', serif; font-weight: 700;
+      font-size: 9px; color: #d4881e; letter-spacing: 0.12em;
+      text-transform: uppercase; margin-bottom: 4px;
+    }
+    .diary-title {
+      font-family: 'Noto Serif KR', serif; font-weight: 700;
+      font-size: 15px; color: #d4881e; line-height: 1.4;
+      margin-bottom: 10px; padding-bottom: 10px;
+      border-bottom: 1px solid #333;
+    }
+    .diary-keyimage {
+      display: block;
+      width: 100%; max-height: 200px;
+      object-fit: cover;
+      margin-bottom: 14px;
+      border: 1px solid #333;
+      image-rendering: auto;
+    }
+    .diary-body {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 14px; color: #f5e6c8; line-height: 1.95;
+      word-break: keep-all; white-space: pre-wrap;
+    }
+    .cont-label {
+      font-family: var(--font-pixel); font-size: 8px;
+      color: #555; letter-spacing: 0.1em; margin-bottom: 12px;
+    }
+
+    /* ── Characters (bottom of first page) ───────────────────────────────── */
+    .diary-chars-section {
+      position: absolute;
+      bottom: 48px; left: 32px; right: 32px;
+      border-top: 1px solid #333;
+      padding-top: 10px;
+    }
+    .chars-label {
+      font-family: var(--font-pixel); font-size: 8px;
+      color: #555; letter-spacing: 0.1em; margin-bottom: 8px;
+    }
+    .chars-row {
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start;
+    }
+    .char-wrap {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+    }
+    .char-canvas {
+      width: 28px; height: 42px;
+      image-rendering: pixelated; border: 1px solid #333;
+    }
+    .char-name {
+      font-family: var(--font-pixel); font-size: 7px; color: #666;
+      text-align: center; max-width: 36px; word-break: break-all;
+      line-height: 1.3;
+    }
+
+    /* ── Blank Page ───────────────────────────────────────────────────────── */
+    .blank-page {
+      display: flex; align-items: center; justify-content: center; height: 100%;
+    }
+    .blank-ornament {
+      font-family: var(--font-pixel); font-size: 16px;
+      color: #252525; letter-spacing: 0.3em;
+    }
+
+    /* ── Loading Page ─────────────────────────────────────────────────────── */
+    .loading-page {
+      display: flex; align-items: center; justify-content: center; height: 100%;
+    }
+    .loading-text {
+      font-family: var(--font-pixel); font-size: 10px;
+      color: #444; letter-spacing: 0.12em;
+    }
+
+    /* ── Review Page — 불멍 독자석 ────────────────────────────────────────── */
+    .review-page {
+      display: flex; flex-direction: column;
+      height: 100%; overflow: hidden;
+    }
+    .bulmang-header {
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid #333; padding-bottom: 12px; margin-bottom: 14px;
+    }
+    .bulmang-flame {
+      font-size: 52px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .bulmang-title {
+      font-family: var(--font-pixel); font-size: 11px;
+      color: #d4881e; letter-spacing: 0.1em;
+    }
+
+    /* Stars */
+    .review-stars {
+      display: flex; align-items: center; gap: 3px; margin-bottom: 12px;
+    }
+    .star { font-size: 14px; }
+    .star-on  { color: #d4881e; }
+    .star-off { color: #333; }
+    .stars-score {
+      font-family: var(--font-pixel); font-size: 9px;
+      color: #555; margin-left: 6px;
+    }
+
+    /* Critic box */
+    .critic-box {
+      border: 1px solid #333;
+      box-shadow: inset 0 0 0 1px #222;
+      padding: 10px 12px; margin-bottom: 14px;
+      background: #111;
+    }
+    .critic-quote {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 13px; color: #f5e6c8;
+      font-style: italic; line-height: 1.75;
+    }
+    .critic-by {
+      font-family: var(--font-pixel); font-size: 8px;
+      color: #555; margin-top: 8px;
+      display: flex; align-items: center;
+      justify-content: flex-end; gap: 5px;
+    }
+    #glasses-canvas {
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      image-rendering: pixelated;
+      display: block;
+    }
+
+    /* Comments */
+    .comments-list {
+      display: flex; flex-direction: column; gap: 8px;
+      flex: 1; overflow: hidden;
+    }
+    .comment-item {
+      display: flex; gap: 8px; align-items: flex-start;
+    }
+    .reader-avatar {
+      width: 32px; height: 48px;
+      image-rendering: pixelated;
+      border: 1px solid #333; flex-shrink: 0;
+    }
+    .comment-bubble {
+      flex: 1; border: 1px solid #333;
+      padding: 6px 10px; background: #111;
+    }
+    .reader-nick {
+      font-family: var(--font-pixel); font-size: 8px;
+      color: #d4881e; margin-bottom: 3px;
+    }
+    .comment-text {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 13px; color: #f5e6c8; line-height: 1.5;
+    }
+
+    /* Error state */
+    .review-error {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      flex: 1; gap: 14px;
+      font-family: var(--font-pixel); font-size: 9px;
+      color: #555; letter-spacing: 0.08em; text-align: center; line-height: 2;
+    }
+
+    /* Regen button */
+    .regen-btn {
+      font-family: var(--font-pixel); font-size: 9px;
+      background: #000; color: #d4881e;
+      border: 1px solid #d4881e; padding: 7px 12px;
+      cursor: pointer; letter-spacing: 0.06em;
+      margin-top: 12px; align-self: flex-start;
+    }
+    .regen-btn:hover { background: #d4881e; color: #000; }
+    .regen-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Navigation ───────────────────────────────────────────────────────── */
+    .book-nav {
+      display: flex; align-items: center; gap: 28px;
+      margin: 22px auto 48px; width: 900px; justify-content: center;
+    }
+    .nav-btn {
+      font-family: var(--font-pixel); font-size: 11px;
+      background: #000; color: var(--white);
+      border: 2px solid var(--white); padding: 10px 20px;
+      cursor: pointer; letter-spacing: 0.08em;
+    }
+    .nav-btn:hover { background: var(--white); color: #000; }
+    .nav-btn:disabled {
+      border-color: #333; color: #444; cursor: not-allowed; background: #000;
+    }
+    .nav-indicator {
+      font-family: var(--font-pixel); font-size: 10px;
+      color: #444; letter-spacing: 0.1em;
+    }
+
+    /* ── Page flip animation ──────────────────────────────────────────────── */
+    @keyframes flipRight { 0%{transform:rotateY(0)} 50%{transform:rotateY(-15deg)} 100%{transform:rotateY(0)} }
+    @keyframes flipLeft  { 0%{transform:rotateY(0)} 50%{transform:rotateY(15deg)}  100%{transform:rotateY(0)} }
+    .flip-next { animation: flipRight 0.2s steps(4); }
+    .flip-prev { animation: flipLeft  0.2s steps(4); }
+  </style>
+</head>
+<body>
+<div class="pixel-stars"></div>
+
+<!-- Header -->
+<header class="novel-header">
+  <button class="hdr-back" onclick="window.location.href='timeline.html'">◀ 타임라인</button>
+  <span class="hdr-title">📖 나의 이야기</span>
+  <button class="hdr-change" onclick="openPicker()">[기간 변경]</button>
+</header>
+
+<!-- Date Range Picker Modal -->
+<div id="picker-modal">
+  <div class="picker-box">
+    <div class="picker-title">▸ 소설로 엮을 기간 선택</div>
+    <div class="picker-presets">
+      <button class="preset-btn" id="preset-week"  onclick="setPreset('week')">최근 1주일</button>
+      <button class="preset-btn" id="preset-month" onclick="setPreset('month')">최근 한 달</button>
+      <button class="preset-btn" id="preset-all"   onclick="setPreset('all')">전체 일기</button>
+    </div>
+    <div class="picker-row">
+      <div class="picker-field">
+        <label>FROM</label>
+        <input type="date" id="date-from">
+      </div>
+      <div class="picker-field">
+        <label>TO</label>
+        <input type="date" id="date-to">
+      </div>
+    </div>
+    <div class="picker-info" id="picker-info">일기를 선택하세요</div>
+    <button class="picker-open-btn" id="picker-open-btn" onclick="openBook()" disabled>
+      📖 책 펼치기
+    </button>
+  </div>
+</div>
+
+<!-- No Diaries -->
+<div id="no-diaries">
+  <div class="nd-icon">📖</div>
+  일기가 없어요<br>
+  먼저 일기를 써보세요<br>
+  <button class="pixel-btn pixel-btn-sm" style="margin-top:16px"
+    onclick="window.location.href='index.html'">일기 쓰러 가기</button>
+</div>
+
+<!-- Book Stage -->
+<div id="book-stage">
+  <div class="book-wrap">
+    <div class="book-spread" id="book-spread">
+      <div class="book-page book-page-left"  id="page-left"></div>
+      <div class="book-spine"></div>
+      <div class="book-page book-page-right" id="page-right"></div>
+    </div>
+  </div>
+  <div class="book-nav">
+    <button class="nav-btn" id="btn-prev" onclick="navigate(-1)">◀ 이전</button>
+    <span class="nav-indicator" id="nav-indicator">— / —</span>
+    <button class="nav-btn" id="btn-next" onclick="navigate(1)">다음 ▶</button>
+  </div>
+</div>
+
+<script src="../services/storage.js"></script>
+<script src="../services/avatar.js"></script>
+<script src="../services/claude.js"></script>
+<script>
+'use strict'
+
+
+// ── Constants ──────────────────────────────────────────────────────────────
+const PAGE_H     = 630   // fixed book page height
+const PAGE_PAD_T = 36    // top padding
+const PAGE_PAD_B = 48    // bottom padding
+const PAGE_PAD_X = 32    // left/right padding each side
+const CONTENT_H  = PAGE_H - PAGE_PAD_T - PAGE_PAD_B  // 546
+const BODY_W     = 446 - PAGE_PAD_X * 2              // 382
+
+// First-page reserved heights
+const H_HEADER   = 75   // date + title + divider
+const H_IMAGE    = 216  // key image + margin (if present)
+const H_CHARS    = 92   // chars section at bottom (if present) + gap from body
+const H_PAGENUM  = 12   // page-num area buffer
+
+// Continuation page
+const CONT_BODY_H = CONTENT_H - H_PAGENUM - 8   // 526
+
+const READER_NAMES = [
+  '새벽감성', '불멍러버', '모닥불덕후', '책먹는독자',
+  '활자중독', '밤독서꾼', '공감폭발', '문장수집가',
+  '야독자', '깊은밤독서', '북적북적', '독서중독',
+  '소설덕후', '일기광', '갓생독자', '모닥불뷰',
+]
+
+// ── State ──────────────────────────────────────────────────────────────────
+const S = {
+  allDiaries:    [],
+  diaries:       [],      // filtered by range
+  pages:         [],      // [{type, diary, text, hasImage, hasChars, charNames}]
+  spreads:       [],      // [{left, right}]
+  currentSpread: 0,
+  reviews:       null,
+  readerSeeds:   [],
+  reviewsLoading: false,
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+;(function init() {
+  S.allDiaries = StorageService.getDiaries()
+    .filter(d => d.content)
+    .sort((a, b) => a.date < b.date ? -1 : 1)
+
+  const isoDate = d => d.toISOString().slice(0, 10)
+  const today = new Date()
+
+  document.getElementById('date-from').addEventListener('change', onDateChange)
+  document.getElementById('date-to').addEventListener('change',   onDateChange)
+
+  if (S.allDiaries.length === 0) {
+    document.getElementById('picker-modal').style.display = 'none'
+    document.getElementById('no-diaries').style.display   = 'flex'
+    return
+  }
+
+  document.getElementById('date-from').value = S.allDiaries[0].date
+  document.getElementById('date-to').value   = S.allDiaries[S.allDiaries.length - 1].date
+  document.getElementById('preset-all').classList.add('active')
+  onDateChange()
+})()
+
+function onDateChange() {
+  const from = document.getElementById('date-from').value
+  const to   = document.getElementById('date-to').value
+  if (!from || !to) return
+
+  const n = S.allDiaries.filter(d => d.date >= from && d.date <= to).length
+  const btn  = document.getElementById('picker-open-btn')
+  const info = document.getElementById('picker-info')
+
+  if (n === 0) {
+    info.innerHTML = '이 기간에 일기가 없어요'
+    btn.disabled = true
+  } else {
+    info.innerHTML = `<span>${n}편</span>의 일기가 발견됐어요`
+    btn.disabled = false
+  }
+  ;['week','month','all'].forEach(id =>
+    document.getElementById('preset-' + id).classList.remove('active'))
+}
+
+function setPreset(type) {
+  const today = new Date()
+  const isoDate = d => d.toISOString().slice(0, 10)
+
+  if (type === 'all') {
+    if (S.allDiaries.length) {
+      document.getElementById('date-from').value = S.allDiaries[0].date
+      document.getElementById('date-to').value   = S.allDiaries[S.allDiaries.length - 1].date
+    }
+  } else {
+    const from = new Date(today)
+    from.setDate(from.getDate() - (type === 'week' ? 7 : 30))
+    document.getElementById('date-from').value = isoDate(from)
+    document.getElementById('date-to').value   = isoDate(today)
+  }
+  ;['week','month','all'].forEach(id =>
+    document.getElementById('preset-' + id).classList.remove('active'))
+  document.getElementById('preset-' + type).classList.add('active')
+  onDateChange()
+}
+
+function openPicker() {
+  document.getElementById('picker-modal').style.display = 'flex'
+  document.getElementById('book-stage').style.display   = 'none'
+}
+
+function closeBook() {
+  const from = new URLSearchParams(location.search).get('from')
+  window.location.href = from === 'timeline' ? 'timeline.html' : 'index.html'
+}
+
+// ── Open Book ──────────────────────────────────────────────────────────────
+async function openBook() {
+  const from = document.getElementById('date-from').value
+  const to   = document.getElementById('date-to').value
+  S.diaries = S.allDiaries
+    .filter(d => d.date >= from && d.date <= to)
+    .sort((a, b) => {
+      const da = a.date || a.createdAt || ''
+      const db = b.date || b.createdAt || ''
+      return da < db ? -1 : da > db ? 1 : 0
+    })
+  if (!S.diaries.length) return
+
+  S.reviews = null
+  S.readerSeeds = []
+  S.reviewsLoading = false
+
+  // Show stage immediately with loading placeholder
+  document.getElementById('picker-modal').style.display = 'none'
+  document.getElementById('book-stage').style.display   = 'flex'
+  setPageHTML('page-left',  '<div class="loading-page"><div class="loading-text">LOADING...</div></div>')
+  setPageHTML('page-right', '<div class="loading-page"><div class="loading-text">LOADING...</div></div>')
+
+  await buildPages()
+  buildSpreads()
+  S.currentSpread = 0
+  renderSpread()
+}
+
+// ── Text Pagination ────────────────────────────────────────────────────────
+async function paginateText(text, firstH, contH) {
+  await document.fonts.ready
+
+  const el = document.createElement('div')
+  el.style.cssText = [
+    'position:fixed', 'left:-9999px', 'top:0',
+    `width:${BODY_W}px`,
+    "font-family:'Nanum Myeongjo',serif",
+    'font-size:14px', 'line-height:1.95',
+    'word-break:keep-all', 'white-space:pre-wrap',
+    'visibility:hidden', 'pointer-events:none',
+  ].join(';')
+  document.body.appendChild(el)
+
+  const pages = []
+  let rem     = text.trim()
+  let isFirst = true
+
+  while (rem.length > 0) {
+    const maxH = isFirst ? firstH : contH
+    isFirst = false
+
+    el.textContent = rem
+    if (el.scrollHeight <= maxH) {
+      pages.push(rem)
+      break
+    }
+
+    // Binary search for character count that fits
+    let lo = 0, hi = rem.length
+    while (lo < hi - 1) {
+      const mid = Math.floor((lo + hi) / 2)
+      el.textContent = rem.slice(0, mid)
+      if (el.scrollHeight <= maxH) lo = mid
+      else hi = mid
+    }
+
+    // Walk back to word boundary
+    let split = lo
+    while (split > 0 && rem[split] !== ' ' && rem[split] !== '\n') split--
+    if (split === 0) split = lo  // no space found — force split
+
+    pages.push(rem.slice(0, split).trimEnd())
+    rem = rem.slice(split).trimStart()
+  }
+
+  document.body.removeChild(el)
+  return pages.filter(p => p.length > 0)
+}
+
+// ── Build Pages ────────────────────────────────────────────────────────────
+async function buildPages() {
+  S.pages = []
+
+  const sortedDiaries = [...S.diaries].sort((a, b) => {
+    const dateA = new Date(a.createdAt || a.date || a.id)
+    const dateB = new Date(b.createdAt || b.date || b.id)
+    return dateA - dateB
+  })
+  console.log('일기 정렬 순서:', sortedDiaries.map(d => d.date || d.createdAt))
+
+  for (let di = 0; di < sortedDiaries.length; di++) {
+    const diary = sortedDiaries[di]
+    // diary.keyImage is the dataUrl saved directly into the diary object.
+    // Fall back to localStorage lookup for legacy entries that predate this field.
+    const imgUrl = diary.keyImage || getKeyImageObj(diary.date)?.dataUrl || null
+    const hasImage = !!imgUrl
+    const charNames = diary.characterNames
+      || (diary.characters || []).map(c => (typeof c === 'string' ? c : c.name))
+    const hasChars = charNames.length > 0
+
+    // Available height for body text on first page
+    const bodyStart = H_HEADER + (hasImage ? H_IMAGE : 0)
+    const bodyEnd   = CONTENT_H - H_PAGENUM - (hasChars ? H_CHARS : 0)
+    const firstH    = Math.max(bodyEnd - bodyStart, 50)
+
+    const chunks = await paginateText(diary.content || '', firstH, CONT_BODY_H)
+    if (chunks.length === 0) chunks.push('')
+
+    chunks.forEach((text, ci) => {
+      S.pages.push({
+        type:      ci === 0 ? 'diary-first' : 'diary-cont',
+        diary,
+        text,
+        hasImage:  ci === 0 && hasImage,
+        imgUrl:    ci === 0 ? imgUrl : null,
+        hasChars:  ci === 0 && hasChars,
+        charNames: ci === 0 ? charNames : [],
+        diaryIdx:  di,
+      })
+    })
+  }
+}
+
+// ── Build Spreads ──────────────────────────────────────────────────────────
+function buildSpreads() {
+  // Cover = 2 pages (indices 0,1)
+  // Then S.pages (N pages, indices 2..2+N-1)
+  // Review must land on right side (odd index)
+  // Index of review = 2 + N + blank
+  // Need (2 + N + blank) % 2 === 1  →  (N + blank) % 2 === 1
+  // If N even: blank=1; if N odd: blank=0
+  const allPages = [
+    { type: 'cover-left'  },
+    { type: 'cover-right' },
+    ...S.pages,
+  ]
+  if (S.pages.length % 2 === 0) allPages.push({ type: 'blank' })
+  allPages.push({ type: 'review' })
+
+  S.spreads = []
+  for (let i = 0; i < allPages.length; i += 2) {
+    S.spreads.push({
+      left:  allPages[i],
+      right: allPages[i + 1] || { type: 'blank' },
+    })
+  }
+}
+
+// ── Render Spread ──────────────────────────────────────────────────────────
+function renderSpread() {
+  const { left, right } = S.spreads[S.currentSpread]
+  const cur   = S.currentSpread
+  const total = S.spreads.length
+
+  document.getElementById('btn-prev').disabled = cur === 0
+  document.getElementById('btn-next').disabled = cur === total - 1
+  document.getElementById('nav-indicator').textContent = `${cur + 1} / ${total}`
+
+  setPageHTML('page-left',  renderPage(left,  'left'))
+  setPageHTML('page-right', renderPage(right, 'right'))
+
+  // Draw character avatars after DOM update
+  setTimeout(() => {
+    if (left.type  === 'diary-first') drawCharAvatars('chars-left',  left)
+    if (right.type === 'diary-first') drawCharAvatars('chars-right', right)
+    if (left.type  === 'review' || right.type === 'review') {
+      drawReaderAvatars()
+      drawGlasses()
+      if (!S.reviews && !S.reviewsLoading) loadReviews()
+    }
+  }, 0)
+}
+
+// ── Page Renderers ─────────────────────────────────────────────────────────
+function renderPage(page, side) {
+  const pageNum = computePageNum(page)
+  switch (page.type) {
+    case 'cover-left':  return renderEndpaper()
+    case 'cover-right': return renderCover()
+    case 'diary-first': return renderDiaryFirst(page, pageNum, side)
+    case 'diary-cont':  return renderDiaryCont(page, pageNum)
+    case 'blank':       return renderBlank()
+    case 'review':      return renderReviewPage()
+    default:            return renderBlank()
+  }
+}
+
+function computePageNum(page) {
+  if (page.type === 'cover-left' || page.type === 'cover-right') return null
+  if (page.type === 'blank' || page.type === 'review') return null
+  // pages in S.pages are 1-indexed
+  const idx = S.pages.indexOf(page)
+  return idx >= 0 ? idx + 1 : null
+}
+
+function renderEndpaper() {
+  const line = '◈ TADAK TADAK ◈'
+  const pat  = Array(12).fill(line).join('<br>')
+  return `<div class="endpaper"><div class="endpaper-pattern">${pat}</div></div>`
+}
+
+function renderCover() {
+  const from   = S.diaries[0]?.date || ''
+  const to     = S.diaries[S.diaries.length - 1]?.date || ''
+  const count  = S.diaries.length
+  const period = from === to ? fmtDate(from) : `${fmtDate(from)} ~ ${fmtDate(to)}`
+  return `
+    <div class="cover-page">
+      <div class="cover-fire">🔥</div>
+      <div class="cover-title">나의 이야기</div>
+      <div class="cover-count">${count}편의 일기</div>
+      <div class="cover-period">${period}</div>
+      <div class="cover-divider"></div>
+      <button class="cover-close" onclick="closeBook()">책 덮기</button>
+    </div>
+    <div class="page-num">i</div>
+  `
+}
+
+function renderDiaryFirst(page, pageNum, side) {
+  const { diary, text, hasImage, imgUrl, hasChars } = page
+  const dateLabel = fmtDateFull(diary.date)
+  const title     = diary.title || dateLabel
+
+  const imgHtml = hasImage && imgUrl
+    ? `<img class="diary-keyimage" src="${imgUrl}" alt="">`
+    : ''
+
+  const charsId   = side === 'left' ? 'chars-left' : 'chars-right'
+  const charsHtml = hasChars
+    ? `<div class="diary-chars-section" id="${charsId}">
+         <div class="chars-label">▸ 등장인물</div>
+         <div class="chars-row"></div>
+       </div>`
+    : ''
+
+  return `
+    <div class="diary-date">${diary.date}</div>
+    <div class="diary-title">${esc(title)}</div>
+    ${imgHtml}
+    <div class="diary-body">${esc(text)}</div>
+    ${charsHtml}
+    ${pageNum != null ? `<div class="page-num">${pageNum}</div>` : ''}
+  `
+}
+
+function renderDiaryCont(page, pageNum) {
+  return `
+    <div class="cont-label">— 계속</div>
+    <div class="diary-body">${esc(page.text)}</div>
+    ${pageNum != null ? `<div class="page-num">${pageNum}</div>` : ''}
+  `
+}
+
+function renderBlank() {
+  return `<div class="blank-page"><div class="blank-ornament">※</div></div>`
+}
+
+// ── Review Page ────────────────────────────────────────────────────────────
+function renderReviewPage() {
+  if (S.reviewsLoading) {
+    return `
+      <div class="review-page">
+        <div class="bulmang-header">
+          <span class="bulmang-flame">🔥</span>
+          <span class="bulmang-title">불멍 독자석</span>
+        </div>
+        <div class="review-error">
+          <div>독자들이 읽는 중...</div>
+        </div>
+      </div>
+    `
+  }
+  if (!S.reviews) {
+    return `
+      <div class="review-page">
+        <div class="bulmang-header">
+          <span class="bulmang-flame">🔥</span>
+          <span class="bulmang-title">불멍 독자석</span>
+        </div>
+        <div class="review-error">
+          <div>독자 반응을 불러오지 못했어요.<br>다시 시도해줘요.</div>
+          <button class="regen-btn" onclick="loadReviews()">🔥 독자 불러오기</button>
+        </div>
+      </div>
+    `
+  }
+
+  const stars = S.reviews.rating || 0
+  const starsHtml = Array(5).fill(0).map((_, i) =>
+    `<span class="star ${i < stars ? 'star-on' : 'star-off'}">★</span>`
+  ).join('')
+
+  const commentsHtml = (S.reviews.comments || []).map((c, i) => {
+    const seed = S.readerSeeds[i]
+    const nick = READER_NAMES[(seed?.head ?? i * 3) % READER_NAMES.length]
+    return `
+      <div class="comment-item">
+        <canvas id="reader-avatar-${i}" class="reader-avatar"
+          width="${AvatarGenerator.CW}" height="${AvatarGenerator.CH}"></canvas>
+        <div class="comment-bubble">
+          <div class="reader-nick">${esc(nick)}</div>
+          <div class="comment-text">${esc(c.text || '')}</div>
+        </div>
+      </div>
+    `
+  }).join('')
+
+  return `
+    <div class="review-page">
+      <div class="bulmang-header">
+        <span class="bulmang-icon">🔥</span>
+        <span class="bulmang-title">불멍 독자석</span>
+      </div>
+      <div class="review-stars">
+        ${starsHtml}
+        <span class="stars-score">${stars}.0</span>
+      </div>
+      <div class="critic-box">
+        <div class="critic-quote">${esc(S.reviews.criticReview || '')}</div>
+        <div class="critic-by">—&nbsp;<canvas id="glasses-canvas"></canvas></div>
+      </div>
+      <div class="comments-list">
+        ${commentsHtml}
+      </div>
+      <button class="regen-btn" id="regen-btn" onclick="reloadReviews()">
+        🔥 다른 독자 불러오기
+      </button>
+      <button class="cover-close" onclick="closeBook()" style="margin-top:16px;align-self:center;">
+        [ 책 덮기 ]
+      </button>
+    </div>
+  `
+}
+
+// ── Load / Reload Reviews ──────────────────────────────────────────────────
+async function loadReviews(prevReviews = null) {
+  if (S.reviewsLoading) return
+  const apiKey = StorageService.getApiKey()
+  if (!apiKey) {
+    S.reviews = null
+    const regenBtn = document.getElementById('regen-btn')
+    if (regenBtn) regenBtn.textContent = 'API 키가 없어요'
+    return
+  }
+
+  S.reviewsLoading = true
+  const reviewPageEl = getReviewPageEl()
+  if (reviewPageEl) {
+    reviewPageEl.innerHTML = renderReviewPage()
+  }
+
+  try {
+    S.reviews = await ClaudeService.generateReviews(S.diaries, prevReviews)
+    if (S.reviews?.comments) {
+      S.readerSeeds = S.reviews.comments.map(() => AvatarGenerator.generateSeed())
+    }
+  } catch (e) {
+    console.error('독자 반응 로드 실패:', e)
+    S.reviews = null
+  } finally {
+    S.reviewsLoading = false
+  }
+
+  if (reviewPageEl) {
+    reviewPageEl.innerHTML = renderReviewPage()
+    setTimeout(() => {
+      drawReaderAvatars()
+      drawGlasses()
+    }, 0)
+  }
+}
+
+async function reloadReviews() {
+  const prevReviews = S.reviews   // 이전 결과 보존 후 전달
+  S.reviews = null
+  S.readerSeeds = []
+  const btn = document.getElementById('regen-btn')
+  if (btn) { btn.disabled = true; btn.textContent = '불러오는 중...' }
+  await loadReviews(prevReviews)
+}
+
+function getReviewPageEl() {
+  const leftPage  = document.getElementById('page-left')
+  const rightPage = document.getElementById('page-right')
+  const cur = S.spreads[S.currentSpread]
+  if (cur?.left?.type  === 'review') return leftPage
+  if (cur?.right?.type === 'review') return rightPage
+  return null
+}
+
+// ── Draw Avatars ───────────────────────────────────────────────────────────
+function drawCharAvatars(containerId, page) {
+  const section = document.getElementById(containerId)
+  if (!section) return
+
+  const { charNames } = page
+  if (!charNames?.length) return
+
+  const row = section.querySelector('.chars-row')
+  if (!row) return
+
+  charNames.slice(0, 6).forEach(name => {
+    const char = StorageService.getCharacter(name)
+    if (!char) return
+
+    const wrap = document.createElement('div')
+    wrap.className = 'char-wrap'
+
+    const canvas = document.createElement('canvas')
+    canvas.className = 'char-canvas'
+    canvas.width  = AvatarGenerator.CW
+    canvas.height = AvatarGenerator.CH
+    try {
+      AvatarGenerator.render(canvas, char)
+    } catch (e) {
+      console.error('캐릭터 아바타 렌더 실패:', name, e)
+    }
+
+    const label = document.createElement('div')
+    label.className = 'char-name'
+    label.textContent = name
+
+    wrap.appendChild(canvas)
+    wrap.appendChild(label)
+    row.appendChild(wrap)
+  })
+}
+
+function drawReaderAvatars() {
+  if (!S.reviews?.comments) return
+
+  S.reviews.comments.forEach((_, i) => {
+    const canvas = document.getElementById(`reader-avatar-${i}`)
+    if (!canvas) return
+    const seed = S.readerSeeds[i]
+    if (!seed) return
+    try {
+      AvatarGenerator.renderSeed(canvas, seed)
+    } catch (e) {
+      console.error('독자 아바타 렌더 실패:', i, e)
+    }
+  })
+}
+
+// ── Pixel Glasses (이동진 아이콘) ─────────────────────────────────────────
+// 논리 그리드: 20×10 / 2× 스케일 → 화면 40×20px
+//
+// 레이아웃 (논리 좌표):
+//   x: 0-1  = 왼쪽 안경다리
+//   x: 2-7  = 왼쪽 렌즈 (6×6)
+//   x: 8-11 = 코받침 (4×2 블록)
+//   x:12-17 = 오른쪽 렌즈 (6×6)
+//   x:18-19 = 오른쪽 안경다리
+function drawGlasses() {
+  const canvas = document.getElementById('glasses-canvas')
+  if (!canvas) return
+
+  const SC = 2   // 1 논리 픽셀 = 2×2 화면 픽셀
+  canvas.width  = 20 * SC   // 40px
+  canvas.height = 10 * SC   // 20px
+
+  const ctx = canvas.getContext('2d')
+  ctx.imageSmoothingEnabled = false   // 안티앨리어싱 완전 제거
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+  // 논리 픽셀 1개를 SC×SC 블록으로 채움
+  const px = (x, y, color) => {
+    ctx.fillStyle = color
+    ctx.fillRect(x * SC, y * SC, SC, SC)
+  }
+
+  const B = '#cc2200'  // 테두리 (빨간 뿔테)
+  const L = '#ff6644'  // 렌즈 내부
+
+  // ── 왼쪽 렌즈 (x=2-7, y=1-6) ─────────────────────────────────────────
+  for (let x = 3; x <= 6; x++)
+    for (let y = 2; y <= 5; y++) px(x, y, L)    // 내부
+  for (let x = 2; x <= 7; x++) { px(x, 1, B); px(x, 6, B) }  // 위/아래 테두리
+  for (let y = 1; y <= 6; y++) { px(2, y, B); px(7, y, B) }  // 좌/우 테두리
+
+  // ── 코받침 (x=8-11, y=3-4) ──────────────────────────────────────────
+  for (let x = 8; x <= 11; x++)
+    for (let y = 3; y <= 4; y++) px(x, y, B)
+
+  // ── 오른쪽 렌즈 (x=12-17, y=1-6) ────────────────────────────────────
+  for (let x = 13; x <= 16; x++)
+    for (let y = 2; y <= 5; y++) px(x, y, L)    // 내부
+  for (let x = 12; x <= 17; x++) { px(x, 1, B); px(x, 6, B) }
+  for (let y = 1; y <= 6; y++)   { px(12, y, B); px(17, y, B) }
+
+  // ── 안경다리 (2×2 블록) ───────────────────────────────────────────────
+  for (let y = 3; y <= 4; y++) { px(0, y, B); px(1, y, B) }   // 왼쪽
+  for (let y = 3; y <= 4; y++) { px(18, y, B); px(19, y, B) } // 오른쪽
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+function navigate(dir) {
+  const next = S.currentSpread + dir
+  if (next < 0 || next >= S.spreads.length) return
+
+  const spread = document.getElementById('book-spread')
+  spread.classList.add(dir > 0 ? 'flip-next' : 'flip-prev')
+  setTimeout(() => spread.classList.remove('flip-next', 'flip-prev'), 250)
+
+  S.currentSpread = next
+  renderSpread()
+}
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('picker-modal').style.display !== 'none') return
+  if (e.key === 'ArrowRight') navigate(1)
+  if (e.key === 'ArrowLeft')  navigate(-1)
+})
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function setPageHTML(id, html) {
+  document.getElementById(id).innerHTML = html
+}
+
+function getKeyImageObj(date) {
+  const key = `tadak:key-image:${date}`
+  try {
+    const raw = localStorage.getItem(key) || sessionStorage.getItem(key)
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
+
+function fmtDate(s) {
+  if (!s) return ''
+  const [y, m, d] = s.split('-')
+  return `${y}.${m}.${d}`
+}
+
+function fmtDateFull(s) {
+  if (!s) return ''
+  const days = ['일','월','화','수','목','금','토']
+  const dt   = new Date(s + 'T00:00:00')
+  return `${dt.getFullYear()}년 ${dt.getMonth()+1}월 ${dt.getDate()}일 ${days[dt.getDay()]}요일`
+}
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+</script>
+</body>
+</html>
