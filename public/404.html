@@ -3,7 +3,8 @@
 <meta charset="UTF-8">
 <script>
   // GitHub Pages SPA fallback: redirect to index with path encoded in query
-  const path = window.location.pathname + window.location.search + window.location.hash
-  window.location.replace('/?p=' + encodeURIComponent(path))
+  const base = '/novel-diary'
+  const path = window.location.pathname.replace(base, '') + window.location.search + window.location.hash
+  window.location.replace(base + '/?p=' + encodeURIComponent(path || '/'))
 </script>
 </head><body></body></html>

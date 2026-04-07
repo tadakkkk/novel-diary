@@ -152,7 +152,7 @@ function OnboardingModal() {
 // ── App ────────────────────────────────────────────────────────────────────
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <OnboardingModal />
       <QuotaToast />
       <Routes>
