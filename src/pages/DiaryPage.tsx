@@ -175,6 +175,7 @@ export default function DiaryPage() {
   const [charModal, setCharModal]   = useState<Character | null>(null)
   const [showApiModal, setShowApiModal] = useState(false)
   const [pendingGen, setPendingGen] = useState(false)
+  const [isSaved, setIsSaved]       = useState(false)
   const isGenerating  = useRef(false)
   const abortCtrl     = useRef<AbortController | null>(null)
 
@@ -199,6 +200,7 @@ export default function DiaryPage() {
       setDiaryContent(diary.content)
       setSavedDiary(diary)
       setStatus('done')
+      setIsSaved(true)  // 편집 모드는 이미 저장된 상태
       const savedChars = (diary.characterNames ?? []).map((n) => storage.getCharacter(n) ?? { name: n, relationship: '', appearances: [], episodes: [], avatarData: {} } as Character)
       setChars(savedChars)
     }
@@ -288,11 +290,11 @@ export default function DiaryPage() {
         date: sessionDate, wordCount: content.length,
         createdAt: (prevDiary as Partial<NovelDiary>).createdAt ?? new Date().toISOString(),
       }
-      storage.saveDiary(diary)
+      // 자동 저장 제거 — 저장 버튼 클릭 시에만 저장
       rawChars.forEach((c) => storage.upsertCharacter(c as Character))
 
       const savedChars = rawChars.map((c) => storage.getCharacter(c.name) ?? c as unknown as Character)
-      setDiaryContent(content); setSavedDiary(diary); setChars(savedChars); setStatus('done')
+      setDiaryContent(content); setSavedDiary(diary); setChars(savedChars); setStatus('done'); setIsSaved(false)
     } catch (err) {
       const msg = (err as Error).message ?? ''
       if ((err as Error).name === 'AbortError' || msg.includes('AbortError')) {
@@ -459,10 +461,20 @@ export default function DiaryPage() {
                 </div>
               </div>
 
-              <div className='diary-content'>
-                {displayed}
-                {!typingDone && <span className='px-cursor' />}
-              </div>
+              {/* 타이핑 중: 읽기 전용 / 완료 후: 편집 가능 textarea */}
+              {!typingDone && !isEditLoad ? (
+                <div className='diary-content'>
+                  {displayed}
+                  <span className='px-cursor' />
+                </div>
+              ) : (
+                <textarea
+                  className='diary-content'
+                  style={{ width:'100%', resize:'vertical', minHeight:240, background:'var(--black)', color:'var(--gray-5)', border:'none', borderLeft:'3px solid var(--fire-org)', outline:'none', fontFamily:'var(--font-korean)', fontSize:15, lineHeight:2.1, padding:'0 0 0 16px', marginBottom:20, whiteSpace:'pre-wrap', wordBreak:'keep-all', boxSizing:'border-box' }}
+                  value={diaryContent}
+                  onChange={(e) => { setDiaryContent(e.target.value); setIsSaved(false); if (savedDiary) setSavedDiary({ ...savedDiary, content: e.target.value }) }}
+                />
+              )}
 
               <div className='diary-actions'>
                 <button className='pixel-btn' onClick={startGeneration}>↺ 다시 생성</button>
@@ -475,7 +487,20 @@ export default function DiaryPage() {
                   a.click()
                   URL.revokeObjectURL(a.href)
                 }}>↓ 텍스트 저장</button>
-                <button className='pixel-btn pixel-btn-fire' onClick={() => navigate('/timeline')}>▸ 타임라인으로</button>
+                <button
+                  className={`pixel-btn${isSaved ? '' : ' pixel-btn-fire'}`}
+                  disabled={isSaved}
+                  onClick={() => {
+                    if (!savedDiary) return
+                    storage.saveDiary({ ...savedDiary, content: diaryContent, wordCount: diaryContent.length })
+                    setIsSaved(true)
+                  }}
+                >
+                  {isSaved ? '✓ 저장됨' : '▸ 일기 저장'}
+                </button>
+                {isSaved && (
+                  <button className='pixel-btn' onClick={() => navigate('/timeline')}>타임라인으로 →</button>
+                )}
               </div>
 
               {chars.length > 0 && (

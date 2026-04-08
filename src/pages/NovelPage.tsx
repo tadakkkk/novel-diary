@@ -562,10 +562,10 @@ export default function NovelPage() {
                 onRegen={() => { const prev = reviews; setReviews(null); setReaderSeeds([]); loadReviews(prev) }} />
             </div>
             <div style={{ display:'flex', alignItems:'center', gap:24, margin:'18px auto 40px', justifyContent:'center' }}>
-              <button disabled={curPage === 0} onClick={() => navPage(-1)}
+              <button disabled={curPage === 0} onClick={() => navPage(-1)} className='nav-btn'
                 style={{ fontFamily:'var(--font-pixel)', fontSize:11, background:'#000', color: curPage === 0 ? '#444' : 'var(--white)', border: curPage === 0 ? '2px solid #333' : '2px solid var(--white)', padding:'10px 18px', cursor: curPage === 0 ? 'not-allowed' : 'pointer', letterSpacing:'0.08em' }}>◀</button>
               <span style={{ fontFamily:'var(--font-pixel)', fontSize:10, color:'#444', letterSpacing:'0.1em' }}>{curPage + 1} / {flatLen}</span>
-              <button disabled={curPage === flatLen - 1} onClick={() => navPage(1)}
+              <button disabled={curPage === flatLen - 1} onClick={() => navPage(1)} className='nav-btn'
                 style={{ fontFamily:'var(--font-pixel)', fontSize:11, background:'#000', color: curPage === flatLen - 1 ? '#444' : 'var(--white)', border: curPage === flatLen - 1 ? '2px solid #333' : '2px solid var(--white)', padding:'10px 18px', cursor: curPage === flatLen - 1 ? 'not-allowed' : 'pointer', letterSpacing:'0.08em' }}>▶</button>
             </div>
           </div>
@@ -593,10 +593,10 @@ export default function NovelPage() {
           </div>
           </div>
           <div className='book-nav' style={{ display:'flex', alignItems:'center', gap:28, margin:'22px auto 48px', width:900, justifyContent:'center' }}>
-            <button disabled={curSpread === 0} onClick={() => navSpread(-1)}
+            <button disabled={curSpread === 0} onClick={() => navSpread(-1)} className='nav-btn'
               style={{ fontFamily:'var(--font-pixel)', fontSize:11, background:'#000', color: curSpread === 0 ? '#444' : 'var(--white)', border: curSpread === 0 ? '2px solid #333' : '2px solid var(--white)', padding:'10px 20px', cursor: curSpread === 0 ? 'not-allowed' : 'pointer', letterSpacing:'0.08em' }}>◀ 이전</button>
             <span style={{ fontFamily:'var(--font-pixel)', fontSize:10, color:'#444', letterSpacing:'0.1em' }}>{curSpread + 1} / {spreads.length}</span>
-            <button disabled={curSpread === spreads.length - 1} onClick={() => navSpread(1)}
+            <button disabled={curSpread === spreads.length - 1} onClick={() => navSpread(1)} className='nav-btn'
               style={{ fontFamily:'var(--font-pixel)', fontSize:11, background:'#000', color: curSpread === spreads.length - 1 ? '#444' : 'var(--white)', border: curSpread === spreads.length - 1 ? '2px solid #333' : '2px solid var(--white)', padding:'10px 20px', cursor: curSpread === spreads.length - 1 ? 'not-allowed' : 'pointer', letterSpacing:'0.08em' }}>다음 ▶</button>
           </div>
         </div>
@@ -607,6 +607,8 @@ export default function NovelPage() {
         @keyframes flipLeft  { 0%{transform:rotateY(0)} 50%{transform:rotateY(15deg)}  100%{transform:rotateY(0)} }
         .flip-next { animation: flipRight 0.2s steps(4); }
         .flip-prev { animation: flipLeft  0.2s steps(4); }
+        .nav-btn:not(:disabled):active { transform: scale(0.93); background: #1a1a1a !important; transition: transform 0.05s, background 0.05s; }
+        .nav-btn:not(:disabled) { transition: transform 0.1s, background 0.1s; }
       `}</style>
     </>
   )

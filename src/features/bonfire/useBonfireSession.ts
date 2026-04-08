@@ -18,8 +18,24 @@ interface BonfireSession {
   removeKeyImage: () => void
 }
 
+const SESSION_STORAGE_KEY = 'novel-diary:active-session'
+
+function getOrCreateSessionId(): string {
+  // 브라우저 탭 세션 동안 유지, 새 탭/새로고침 후에도 복원
+  const existing = sessionStorage.getItem(SESSION_STORAGE_KEY)
+  if (existing) return existing
+  const newId = toSessionId() + '-' + Date.now()
+  sessionStorage.setItem(SESSION_STORAGE_KEY, newId)
+  return newId
+}
+
+export function newBonfireSession(): void {
+  // 새 일기 시작 — 세션 ID 초기화
+  sessionStorage.removeItem(SESSION_STORAGE_KEY)
+}
+
 export function useBonfireSession(): BonfireSession {
-  const sessionId = toSessionId()
+  const sessionId = getOrCreateSessionId()
 
   const [kindlings, setKindlings] = useState<Kindling[]>([])
   const [flameLevel, setFlameLevel] = useState<FlameLevel>(0)

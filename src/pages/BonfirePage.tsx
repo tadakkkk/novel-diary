@@ -1,14 +1,13 @@
 import { AppHeader } from '@/components/ui/AppHeader'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { FlameAnimation } from '@/features/bonfire/FlameAnimation'
-import { useBonfireSession } from '@/features/bonfire/useBonfireSession'
+import { useBonfireSession, newBonfireSession } from '@/features/bonfire/useBonfireSession'
 import { GenerateButton } from '@/features/diary/GenerateButton'
 import { KindlingInput } from '@/features/kindling/KindlingInput'
 import { KindlingList } from '@/features/kindling/KindlingList'
 import { KeyImageUploader } from '@/features/media/KeyImageUploader'
 import { isGenerationReady, getThresholdHint } from '@/lib/flame'
 import { formatKoreanDate } from '@/lib/date'
-import * as storage from '@/services/storage'
 
 export default function BonfirePage() {
   const {
@@ -23,34 +22,23 @@ export default function BonfirePage() {
     removeKeyImage,
   } = useBonfireSession()
 
-  const count   = kindlings.length
-  const ready   = isGenerationReady(count)
-  const hint    = getThresholdHint(count)
+  const count    = kindlings.length
+  const ready    = isGenerationReady(count)
+  const hint     = getThresholdHint(count)
   const gaugeBar = '█'.repeat(flameLevel) + '░'.repeat(5 - flameLevel)
 
-  const today = new Date().toISOString().slice(0, 10)
-  const todayDiary = storage.getDiaries().find((d) => d.date === today)
+  function handleNewSession() {
+    if (count > 0 && !confirm('현재 땔감을 버리고 새 일기를 시작할까요?')) return
+    newBonfireSession()
+    window.location.reload()
+  }
 
   return (
     <>
       <PixelStars />
       <AppHeader />
 
-      {todayDiary && (
-        <div style={{
-          position:'fixed', top:64, left:0, right:0, zIndex:40,
-          background:'#1a0a00', borderBottom:'2px solid var(--fire-org)',
-          padding:'10px 20px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12,
-        }}>
-          <span style={{ fontFamily:'var(--font-korean)', fontSize:13, color:'#e8a060', lineHeight:1.5 }}>
-            오늘 이미 일기가 있어요. 새 땔감을 추가하면 <strong style={{ color:'var(--fire-tip)' }}>오늘 일기가 덮어써져요.</strong>
-          </span>
-          <button className='pixel-btn pixel-btn-sm' onClick={() => window.location.href = `/timeline`}
-            style={{ flexShrink:0 }}>타임라인 보기</button>
-        </div>
-      )}
-
-      <div className='bonfire-page' style={todayDiary ? { paddingTop:104 } : undefined}>
+      <div className='bonfire-page'>
         {/* ── LEFT: Bonfire Stage ── */}
         <main className='bonfire-stage'>
           <div className='scene-date'>
@@ -83,6 +71,14 @@ export default function BonfirePage() {
             onUpload={uploadKeyImage}
             onRemove={removeKeyImage}
           />
+
+          <button
+            className='pixel-btn pixel-btn-sm'
+            style={{ marginTop:16, fontSize:9 }}
+            onClick={handleNewSession}
+          >
+            🔥 새 일기 시작
+          </button>
         </main>
 
         {/* ── RIGHT: Kindling Panel ── */}
