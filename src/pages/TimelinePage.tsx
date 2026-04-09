@@ -92,7 +92,7 @@ function CharModal({ name, onClose }: { name: string; onClose: () => void }) {
               )}
             </div>
           </div>
-          <button className='modal-close' onClick={onClose}>[ ✕ ]</button>
+          <button className='modal-close' onClick={onClose}>[ x ]</button>
         </div>
         <div style={{ padding:'16px 20px 20px' }}>
           <div style={{ fontFamily:'var(--font-pixel)', fontSize:9, color:'var(--gray-4)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:8 }}>등장 일기</div>
@@ -159,7 +159,7 @@ function DiaryModal({ diary, onClose, onDelete, onEdit }: {
                 )}
               </div>
             </div>
-            <button className='modal-close' onClick={onClose}>[ ✕ ]</button>
+            <button className='modal-close' onClick={onClose}>[ x ]</button>
           </div>
 
           {keyImageUrl && <img src={keyImageUrl} alt='' style={{ width:'100%', maxHeight:220, objectFit:'cover', display:'block', borderBottom:'2px solid var(--gray-2)' }} />}
@@ -297,7 +297,7 @@ export default function TimelinePage() {
             <input type='file' accept='.json' style={{ display:'none' }} onChange={handleImport} />
           </label>
           <button className='pixel-btn pixel-btn-sm pixel-btn-fire' onClick={() => navigate('/')}>▸ 새 일기</button>
-          <button className='pixel-btn pixel-btn-sm' onClick={() => navigate('/novel')}>📖 나의 이야기</button>
+          <button className='pixel-btn pixel-btn-sm' onClick={() => navigate('/novel')}>나의 이야기</button>
         </div>
       </header>
 
@@ -405,7 +405,7 @@ export default function TimelinePage() {
 
         {diaries.length === 0 ? (
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'80px 24px', color:'var(--text-off)', fontFamily:'var(--font-pixel)', fontSize:12, textAlign:'center', lineHeight:2.4, letterSpacing:'0.1em', textTransform:'uppercase' }}>
-            <div style={{ fontSize:32, marginBottom:16, opacity:0.2 }}>📖</div>
+            <div style={{ fontSize:32, marginBottom:16, opacity:0.2 }}>▒</div>
             일기가 없어요<br />먼저 일기를 써보세요
             <button className='pixel-btn pixel-btn-sm' style={{ marginTop:16 }} onClick={() => navigate('/')}>일기 쓰러 가기</button>
           </div>

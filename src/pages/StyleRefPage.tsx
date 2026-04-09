@@ -158,7 +158,7 @@ export default function StyleRefPage() {
             onClick={(e) => e.stopPropagation()}>
             <div style={{ padding: '14px 18px 12px', borderBottom: '2px solid var(--gray-2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div style={{ fontFamily: 'var(--font-korean)', fontSize: 14, fontWeight: 700, color: 'var(--white)' }}>{previewRef.title}</div>
-              <button className='modal-close' onClick={() => setPreviewRef(null)}>[ ✕ ]</button>
+              <button className='modal-close' onClick={() => setPreviewRef(null)}>[ x ]</button>
             </div>
             <div style={{ padding: '20px 24px 24px', maxHeight: '60vh', overflowY: 'auto' }}>
               <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--gray-5)', lineHeight: 1.9, whiteSpace: 'pre-wrap', wordBreak: 'keep-all' }}>

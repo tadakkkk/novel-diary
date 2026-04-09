@@ -92,7 +92,7 @@ function OnboardingModal() {
               {[
                 ['🪵', '땔감 입력', '오늘 있었던 일을 조각조각 던지세요'],
                 ['✍️', '일기 생성', 'Claude AI가 소설 문체로 일기를 써줘요'],
-                ['📖', '나의 이야기', '쌓인 일기를 한 권의 책으로 엮어 봐요'],
+                ['▒', '나의 이야기', '쌓인 일기를 한 권의 책으로 엮어 봐요'],
               ].map(([icon, title, desc]) => (
                 <div key={title} style={{ display:'flex', gap:14, alignItems:'flex-start' }}>
                   <span style={{ fontSize:22, flexShrink:0, lineHeight:1.3 }}>{icon}</span>

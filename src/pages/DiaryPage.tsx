@@ -120,7 +120,7 @@ function CharacterModal({ character, onClose }: { character: Character; onClose:
             <div key={i} className='episode-item'><b>{e.date}</b> {e.summary ?? ''}</div>
           ))}
         </div>
-        <button className='modal-close' onClick={onClose}>[ 닫기 ]</button>
+        <button className='modal-close' onClick={onClose}>[ x ]</button>
       </div>
     </div>
   )

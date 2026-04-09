@@ -484,7 +484,7 @@ export default function NovelPage() {
         <div style={{ width:80 }} />
       </header>
       <div style={{ paddingTop:52, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', minHeight:'100vh', fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', letterSpacing:'0.08em', textAlign:'center', lineHeight:2.8 }}>
-        <div style={{ fontSize:36, marginBottom:20, opacity:0.3 }}>📖</div>
+        <div style={{ fontSize:36, marginBottom:20, opacity:0.3 }}>▒</div>
         일기가 없어요<br />먼저 일기를 써보세요<br />
         <button className='pixel-btn pixel-btn-sm' style={{ marginTop:16 }} onClick={() => navigate('/')}>일기 쓰러 가기</button>
       </div>
@@ -509,8 +509,8 @@ export default function NovelPage() {
         <div style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.92)' }}>
           <div style={{ width:400, border:'3px solid var(--white)', background:'#000', padding:'28px 28px 24px', position:'relative' }}>
             <button onClick={() => spreads.length > 0 ? setShowPicker(false) : navigate(-1)}
-              style={{ position:'absolute', top:12, right:14, fontFamily:'var(--font-pixel)', fontSize:11, background:'transparent', border:'none', color:'var(--gray-4)', cursor:'pointer', lineHeight:1, padding:'4px 6px', letterSpacing:'0.06em' }}
-              title='닫기'>✕</button>
+              className='modal-close' style={{ position:'absolute', top:12, right:14 }}
+              title='닫기'>[ x ]</button>
             <div style={{ fontFamily:'var(--font-pixel)', fontSize:13, color:'var(--white)', letterSpacing:'0.1em', marginBottom:22 }}>▸ 소설로 엮을 기간 선택</div>
             <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:16 }}>
               {(['week', 'month', 'all'] as const).map((t) => (
