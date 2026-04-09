@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppHeader } from '@/components/ui/AppHeader'
 import { PixelStars } from '@/components/ui/PixelStars'
@@ -39,79 +38,51 @@ export default function BonfirePage() {
     window.location.reload()
   }
 
-  // ── 모바일 키보드 대응: visualViewport resize → bottom 동적 조정 ──────
-  const mobileRootRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!isMobile || !window.visualViewport) return
-    const vv = window.visualViewport
-    function sync() {
-      const el = mobileRootRef.current
-      if (!el) return
-      // 키보드가 올라오면 layout viewport 하단과 visual viewport 하단 사이에 차이 발생
-      const kbHeight = Math.max(0, window.innerHeight - vv.offsetTop - vv.height)
-      el.style.bottom = kbHeight + 'px'
-    }
-    vv.addEventListener('resize', sync)
-    vv.addEventListener('scroll', sync)
-    sync()
-    return () => {
-      vv.removeEventListener('resize', sync)
-      vv.removeEventListener('scroll', sync)
-    }
-  }, [isMobile])
-
   // ── 모바일 레이아웃 ────────────────────────────────────────────────────
+  // AppHeader를 bf-m-root 안으로 포함 → 전체 100dvh flex column 구성
   if (isMobile) {
     return (
       <>
         <PixelStars />
-        <AppHeader />
+        <div className='bf-m-root'>
+          {/* 헤더: bf-m-root 안에서 position:relative, height:48px */}
+          <AppHeader />
 
-        <div ref={mobileRootRef} className='bf-m-root'>
-          {/* 중간: 불꽃 스테이지 + 땔감 목록 */}
+          {/* 중간: 날짜/불꽃/게이지/이미지/버튼 — flex:1, space-evenly */}
           <div className='bf-m-middle'>
-            <div className='bf-m-stage'>
-              {/* 날짜 */}
-              <div className='scene-date' style={{ marginBottom: 0 }}>
-                <span className='date-main' style={{ fontSize: 15 }}>{formatKoreanDate()}</span>
-                TODAY / BONFIRE NIGHT
-              </div>
-
-              {/* 불꽃 */}
-              <div className='bonfire-scene' style={{ marginBottom: 0 }}>
-                <FlameAnimation level={flameLevel} />
-                <div className='pixel-ground' />
-              </div>
-
-              {/* 게이지 */}
-              <div className='gauge-row' style={{ marginBottom: 0 }}>
-                <span className='gauge-bar' style={{ fontSize: 16 }}>{gaugeBar}</span>
-                <span className='gauge-count' style={{ fontSize: 13 }}>[<span>{count}</span>/∞]</span>
-              </div>
-
-              {/* 힌트 */}
-              <div className='threshold-hint' style={{ height: 'auto', marginTop: 0, fontSize: 11, color: ready ? 'var(--fire-tip)' : 'var(--text-dim)' }}>
-                {hint}
-              </div>
-
-              {/* 대표 이미지 */}
-              <div style={{ width: '100%' }}>
-                <KeyImageUploader keyImage={keyImage} onUpload={uploadKeyImage} onRemove={removeKeyImage} />
-              </div>
-
-              {/* 새 일기 버튼 */}
-              <button className='pixel-btn pixel-btn-sm' style={{ fontSize: 9 }} onClick={handleNewSession}>
-                🔥 새 일기 시작
-              </button>
+            {/* 날짜 */}
+            <div className='scene-date bf-m-date'>
+              <span className='date-main'>{formatKoreanDate()}</span>
+              TODAY / BONFIRE NIGHT
             </div>
 
-            {/* 땔감 목록 */}
-            <div className='bf-m-list'>
-              <KindlingList kindlings={kindlings} onRemove={removeKindling} onReorder={reorderKindlings} />
+            {/* 불꽃 — max-height: 30dvh */}
+            <div className='bonfire-scene bf-m-flame'>
+              <FlameAnimation level={flameLevel} />
+              <div className='pixel-ground' />
             </div>
+
+            {/* 게이지 + 카운터 */}
+            <div className='gauge-row'>
+              <span className='gauge-bar'>{gaugeBar}</span>
+              <span className='gauge-count'>[<span>{count}</span>/∞]</span>
+            </div>
+
+            {/* 힌트 */}
+            <div className='threshold-hint bf-m-hint' style={{ color: ready ? 'var(--fire-tip)' : 'var(--text-dim)' }}>
+              {hint}
+            </div>
+
+            {/* 대표 이미지 */}
+            <KeyImageUploader keyImage={keyImage} onUpload={uploadKeyImage} onRemove={removeKeyImage} />
+
+            {/* 새 일기 버튼 */}
+            <button className='pixel-btn pixel-btn-sm' style={{ fontSize: 9 }} onClick={handleNewSession}>
+              🔥 새 일기 시작
+            </button>
           </div>
 
-          {/* 하단 고정: 입력창 */}
+          {/* 하단: KINDLING 입력창 */}
           <div className='bf-m-bottom'>
             <div className='bf-m-bottom-hd'>
               <span className='bf-m-kcount'>KINDLING <b>{count}</b></span>
@@ -131,7 +102,7 @@ export default function BonfirePage() {
     )
   }
 
-  // ── PC 레이아웃 (기존 코드 유지) ───────────────────────────────────────
+  // ── PC 레이아웃 (기존 코드 완전 유지) ─────────────────────────────────
   return (
     <>
       <PixelStars />

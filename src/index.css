@@ -428,45 +428,63 @@ input[type='range']::-webkit-slider-thumb {
 
 /* ── Mobile Responsive ───────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  /* ── BonfirePage: 모바일 앱 레이아웃 (JS에서 isMobile 분기로 렌더) ── */
-  /* 루트 컨테이너: 헤더 아래 ~ 화면 하단 */
+  /* ── BonfirePage: 모바일 앱 레이아웃 ── */
+
+  /* 1. 전체 컨테이너: 100dvh flex column, 스크롤 없음 */
   .bf-m-root {
-    position: fixed; top: 64px; left: 0; right: 0; bottom: 0;
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 100dvh;            /* 동적 뷰포트 — 주소창 포함 대응 */
     display: flex; flex-direction: column;
-    background: var(--black); overflow: hidden; z-index: 1;
+    overflow: hidden; z-index: 1; background: var(--black);
   }
-  /* 중간 영역: flex 채움, 내부 스크롤 없음 */
-  .bf-m-middle {
-    flex: 1; min-height: 0;
-    display: flex; flex-direction: column; overflow: hidden;
-  }
-  /* 불꽃 스테이지: 압축 배치 */
-  .bf-m-stage {
+
+  /* 2. 헤더: bf-m-root 안에서 flow 참여 (fixed 해제, 48px 고정) */
+  .bf-m-root .app-header {
+    position: relative !important;
+    height: 48px !important;
     flex-shrink: 0;
-    display: flex; flex-direction: column; align-items: center;
-    gap: 4px; padding: 6px 16px 2px;
+    z-index: auto;
   }
-  .bf-m-stage .scene-date { font-size: 11px; margin-bottom: 0; letter-spacing: 0.08em; }
-  .bf-m-stage .bonfire-scene { margin-bottom: 0; }
-  /* 불꽃 애니메이션 축소 */
-  .bf-m-stage .bonfire-scene svg,
-  .bf-m-stage .bonfire-scene canvas { transform: scale(0.6); transform-origin: center top; }
-  .bf-m-stage .pixel-ground { width: 84px; }
+
+  /* 3. 중간 영역: 남은 공간 전부, 요소 균등 배분, 스크롤 없음 */
+  .bf-m-middle {
+    flex: 1; min-height: 0; overflow: hidden;
+    display: flex; flex-direction: column;
+    justify-content: space-evenly; align-items: center;
+    padding: 4px 16px;
+  }
+
+  /* 날짜 */
+  .bf-m-date { font-size: 11px !important; margin-bottom: 0 !important; letter-spacing: 0.08em; text-align: center; }
+  .bf-m-date .date-main { font-size: 15px !important; margin-bottom: 2px !important; display: block; }
+
+  /* 불꽃: max-height: 30dvh */
+  .bf-m-flame { margin-bottom: 0 !important; max-height: 30dvh; overflow: hidden; }
+  .bf-m-flame svg,
+  .bf-m-flame canvas { display: block; max-height: 30dvh; width: auto; }
+  .bf-m-flame .pixel-ground { width: 84px; }
+
+  /* 게이지 */
+  .bf-m-middle .gauge-row { margin-bottom: 0; }
+  .bf-m-middle .gauge-bar { font-size: 16px; }
+  .bf-m-middle .gauge-count { font-size: 13px; }
+  .bf-m-middle .gauge-label { display: none; }
+
+  /* 힌트 */
+  .bf-m-hint { height: auto !important; margin-top: 0 !important; font-size: 11px !important; }
+
   /* 대표 이미지 compact */
-  .bf-m-stage .key-image-section { margin-top: 2px; width: 100%; max-width: 280px; }
-  .bf-m-stage .key-image-upload { height: 52px; }
-  .bf-m-stage .key-image-placeholder { font-size: 9px; line-height: 1.8; }
-  /* 땔감 목록: 남은 공간 채움, 내부 스크롤 */
-  .bf-m-list { flex: 1; min-height: 0; overflow-y: auto; border-top: 1px solid var(--gray-2); }
-  .bf-m-list .kindling-list-wrap { padding: 8px 10px; max-height: none; }
-  .bf-m-list .empty-state { padding: 12px 16px; font-size: 11px; }
-  .bf-m-list .empty-icon { font-size: 20px; margin-bottom: 6px; }
-  .bf-m-list .kindling-item { padding: 7px 6px; }
-  .bf-m-list .k-text { font-size: 13px; }
-  .bf-m-list .k-num { font-size: 12px; }
-  /* 하단 고정 입력바 */
+  .bf-m-middle .key-image-section { margin-top: 0; width: 100%; max-width: 280px; }
+  .bf-m-middle .key-image-upload { height: 52px; }
+  .bf-m-middle .key-image-placeholder { font-size: 9px; line-height: 1.8; }
+
+  /* 4. empty-state 완전 숨김 */
+  .bf-m-root .empty-state { display: none !important; }
+
+  /* 5. 하단 입력창: flex-shrink:0, 키보드 safe-area 대응 */
   .bf-m-bottom {
     flex-shrink: 0;
+    position: sticky; bottom: 0;
     border-top: 2px solid var(--white); background: var(--black);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -479,7 +497,8 @@ input[type='range']::-webkit-slider-thumb {
     letter-spacing: 0.08em; text-transform: uppercase;
   }
   .bf-m-kcount b { color: var(--fire-tip); font-style: normal; }
-  /* 일기 쓰기 버튼 (하단바 내) */
+
+  /* 일기 쓰기 버튼 */
   .bf-m-genbtn {
     font-family: var(--font-pixel); font-size: 8px; padding: 5px 10px;
     background: var(--black); color: var(--fire-tip);
@@ -487,14 +506,15 @@ input[type='range']::-webkit-slider-thumb {
     letter-spacing: 0.06em;
     animation: fire-btn-pulse 1.2s steps(2) infinite alternate;
   }
-  /* 입력창 compact */
+
+  /* 6. 입력창 compact — "Ctrl+Enter로 추가" 힌트 숨김, textarea/버튼 크기 축소 */
   .bf-m-bottom .kindling-input-section { padding: 6px 10px 8px; border-top: none; }
   .bf-m-bottom .input-label { display: none; }
-  .bf-m-bottom .input-hint { margin-top: 3px; font-size: 10px; }
+  .bf-m-bottom .input-hint { display: none; }   /* Ctrl+Enter 텍스트 완전 숨김 */
   .bf-m-bottom .kindling-textarea { height: 42px; font-size: 13px; }
-  .bf-m-bottom .kindling-add-btn { width: 42px; height: 42px; font-size: 16px; border-width: 2px; }
+  .bf-m-bottom .kindling-add-btn { width: 42px; height: 42px; font-size: 18px; border-width: 2px; }
 
-  /* BonfirePage (구 스택 레이아웃 fallback — isMobile=false 시 안 씀이지만 안전망) */
+  /* PC fallback (isMobile=false 분기에서만 렌더되므로 사실상 no-op) */
   .bonfire-page { grid-template-columns: 1fr; }
   .bonfire-stage { min-height: auto; padding-bottom: 40px; }
   .right-panel {
