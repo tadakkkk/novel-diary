@@ -30,9 +30,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # GitHub Pages에서는 /<repo-name>/ 경로로 서빙됨
-          # 예: VITE_BASE=/novel-diary/
-          VITE_BASE: ${{ vars.VITE_BASE || '/' }}
+          VITE_BASE: /novel-diary/
 
       - uses: actions/upload-pages-artifact@v3
         with:
