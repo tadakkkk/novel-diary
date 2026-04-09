@@ -131,3 +131,27 @@ export interface UserPrefs {
   nickname?: string
   apiKey?: string
 }
+
+// ── Drawer ─────────────────────────────────────────────────────────────────
+export interface ChatMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  sourceDate?: string   // 근거 일기 날짜
+  createdAt: string
+}
+
+export interface Badge {
+  id: string
+  title: string
+  desc: string
+  tag: string
+  earnedAt: string
+  diaryId: string
+}
+
+export interface CharacterProfile {
+  story: string
+  stats: Array<{ label: string; value: number }>
+  generatedAt: string
+}

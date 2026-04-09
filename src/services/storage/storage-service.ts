@@ -1,22 +1,26 @@
 // ── Storage Service (localStorage 전용 접근 레이어) ─────────────────────
 import {
-  type Character, type DiarySession, type KeyImage, type Kindling,
+  type Badge, type Character, type CharacterProfile, type ChatMessage,
+  type DiarySession, type KeyImage, type Kindling,
   type MediaAttachment, type NovelDiary, type StyleReference, type UserPrefs,
 } from '@/types'
 
 // ── 키 상수 ──────────────────────────────────────────────────────────────
 const P = 'novel-diary:'
 const K = {
-  API_KEY:     'novel-diary:api-key',
-  PREFS:       `${P}user-prefs`,
-  STYLE_REFS:  `${P}style-references`,
-  SESSIONS:    `${P}sessions`,
-  DIARIES:     `${P}diaries`,
-  CHARACTERS:  `${P}characters`,
-  BLOCKED:     `${P}blocked-chars`,
-  kindlings:   (id: string) => `${P}kindlings:${id}`,
-  keyImage:    (id: string) => `${P}key-image:${id}`,
-  attachments: (id: string) => `${P}attachments:${id}`,
+  API_KEY:      'novel-diary:api-key',
+  PREFS:        `${P}user-prefs`,
+  STYLE_REFS:   `${P}style-references`,
+  SESSIONS:     `${P}sessions`,
+  DIARIES:      `${P}diaries`,
+  CHARACTERS:   `${P}characters`,
+  BLOCKED:      `${P}blocked-chars`,
+  CHAT:         `${P}drawer-chat`,
+  BADGES:       `${P}drawer-badges`,
+  CHAR_PROFILE: `${P}drawer-char-profile`,
+  kindlings:    (id: string) => `${P}kindlings:${id}`,
+  keyImage:     (id: string) => `${P}key-image:${id}`,
+  attachments:  (id: string) => `${P}attachments:${id}`,
 }
 
 // ── 기본 헬퍼 ─────────────────────────────────────────────────────────────
@@ -220,3 +224,23 @@ export function importAllData(data: ExportData): void {
   write(K.BLOCKED, data.blockedChars ?? [])
   write(K.PREFS, data.prefs ?? {})
 }
+
+// ── Drawer: Chat Messages ─────────────────────────────────────────────────
+export function getChatMessages(): ChatMessage[] { return read<ChatMessage[]>(K.CHAT) ?? [] }
+export function saveChatMessages(msgs: ChatMessage[]): void { write(K.CHAT, msgs) }
+export function appendChatMessage(msg: ChatMessage): void {
+  const list = getChatMessages()
+  list.push(msg)
+  write(K.CHAT, list.slice(-200)) // 최대 200개 보관
+}
+
+// ── Drawer: Badges ────────────────────────────────────────────────────────
+export function getBadges(): Badge[] { return read<Badge[]>(K.BADGES) ?? [] }
+export function saveBadge(badge: Badge): void {
+  const list = getBadges()
+  if (!list.find((b) => b.id === badge.id)) { list.push(badge); write(K.BADGES, list) }
+}
+
+// ── Drawer: Character Profile ─────────────────────────────────────────────
+export function getCharacterProfile(): CharacterProfile | null { return read<CharacterProfile>(K.CHAR_PROFILE) }
+export function saveCharacterProfile(profile: CharacterProfile): void { write(K.CHAR_PROFILE, profile) }

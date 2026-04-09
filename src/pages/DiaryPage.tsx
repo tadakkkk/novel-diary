@@ -504,11 +504,18 @@ export default function DiaryPage() {
                 <button
                   className={`pixel-btn${isSaved ? '' : ' pixel-btn-fire'}`}
                   disabled={isSaved}
-                  onClick={() => {
+                  onClick={async () => {
                     if (!savedDiary) return
-                    storage.saveDiary({ ...savedDiary, content: diaryContent, wordCount: diaryContent.length })
+                    const diary = { ...savedDiary, content: diaryContent, wordCount: diaryContent.length }
+                    storage.saveDiary(diary)
                     setIsSaved(true)
                     setIsEditMode(false)
+                    // 배지 감지 (백그라운드, 에러 무시)
+                    if (storage.getApiKey()) {
+                      claude.detectBadge(diary).then((badge) => {
+                        if (badge) storage.saveBadge({ ...badge, id: uuid(), earnedAt: new Date().toISOString(), diaryId: diary.id })
+                      }).catch(() => {})
+                    }
                   }}
                 >
                   {isSaved ? '✓ 저장됨' : '▸ 일기 저장'}

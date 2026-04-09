@@ -284,3 +284,135 @@ export async function generateReviews(
     return null
   }
 }
+
+// ── 과거의 주인공에게 묻기 ────────────────────────────────────────────────
+export async function askPastSelf(
+  question: string,
+  diaries: Array<{ date?: string; content?: string }>,
+  history: Array<{ role: 'user' | 'assistant'; content: string }>
+): Promise<{ answer: string; sourceDate?: string }> {
+  const diaryBlock = diaries.slice(-15).map((d) =>
+    `[${d.date ?? '날짜 없음'}]\n${(d.content ?? '').slice(0, 500)}`
+  ).join('\n\n---\n\n')
+
+  const systemPrompt = `너는 사용자의 과거 일기를 모두 읽은 '과거의 주인공'이야.
+사용자가 현재의 고민을 말하면, 과거 일기 속 경험과 감정을 근거로 답변해줘.
+말투는 담담하고 솔직하게. 설교하지 말고, 과거의 내가 현재의 나에게 말하듯이.
+답변은 150자 이내로 짧게.
+답변 마지막에 근거로 사용한 일기의 날짜를 { date: 'YYYY.MM.DD' } 형식으로 JSON 덧붙여줘.
+일기가 없거나 관련 내용이 없으면 '아직 쌓인 이야기가 없어.' 라고만 답해.
+
+[과거 일기 목록]
+${diaryBlock}`
+
+  const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
+    ...history.slice(-10),
+    { role: 'user', content: question },
+  ]
+
+  const raw = await callApi({ systemPrompt, messages, maxTokens: 400, temperature: 0.85 })
+
+  // 날짜 파싱 시도
+  const dateMatch = raw.match(/\{\s*date:\s*['"]([^'"]+)['"]\s*\}/)
+  const sourceDate = dateMatch?.[1]
+  const answer = raw.replace(/\{\s*date:\s*['"][^'"]*['"]\s*\}/g, '').trim()
+
+  return { answer, sourceDate }
+}
+
+// ── 주인공 도감: 캐릭터 스토리 ───────────────────────────────────────────
+export async function generateCharacterStory(
+  diaries: Array<{ date?: string; content?: string }>
+): Promise<string> {
+  if (diaries.length < 2) return '아직 이야기가 쌓이는 중입니다.'
+
+  const block = diaries.slice(-20).map((d) =>
+    `[${d.date ?? ''}]\n${(d.content ?? '').slice(0, 400)}`
+  ).join('\n---\n')
+
+  const prompt = `다음 일기들을 읽고 이 사람을 하나의 캐릭터로 묘사해줘.
+직업이나 환경은 일기 내용에서 자연스럽게 유추해서 붙여줘. 억지로 게임 직업명을 쓰지 말 것.
+문체는 아래 예시처럼 3~5문장, 3인칭, 건조하고 문학적으로.
+성격·습관·대인관계·고민의 결을 녹여낼 것.
+예시: '세련된 화술과 겸손한 성격을 가진, 수려한 외모의 떠돌이 방랑기사.
+재치 있고 상황을 잘 판단하여 원정대의 판단을 돕는다.
+방랑기사라는 것 외에는 모든 것이 베일에 싸여 있다.'
+일기가 부족하면 '아직 이야기가 쌓이는 중입니다.' 만 출력.
+
+[일기]
+${block}`
+
+  return callApi({ messages: [{ role: 'user', content: prompt }], maxTokens: 300, temperature: 0.85 })
+}
+
+// ── 주인공 도감: 성향 스탯 ───────────────────────────────────────────────
+export async function generateCharacterStats(
+  diaries: Array<{ date?: string; content?: string }>
+): Promise<Array<{ label: string; value: number }>> {
+  if (diaries.length === 0) return []
+
+  const block = diaries.slice(-15).map((d) =>
+    `[${d.date ?? ''}]\n${(d.content ?? '').slice(0, 300)}`
+  ).join('\n---\n')
+
+  const prompt = `다음 일기들을 읽고 이 사람의 성향을 수치화해줘.
+아래 6가지 항목 각각을 0~100 사이 정수로 평가해.
+반드시 아래 JSON 형식 그대로 반환 (코드 블록, 설명 없이):
+{"감성":75,"논리":60,"사교":55,"내향":70,"도전":50,"공감":80}
+
+[일기]
+${block}`
+
+  try {
+    const raw = await callApi({ messages: [{ role: 'user', content: prompt }], maxTokens: 100, temperature: 0.3 })
+    const obj = JSON.parse(raw.replace(/```json|```/g, '').trim()) as Record<string, number>
+    return Object.entries(obj).map(([label, value]) => ({ label, value: Math.min(100, Math.max(0, value)) }))
+  } catch {
+    return [
+      { label: '감성', value: 60 }, { label: '논리', value: 50 },
+      { label: '사교', value: 55 }, { label: '내향', value: 65 },
+      { label: '도전', value: 45 }, { label: '공감', value: 70 },
+    ]
+  }
+}
+
+// ── 업적 배지 감지 ────────────────────────────────────────────────────────
+export async function detectBadge(
+  diary: { date?: string; content?: string }
+): Promise<{ title: string; desc: string; tag: string } | null> {
+  const prompt = `다음 일기에서 사용자의 삶에 의미 있는 전환점, 도전, 실패, 성취, 인간관계 사건이 있었는지 판단해줘.
+있다면 아래 형식으로 배지를 1개 생성해. 없다면 null만 반환해.
+- 제목: 4~8자, 사건을 함축하는 명사형
+- 설명: 한 줄, 건조하거나 유머러스한 문체
+- 태그: 짧고 위트 있는 한 마디
+배지는 자주 주면 안 됨. 웬만한 일기엔 null 반환.
+JSON 형식으로만 반환: { "title": "팀플 조장", "desc": "오늘부터 내가 버스 운전합니다", "tag": "버스 출발합니다" }
+또는 null
+
+[일기 - ${diary.date ?? ''}]
+${(diary.content ?? '').slice(0, 600)}`
+
+  try {
+    const raw = await callApi({ messages: [{ role: 'user', content: prompt }], maxTokens: 150, temperature: 0.7 })
+    const cleaned = raw.replace(/```json|```/g, '').trim()
+    if (cleaned === 'null' || !cleaned.startsWith('{')) return null
+    return JSON.parse(cleaned) as { title: string; desc: string; tag: string }
+  } catch {
+    return null
+  }
+}
+
+// ── 땔감 반문 질문 생성 ───────────────────────────────────────────────────
+export async function generateKindlingQuestion(text: string): Promise<string> {
+  const prompt = `사용자가 일기에 다음 내용을 적었어: "${text}"
+이 내용에서 더 구체적인 이야기를 끌어낼 수 있는 질문 1개만 만들어줘.
+질문은 20자 이내, 따뜻하고 자연스럽게.
+질문만 출력 (다른 텍스트 없이).`
+
+  try {
+    const raw = await callApi({ messages: [{ role: 'user', content: prompt }], maxTokens: 60, temperature: 0.9 })
+    return raw.trim().replace(/^["']|["']$/g, '')
+  } catch {
+    return ''
+  }
+}

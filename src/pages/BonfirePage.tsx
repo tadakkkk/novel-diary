@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { AppHeader } from '@/components/ui/AppHeader'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { FlameAnimation } from '@/features/bonfire/FlameAnimation'
 import { useBonfireSession, newBonfireSession } from '@/features/bonfire/useBonfireSession'
+import { DrawerPopup } from '@/features/drawer/DrawerPopup'
 import { GenerateButton } from '@/features/diary/GenerateButton'
 import { KindlingInput } from '@/features/kindling/KindlingInput'
 import { KindlingList } from '@/features/kindling/KindlingList'
@@ -10,6 +12,7 @@ import { isGenerationReady, getThresholdHint } from '@/lib/flame'
 import { formatKoreanDate } from '@/lib/date'
 
 export default function BonfirePage() {
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const {
     sessionId,
     kindlings,
@@ -72,13 +75,22 @@ export default function BonfirePage() {
             onRemove={removeKeyImage}
           />
 
-          <button
-            className='pixel-btn pixel-btn-sm'
-            style={{ marginTop:16, fontSize:9 }}
-            onClick={handleNewSession}
-          >
-            🔥 새 일기 시작
-          </button>
+          <div style={{ display:'flex', gap:8, marginTop:16, flexWrap:'wrap', justifyContent:'center' }}>
+            <button
+              className='pixel-btn pixel-btn-sm'
+              style={{ fontSize:9 }}
+              onClick={handleNewSession}
+            >
+              🔥 새 일기 시작
+            </button>
+            <button
+              className='pixel-btn pixel-btn-sm'
+              style={{ fontSize:9, borderColor:'var(--fire-org)', color:'var(--fire-org)' }}
+              onClick={() => setDrawerOpen(true)}
+            >
+              ▸ 주인공의 서랍
+            </button>
+          </div>
         </main>
 
         {/* ── RIGHT: Kindling Panel ── */}
@@ -98,6 +110,7 @@ export default function BonfirePage() {
       </div>
 
       <GenerateButton visible={ready} sessionId={sessionId} />
+      {drawerOpen && <DrawerPopup onClose={() => setDrawerOpen(false)} />}
     </>
   )
 }
