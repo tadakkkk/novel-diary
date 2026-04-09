@@ -34,13 +34,22 @@ export function PastSelfChat() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
-  const diaries = storage.getDiaries().filter((d) => d.content)
+  // 마운트 시 일기 데이터 로드 확인
+  useEffect(() => {
+    const loaded = storage.getDiaries().filter((d) => d.content)
+    console.log('[PastSelfChat] mounted — diaries with content:', loaded.length, loaded.map((d) => d.date))
+  }, [])
+
   const hasKey = !!storage.getApiKey()
 
   async function sendMessage() {
     const text = input.trim()
     if (!text || loading) return
     setInput('')
+
+    // AI 호출 시점에 항상 최신 일기 데이터를 fresh하게 읽음 (stale 클로저 방지)
+    const diaries = storage.getDiaries().filter((d) => d.content)
+    console.log('[PastSelfChat] sendMessage — diaries available:', diaries.length)
 
     const userMsg: ChatMessage = { id: uuid(), role: 'user', content: text, createdAt: new Date().toISOString() }
     const next = [...messages, userMsg]
@@ -50,6 +59,20 @@ export function PastSelfChat() {
     setLoading(true)
     try {
       const history = messages.slice(-10).map((m) => ({ role: m.role, content: m.content }))
+
+      // 일기가 실제로 없을 때만 로컬에서 바로 응답
+      if (diaries.length === 0) {
+        const noDataMsg: ChatMessage = {
+          id: uuid(), role: 'assistant',
+          content: '아직 쌓인 이야기가 없어. 일기를 먼저 써봐.',
+          createdAt: new Date().toISOString(),
+        }
+        const final = [...next, noDataMsg]
+        setMessages(final)
+        storage.saveChatMessages(final)
+        return
+      }
+
       const { answer, sourceDate } = await claude.askPastSelf(text, diaries, history)
       const aiMsg: ChatMessage = {
         id: uuid(), role: 'assistant', content: answer, sourceDate,
