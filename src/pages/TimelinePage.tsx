@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { DrawerPopup } from '@/features/drawer/DrawerPopup'
 import { type Character, type NovelDiary } from '@/types'
 import * as storage from '@/services/storage'
 import * as avatar from '@/services/avatar/avatar-service'
@@ -223,6 +224,7 @@ export default function TimelinePage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [showBlocked, setShowBlocked] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
   function handleExport() {
     const data = storage.exportAllData()
     const json = JSON.stringify(data, null, 2)
@@ -296,10 +298,10 @@ export default function TimelinePage() {
             ↑ 가져오기
             <input type='file' accept='.json' style={{ display:'none' }} onChange={handleImport} />
           </label>
-          <button className='pixel-btn pixel-btn-sm pixel-btn-fire' onClick={() => navigate('/')}>▸ 새 일기</button>
-          <button className='pixel-btn pixel-btn-sm' onClick={() => navigate('/novel')}>나의 이야기</button>
+          <button className='pixel-btn pixel-btn-sm' style={{ borderColor:'var(--fire-org)', color:'var(--fire-org)' }} onClick={() => setDrawerOpen(true)}>[주인공의 서랍]</button>
         </div>
       </header>
+      {drawerOpen && <DrawerPopup onClose={() => setDrawerOpen(false)} />}
 
       <div style={{ minHeight:'100vh', paddingTop:64, maxWidth:760, margin:'0 auto', padding:'64px 28px 0', position:'relative', zIndex:1 }}>
 
