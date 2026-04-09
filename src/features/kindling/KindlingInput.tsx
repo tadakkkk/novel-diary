@@ -86,6 +86,28 @@ export function KindlingInput({ onAdd }: Props) {
   return (
     <div className='kindling-input-section'>
       <div className='input-label'>▸ 새 땔감 추가</div>
+
+      {/* 반문 카드 — 입력창 바로 위에 표시 */}
+      {(questionVisible || loadingQ) && (
+        <div style={{
+          marginBottom: 6,
+          padding: '8px 12px',
+          border: '1px solid var(--fire-amb)',
+          background: '#0d0800',
+          display: 'flex', alignItems: 'center', gap: 8,
+          animation: 'slideUp 0.22s ease-out',
+          cursor: questionVisible ? 'pointer' : 'default',
+        }} onClick={questionVisible ? applyQuestion : undefined}>
+          <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: 'var(--fire-org)', flexShrink: 0 }}>🔥</span>
+          <span style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--fire-tip)', flex: 1 }}>
+            {loadingQ && !question ? '...' : question}
+          </span>
+          {questionVisible && (
+            <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--fire-amb)', flexShrink: 0 }}>클릭해서 추가 ▸</span>
+          )}
+        </div>
+      )}
+
       <div className='input-row'>
         <textarea
           ref={textareaRef}
@@ -111,27 +133,6 @@ export function KindlingInput({ onAdd }: Props) {
           {value.length}/{MAX_KINDLING_LENGTH}
         </span>
       </div>
-
-      {/* 반문 카드 */}
-      {(questionVisible || loadingQ) && (
-        <div style={{
-          marginTop: 6,
-          padding: '8px 12px',
-          border: '1px solid var(--fire-amb)',
-          background: '#0d0800',
-          display: 'flex', alignItems: 'center', gap: 8,
-          animation: 'slideUp 0.22s ease-out',
-          cursor: questionVisible ? 'pointer' : 'default',
-        }} onClick={questionVisible ? applyQuestion : undefined}>
-          <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: 'var(--fire-org)', flexShrink: 0 }}>🔥</span>
-          <span style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--fire-tip)', flex: 1 }}>
-            {loadingQ && !question ? '...' : question}
-          </span>
-          {questionVisible && (
-            <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--fire-amb)', flexShrink: 0 }}>클릭해서 추가 ▸</span>
-          )}
-        </div>
-      )}
 
       <style>{`
         @keyframes slideUp {
