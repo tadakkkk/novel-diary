@@ -60,19 +60,6 @@ export function PastSelfChat() {
     try {
       const history = messages.slice(-10).map((m) => ({ role: m.role, content: m.content }))
 
-      // 일기가 실제로 없을 때만 로컬에서 바로 응답
-      if (diaries.length === 0) {
-        const noDataMsg: ChatMessage = {
-          id: uuid(), role: 'assistant',
-          content: '아직 쌓인 이야기가 없어. 일기를 먼저 써봐.',
-          createdAt: new Date().toISOString(),
-        }
-        const final = [...next, noDataMsg]
-        setMessages(final)
-        storage.saveChatMessages(final)
-        return
-      }
-
       const { answer, sourceDate } = await claude.askPastSelf(text, diaries, history)
       const aiMsg: ChatMessage = {
         id: uuid(), role: 'assistant', content: answer, sourceDate,

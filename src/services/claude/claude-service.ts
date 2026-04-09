@@ -299,11 +299,12 @@ export async function askPastSelf(
 사용자가 현재의 고민을 말하면, 과거 일기 속 경험과 감정을 근거로 답변해줘.
 말투는 담담하고 솔직하게. 설교하지 말고, 과거의 내가 현재의 나에게 말하듯이.
 답변은 150자 이내로 짧게.
-답변 마지막에 근거로 사용한 일기의 날짜를 { date: 'YYYY.MM.DD' } 형식으로 JSON 덧붙여줘.
-일기가 없거나 관련 내용이 없으면 '아직 쌓인 이야기가 없어.' 라고만 답해.
+답변 마지막에 근거로 사용한 일기의 날짜를 { date: 'YYYY.MM.DD' } 형식으로 JSON 덧붙여줘. 날짜를 특정하기 어려우면 JSON 없이 끝내도 돼.
+참고할 일기가 없거나 부족하더라도 질문을 무시하지 마.
+일기가 없을 땐 '아직 많은 걸 겪진 않았지만,' 같은 식으로 자연스럽게 운을 떼고, 질문에 공감하며 담담하게 답해줘. 단답으로 끊지 말 것.
 
 [과거 일기 목록]
-${diaryBlock}`
+${diaryBlock || '(아직 일기가 없음)'}`
 
   const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
     ...history.slice(-10),
@@ -338,11 +339,12 @@ export async function generateCharacterStory(
 재치 있고 상황을 잘 판단하여 원정대의 판단을 돕는다.
 방랑기사라는 것 외에는 모든 것이 베일에 싸여 있다.'
 일기가 부족하면 '아직 이야기가 쌓이는 중입니다.' 만 출력.
+반드시 완성된 문장으로 끝내줘. 문장이 잘리면 안 돼.
 
 [일기]
 ${block}`
 
-  return callApi({ messages: [{ role: 'user', content: prompt }], maxTokens: 300, temperature: 0.85 })
+  return callApi({ messages: [{ role: 'user', content: prompt }], maxTokens: 600, temperature: 0.85 })
 }
 
 // ── 주인공 도감: 성향 스탯 ───────────────────────────────────────────────

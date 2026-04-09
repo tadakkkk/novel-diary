@@ -158,15 +158,20 @@ function DiaryFirstPage({ page, pageNum, chars }: { page: DiaryPage; pageNum: nu
   const diary = page.diary!
   const title = diary.title ?? diary.date ?? ''
   return (
-    <div style={{ height:'100%', position:'relative' }}>
-      <div style={{ fontFamily:"'Noto Serif KR',serif", fontWeight:700, fontSize:9, color:'#d4881e', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{diary.date}</div>
-      <div style={{ fontFamily:"'Noto Serif KR',serif", fontWeight:700, fontSize:15, color:'#d4881e', lineHeight:1.4, marginBottom:10, paddingBottom:10, borderBottom:'1px solid #333' }}>{title}</div>
-      {page.hasImage && page.imgUrl && (
-        <img src={page.imgUrl} alt='' style={{ display:'block', width:'100%', maxHeight:200, objectFit:'cover', marginBottom:14, border:'1px solid #333' }} />
-      )}
-      <div style={{ fontFamily:"'Nanum Myeongjo',serif", fontSize:14, color:'#f5e6c8', lineHeight:1.95, wordBreak:'keep-all', whiteSpace:'pre-wrap' }}>{page.text}</div>
+    <div style={{ height:'100%', display:'flex', flexDirection:'column' }}>
+      {/* 헤더: 날짜 + 제목 */}
+      <div style={{ flexShrink:0 }}>
+        <div style={{ fontFamily:"'Noto Serif KR',serif", fontWeight:700, fontSize:9, color:'#d4881e', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{diary.date}</div>
+        <div style={{ fontFamily:"'Noto Serif KR',serif", fontWeight:700, fontSize:15, color:'#d4881e', lineHeight:1.4, marginBottom:10, paddingBottom:10, borderBottom:'1px solid #333' }}>{title}</div>
+        {page.hasImage && page.imgUrl && (
+          <img src={page.imgUrl} alt='' style={{ display:'block', width:'100%', maxHeight:200, objectFit:'cover', marginBottom:14, border:'1px solid #333' }} />
+        )}
+      </div>
+      {/* 본문: flex-grow로 남은 공간 채우되 overflow:hidden으로 잘림 방지 */}
+      <div style={{ flex:1, overflow:'hidden', fontFamily:"'Nanum Myeongjo',serif", fontSize:14, color:'#f5e6c8', lineHeight:1.95, wordBreak:'keep-all', whiteSpace:'pre-wrap' }}>{page.text}</div>
+      {/* 등장인물: 본문 아래 별도 영역, 절대 위치 없음 */}
       {page.hasChars && chars.length > 0 && (
-        <div style={{ position:'absolute', bottom:48, left:0, right:0, borderTop:'1px solid #333', paddingTop:10 }}>
+        <div style={{ flexShrink:0, borderTop:'1px solid #333', paddingTop:10, marginTop:8 }}>
           <div style={{ fontFamily:'var(--font-pixel)', fontSize:8, color:'#555', letterSpacing:'0.1em', marginBottom:8 }}>▸ 등장인물</div>
           <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'flex-start' }}>
             {chars.slice(0, 6).map((char) => (
@@ -180,8 +185,9 @@ function DiaryFirstPage({ page, pageNum, chars }: { page: DiaryPage; pageNum: nu
           </div>
         </div>
       )}
+      {/* 페이지 번호 */}
       {pageNum != null && (
-        <div style={{ position:'absolute', bottom:18, fontFamily:'var(--font-pixel)', fontSize:9, color:'#666', letterSpacing:'0.1em' }}>{pageNum}</div>
+        <div style={{ flexShrink:0, fontFamily:'var(--font-pixel)', fontSize:9, color:'#666', letterSpacing:'0.1em', marginTop:6 }}>{pageNum}</div>
       )}
     </div>
   )
