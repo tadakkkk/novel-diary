@@ -344,7 +344,7 @@ export default function DiaryPage() {
           <span className='logo-en'>◀ 모닥불로</span>
         </button>
         <div className='header-actions'>
-          <span className='px-tag px-tag-fire'>KINDLING ×{kindlings.length}</span>
+          <span className='px-tag px-tag-fire diary-kindling-count'>KINDLING ×{kindlings.length}</span>
           <button className='pixel-btn pixel-btn-sm' onClick={() => safeNavigate('/timeline')}>[타임라인]</button>
         </div>
       </header>

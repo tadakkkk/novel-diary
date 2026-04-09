@@ -564,6 +564,9 @@ input[type='range']::-webkit-slider-thumb {
 
   /* ── 키보드 단축키 힌트 모바일에서 숨김 ── */
   .input-hint .hint-shortcut { display: none; }
+
+  /* ── DiaryPage: 헤더 KINDLING ×n 숨김 ── */
+  .diary-kindling-count { display: none; }
 }
 
 @media (max-width: 480px) {
