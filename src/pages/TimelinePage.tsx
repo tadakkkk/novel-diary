@@ -44,13 +44,23 @@ function formatDateShort(iso: string | undefined) {
 
 // ── Character Modal ───────────────────────────────────────────────────────
 function CharModal({ name, onClose }: { name: string; onClose: () => void }) {
-  const char = storage.getCharacter(name)
+  const [char, setChar] = useState(() => storage.getCharacter(name))
+  const [editingRel, setEditingRel] = useState(false)
+  const [relVal, setRelVal] = useState(char?.relationship ?? '')
   useEffect(() => {
-    const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') { if (editingRel) setEditingRel(false); else onClose() } }
     window.addEventListener('keydown', fn)
     return () => window.removeEventListener('keydown', fn)
-  }, [onClose])
+  }, [onClose, editingRel])
   if (!char) return null
+
+  function saveRel() {
+    const updated = { ...char!, relationship: relVal }
+    storage.upsertCharacter(updated)
+    setChar(updated)
+    setEditingRel(false)
+  }
+
   return (
     <div className='modal-overlay open' onClick={onClose}>
       <div style={{ width:'100%', maxWidth:440, background:'var(--black)', border:'3px solid var(--fire-org)', boxShadow:'inset 0 0 0 2px var(--fire-org), inset 0 0 0 5px var(--black)' }}
@@ -59,7 +69,28 @@ function CharModal({ name, onClose }: { name: string; onClose: () => void }) {
           <AvatarCanvas character={char} size={72} />
           <div style={{ flex:1 }}>
             <div style={{ fontFamily:'var(--font-korean)', fontSize:20, fontWeight:700, color:'var(--white)', marginBottom:4 }}>{char.name}</div>
-            <div style={{ fontFamily:'var(--font-pixel)', fontSize:9, color:'var(--fire-org)', letterSpacing:'0.08em', textTransform:'uppercase' }}>{char.relationship}</div>
+            <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+              {editingRel ? (
+                <input
+                  autoFocus
+                  value={relVal}
+                  onChange={(e) => setRelVal(e.target.value)}
+                  onBlur={saveRel}
+                  onKeyDown={(e) => { if (e.key === 'Enter') saveRel(); if (e.key === 'Escape') setEditingRel(false) }}
+                  style={{ fontFamily:'var(--font-pixel)', fontSize:9, color:'var(--white)', background:'#1a1a1a', border:'1px solid var(--fire-org)', outline:'none', padding:'2px 6px', letterSpacing:'0.06em', flex:1, minWidth:0 }}
+                />
+              ) : (
+                <span style={{ fontFamily:'var(--font-pixel)', fontSize:9, color:'var(--fire-org)', letterSpacing:'0.08em', textTransform:'uppercase' }}>
+                  {char.relationship || '—'}
+                </span>
+              )}
+              {!editingRel && (
+                <button
+                  onClick={() => { setRelVal(char.relationship ?? ''); setEditingRel(true) }}
+                  style={{ fontFamily:'var(--font-pixel)', fontSize:10, color:'var(--fire-org)', background:'transparent', border:'none', cursor:'pointer', padding:'0 2px', lineHeight:1, opacity:0.7 }}
+                  title='설명 수정'>✏</button>
+              )}
+            </div>
           </div>
           <button className='modal-close' onClick={onClose}>[ ✕ ]</button>
         </div>
@@ -192,8 +223,6 @@ export default function TimelinePage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [showBlocked, setShowBlocked] = useState(false)
-  const [editingRelName, setEditingRelName] = useState<string | null>(null)
-  const [editingRelVal, setEditingRelVal] = useState('')
   function handleExport() {
     const data = storage.exportAllData()
     const json = JSON.stringify(data, null, 2)
@@ -303,31 +332,7 @@ export default function TimelinePage() {
                     onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--gray-3)')}>
                     <AvatarCanvas character={char} size={48} />
                     <div style={{ fontFamily:'var(--font-korean)', fontSize:12, fontWeight:700, color:'var(--white)', textAlign:'center', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:72 }}>{char.name}</div>
-                    {editingRelName === char.name ? (
-                      <input
-                        autoFocus
-                        value={editingRelVal}
-                        onChange={(e) => setEditingRelVal(e.target.value)}
-                        onBlur={() => {
-                          const updated = { ...char, relationship: editingRelVal }
-                          storage.upsertCharacter(updated)
-                          loadData()
-                          setEditingRelName(null)
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === 'Escape') (e.target as HTMLInputElement).blur()
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        style={{ fontFamily:'var(--font-pixel)', fontSize:8, color:'var(--white)', background:'#1a1a1a', border:'1px solid var(--fire-org)', outline:'none', textAlign:'center', width:72, padding:'2px 4px' }}
-                      />
-                    ) : (
-                      <div
-                        style={{ fontFamily:'var(--font-pixel)', fontSize:8, color:'var(--gray-4)', textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:72, cursor:'text', minHeight:12 }}
-                        title='클릭하여 수정'
-                        onClick={(e) => { e.stopPropagation(); setEditingRelName(char.name); setEditingRelVal(char.relationship ?? '') }}>
-                        {char.relationship || <span style={{ color:'#333' }}>설명 없음</span>}
-                      </div>
-                    )}
+                    <div style={{ fontFamily:'var(--font-pixel)', fontSize:8, color:'var(--gray-4)', textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:72 }}>{char.relationship}</div>
                     <div style={{ fontFamily:'var(--font-pixel)', fontSize:8, color:'var(--fire-org)', letterSpacing:'0.06em' }}>{(char.appearances ?? []).length}회</div>
                     <div style={{ display:'flex', gap:4, justifyContent:'center', marginTop:2 }}>
                       <button
