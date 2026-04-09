@@ -180,6 +180,7 @@ export default function DiaryPage() {
   const [pendingNav, setPendingNav] = useState<string | null>(null)
   const isGenerating  = useRef(false)
   const abortCtrl     = useRef<AbortController | null>(null)
+  const editTextareaRef = useRef<HTMLTextAreaElement>(null)
 
   // 미저장 상태로 이탈 시 브라우저 경고 (탭 닫기/새로고침)
   useEffect(() => {
@@ -438,7 +439,7 @@ export default function DiaryPage() {
         </aside>
 
         {/* ── RIGHT: Result Panel ── */}
-        <main style={{ padding:'32px 40px', height:'calc(100vh - 52px)', overflowY:'auto', background:'var(--black)' }}>
+        <main className='diary-main' style={{ padding:'32px 40px', height:'calc(100vh - 52px)', overflowY:'auto', background:'var(--black)' }}>
           {status === 'idle' && (
             <div className='diary-empty'>
               <div className='de-ascii'>▒▒▒▒▒<br />░░░░░<br />▒▒▒▒▒</div>
@@ -478,12 +479,12 @@ export default function DiaryPage() {
               {/* isEditMode 최우선 — typewriter의 done 리셋에 영향받지 않도록 */}
               {isEditMode ? (
                 <textarea
+                  ref={editTextareaRef}
                   autoFocus
                   className='diary-content'
                   style={{ width:'100%', resize:'vertical', minHeight:240, background:'var(--black)', color:'var(--gray-5)', border:'none', borderLeft:'3px solid var(--fire-org)', outline:'none', fontFamily:'var(--font-korean)', fontSize:15, lineHeight:2.1, padding:'0 0 0 16px', marginBottom:20, whiteSpace:'pre-wrap', wordBreak:'keep-all', boxSizing:'border-box' }}
                   value={diaryContent}
                   onChange={(e) => {
-                    console.log('[DiaryPage] editing — length:', e.target.value.length)
                     setDiaryContent(e.target.value)
                     setIsSaved(false)
                     if (savedDiary) setSavedDiary({ ...savedDiary, content: e.target.value })
@@ -516,8 +517,14 @@ export default function DiaryPage() {
                     className={`pixel-btn${isEditMode ? ' pixel-btn-fire' : ''}`}
                     onClick={() => {
                       const next = !isEditMode
-                      console.log('[DiaryPage] toggleEditMode →', next, '| typingDone:', typingDone, '| isEditLoad:', isEditLoad)
                       setIsEditMode(next)
+                      if (next) {
+                        // 모바일에서 textarea가 화면 밖에 있을 수 있으므로 다음 틱에 스크롤
+                        setTimeout(() => {
+                          editTextareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                          editTextareaRef.current?.focus()
+                        }, 50)
+                      }
                     }}
                   >
                     {isEditMode ? '✓ 수정 완료' : '✎ 수정하기'}

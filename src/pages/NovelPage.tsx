@@ -513,7 +513,7 @@ export default function NovelPage() {
       {/* ── Picker Modal ── */}
       {showPicker && (
         <div style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.92)', padding: isMobile ? '0 16px' : 0 }}>
-          <div style={{ width: isMobile ? '100%' : 400, maxWidth:400, border:'3px solid var(--white)', background:'#000', padding: isMobile ? '24px 20px 20px' : '28px 28px 24px', position:'relative' }}>
+          <div style={{ width: isMobile ? '100%' : 400, maxWidth:400, border:'3px solid var(--white)', background:'#000', padding: isMobile ? '24px 20px 20px' : '28px 28px 24px', position:'relative', overflow:'hidden' }}>
             <button onClick={() => spreads.length > 0 ? setShowPicker(false) : navigate(-1)}
               className='modal-close' style={{ position:'absolute', top:12, right:14 }}
               title='닫기'>[ x ]</button>
@@ -528,11 +528,11 @@ export default function NovelPage() {
             </div>
             <div style={{ display:'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 8 : 12, marginBottom:16 }}>
               {[['FROM', dateFrom, setDateFrom], ['TO', dateTo, setDateTo]].map(([label, val, setter]) => (
-                <div key={label as string} style={{ flex:1 }}>
+                <div key={label as string} style={{ flex:1, minWidth:0 }}>
                   <label style={{ fontFamily:'var(--font-pixel)', fontSize:10, color:'var(--gray-4)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>{label as string}</label>
                   <input type='date' value={val as string}
                     onChange={(e) => { (setter as (v: string) => void)(e.target.value); setActivePreset(null) }}
-                    style={{ width:'100%', fontFamily:'var(--font-pixel)', fontSize:10, background:'#000', color:'var(--white)', border:'2px solid var(--gray-3)', padding:'8px 10px', outline:'none', colorScheme:'dark' }} />
+                    style={{ width:'100%', maxWidth:'100%', fontFamily:'var(--font-pixel)', fontSize:10, background:'#000', color:'var(--white)', border:'2px solid var(--gray-3)', padding:'8px 10px', outline:'none', colorScheme:'dark' }} />
                 </div>
               ))}
             </div>
