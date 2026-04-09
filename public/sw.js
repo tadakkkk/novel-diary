@@ -1,5 +1,5 @@
 // 타닥타닥 Service Worker — cache-first for static assets, network-first for API
-const CACHE = 'tadak-v1'
+const CACHE = 'tadak-v3'
 const PRECACHE = [self.registration.scope, self.registration.scope + 'index.html']
 
 self.addEventListener('install', (e) => {
