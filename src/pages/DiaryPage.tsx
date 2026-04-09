@@ -194,7 +194,8 @@ export default function DiaryPage() {
     navigate(path)
   }
 
-  const { displayed: typedText, done: typingDone } = useTypewriter(diaryContent, status === 'done' && diaryContent !== '' && !isEditLoad)
+  // isEditMode일 때 typewriter 비활성화 — 편집 중 diaryContent 변경이 done을 리셋하지 않도록
+  const { displayed: typedText, done: typingDone } = useTypewriter(diaryContent, status === 'done' && diaryContent !== '' && !isEditLoad && !isEditMode)
   const displayed = isEditLoad ? diaryContent : typedText
 
   useEffect(() => {
@@ -474,20 +475,25 @@ export default function DiaryPage() {
                 </div>
               </div>
 
-              {/* 타이핑 중: 읽기 전용 / 완료 후: 수정하기 버튼으로 편집 활성화 */}
-              {!typingDone && !isEditLoad ? (
-                <div className='diary-content'>
-                  {displayed}
-                  <span className='px-cursor' />
-                </div>
-              ) : isEditMode ? (
+              {/* isEditMode 최우선 — typewriter의 done 리셋에 영향받지 않도록 */}
+              {isEditMode ? (
                 <textarea
                   autoFocus
                   className='diary-content'
                   style={{ width:'100%', resize:'vertical', minHeight:240, background:'var(--black)', color:'var(--gray-5)', border:'none', borderLeft:'3px solid var(--fire-org)', outline:'none', fontFamily:'var(--font-korean)', fontSize:15, lineHeight:2.1, padding:'0 0 0 16px', marginBottom:20, whiteSpace:'pre-wrap', wordBreak:'keep-all', boxSizing:'border-box' }}
                   value={diaryContent}
-                  onChange={(e) => { setDiaryContent(e.target.value); setIsSaved(false); if (savedDiary) setSavedDiary({ ...savedDiary, content: e.target.value }) }}
+                  onChange={(e) => {
+                    console.log('[DiaryPage] editing — length:', e.target.value.length)
+                    setDiaryContent(e.target.value)
+                    setIsSaved(false)
+                    if (savedDiary) setSavedDiary({ ...savedDiary, content: e.target.value })
+                  }}
                 />
+              ) : !typingDone && !isEditLoad ? (
+                <div className='diary-content'>
+                  {displayed}
+                  <span className='px-cursor' />
+                </div>
               ) : (
                 <div className='diary-content' style={{ whiteSpace:'pre-wrap', wordBreak:'keep-all', marginBottom:20, cursor:'default' }}>
                   {diaryContent}
@@ -508,7 +514,11 @@ export default function DiaryPage() {
                 {(typingDone || isEditLoad) && (
                   <button
                     className={`pixel-btn${isEditMode ? ' pixel-btn-fire' : ''}`}
-                    onClick={() => setIsEditMode((v) => !v)}
+                    onClick={() => {
+                      const next = !isEditMode
+                      console.log('[DiaryPage] toggleEditMode →', next, '| typingDone:', typingDone, '| isEditLoad:', isEditLoad)
+                      setIsEditMode(next)
+                    }}
                   >
                     {isEditMode ? '✓ 수정 완료' : '✎ 수정하기'}
                   </button>
@@ -519,11 +529,13 @@ export default function DiaryPage() {
                   onClick={async () => {
                     if (!savedDiary) return
                     const diary = { ...savedDiary, content: diaryContent, wordCount: diaryContent.length }
+                    console.log('[DiaryPage] saving diary — length:', diary.content.length, '| isEditMode was:', isEditMode)
                     // 등장인물을 일기 저장 시점에 storage에 반영
                     chars.forEach((c) => storage.upsertCharacter(c))
                     storage.saveDiary(diary)
                     setIsSaved(true)
                     setIsEditMode(false)
+                    console.log('[DiaryPage] saved → isSaved: true, isEditMode: false')
                     // 배지 감지 (백그라운드, 에러 무시)
                     if (storage.getApiKey()) {
                       claude.detectBadge(diary).then((badge) => {
