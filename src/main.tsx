@@ -10,7 +10,7 @@ createRoot(rootEl).render(
   </StrictMode>
 )
 
-// Register Service Worker
+// 서비스 워커 등록 (self-unregistering SW — 기존 캐시 제거용)
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  navigator.serviceWorker.register(import.meta.env.BASE_URL + 'sw.js').catch(() => {/* SW 등록 실패 시 조용히 무시 */})
+  navigator.serviceWorker.register(import.meta.env.BASE_URL + 'sw.js').catch(() => {})
 }
