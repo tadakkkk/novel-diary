@@ -524,6 +524,9 @@ export default function DiaryPage() {
                           editTextareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                           editTextareaRef.current?.focus()
                         }, 50)
+                      } else {
+                        // 수정 완료 시 타이핑 애니메이션 재생 방지
+                        setIsEditLoad(true)
                       }
                     }}
                   >
