@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { PastSelfChat } from './PastSelfChat'
 import { CharacterDex } from './CharacterDex'
 import { StoryTab } from './StoryTab'
+import { useMobile } from '@/hooks/useMobile'
 
 type Tab = 0 | 1 | 2
 
@@ -17,6 +18,7 @@ const TABS = [
 
 export function DrawerPopup({ onClose }: Props) {
   const [activeTab, setActiveTab] = useState<Tab | null>(null)
+  const { isMobile, isSmall } = useMobile()
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -29,14 +31,14 @@ export function DrawerPopup({ onClose }: Props) {
       position: 'fixed', inset: 0, zIndex: 500,
       background: 'rgba(0,0,0,0.88)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '20px 16px',
+      padding: isSmall ? '8px' : isMobile ? '12px 12px' : '20px 16px',
     }} onClick={onClose}>
       <div style={{
         width: '100%', maxWidth: 520,
         background: '#0a0a0a',
         border: '3px solid var(--white)',
         boxShadow: 'inset 0 0 0 2px var(--white), inset 0 0 0 5px #0a0a0a, 6px 6px 0 0 #333',
-        maxHeight: '90vh', overflowY: 'auto',
+        maxHeight: isSmall ? '95vh' : '90vh', overflowY: 'auto',
       }} onClick={(e) => e.stopPropagation()}>
 
         {/* ── 서랍장 헤더 ── */}
@@ -99,9 +101,10 @@ export function DrawerPopup({ onClose }: Props) {
                 </div>
                 {/* 탭 이름 */}
                 <div style={{
-                  fontFamily: 'var(--font-pixel)', fontSize: 10,
+                  fontFamily: 'var(--font-pixel)', fontSize: isSmall ? 9 : 10,
                   color: isOpen ? 'var(--fire-tip)' : 'var(--gray-5)',
-                  letterSpacing: '0.08em', flex: 1, textAlign: 'left',
+                  letterSpacing: isSmall ? '0.04em' : '0.08em', flex: 1, textAlign: 'left',
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
                   {tab.icon} {tab.label}
                 </div>

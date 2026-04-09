@@ -4,6 +4,7 @@ import { type ChatMessage } from '@/types'
 import * as storage from '@/services/storage'
 import * as claude from '@/services/claude/claude-service'
 import { AvatarCanvas } from '@/components/ui/AvatarCanvas'
+import { useMobile } from '@/hooks/useMobile'
 
 const DUMMY_CHAR = {
   name: '과거의 나', relationship: '', appearances: [], episodes: [],
@@ -29,6 +30,7 @@ export function PastSelfChat() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const { isMobile, isSmall } = useMobile()
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -83,8 +85,10 @@ export function PastSelfChat() {
   const firstChar = storage.getCharacters()[0]
   const avatarChar = firstChar ?? DUMMY_CHAR as Parameters<typeof AvatarCanvas>[0]['character']
 
+  const chatHeight = isSmall ? 280 : isMobile ? 340 : 420
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 420 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: chatHeight }}>
       {/* 채팅 영역 */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
 

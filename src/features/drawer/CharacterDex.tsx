@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { type Badge, type CharacterProfile } from '@/types'
 import * as storage from '@/services/storage'
 import * as claude from '@/services/claude/claude-service'
+import { useMobile } from '@/hooks/useMobile'
 
 // ── 레이더(스탯) 바 차트 ──────────────────────────────────────────────────
 function StatBars({ stats }: { stats: Array<{ label: string; value: number }> }) {
@@ -30,10 +31,10 @@ function StatBars({ stats }: { stats: Array<{ label: string; value: number }> })
 }
 
 // ── SVG 레이더 차트 ───────────────────────────────────────────────────────
-function RadarChart({ stats }: { stats: Array<{ label: string; value: number }> }) {
+function RadarChart({ stats, size = 220 }: { stats: Array<{ label: string; value: number }>; size?: number }) {
   if (stats.length === 0) return null
   const N = stats.length
-  const cx = 110, cy = 110, R = 85
+  const cx = size / 2, cy = size / 2, R = size * 0.386
 
   function pt(i: number, r: number) {
     const angle = (Math.PI * 2 * i / N) - Math.PI / 2
@@ -45,7 +46,7 @@ function RadarChart({ stats }: { stats: Array<{ label: string; value: number }> 
   const dataPath = dataPoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') + 'Z'
 
   return (
-    <svg width={220} height={220} style={{ display: 'block', margin: '0 auto' }}>
+    <svg width={size} height={size} style={{ display: 'block', margin: '0 auto' }}>
       {/* 배경 원 */}
       {gridLevels.map((lvl, gi) => {
         const pts = stats.map((_, i) => pt(i, R * lvl))
@@ -81,10 +82,10 @@ function RadarChart({ stats }: { stats: Array<{ label: string; value: number }> 
 // ── 배지 그리드 ───────────────────────────────────────────────────────────
 const BADGE_SLOTS = 9  // 3×3 그리드
 
-function BadgeGrid({ badges }: { badges: Badge[] }) {
+function BadgeGrid({ badges, cols = 3 }: { badges: Badge[]; cols?: number }) {
   const slots = Array(BADGE_SLOTS).fill(null).map((_, i) => badges[i] ?? null)
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols},1fr)`, gap: 8 }}>
       {slots.map((badge, i) => (
         <div key={i} style={{
           border: badge ? '2px solid var(--fire-org)' : '2px solid #222',
@@ -120,6 +121,7 @@ export function CharacterDex() {
   const [loadingStats, setLoadingStats] = useState(false)
   const [view, setView] = useState<'story' | 'stats' | 'badges'>('story')
   const hasGenerated = useRef(false)
+  const { isMobile, isSmall } = useMobile()
 
   const diaries = storage.getDiaries().filter((d) => d.content)
 
@@ -208,7 +210,7 @@ export function CharacterDex() {
             <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--gray-4)', textAlign: 'center', padding: '24px 0' }}>분석 중...</div>
           ) : profile?.stats && profile.stats.length > 0 ? (
             <>
-              <RadarChart stats={profile.stats} />
+              <RadarChart stats={profile.stats} size={isSmall ? 180 : isMobile ? 200 : 220} />
               <div style={{ marginTop: 16 }}>
                 <StatBars stats={profile.stats} />
               </div>
@@ -230,7 +232,7 @@ export function CharacterDex() {
               일기를 저장할 때 의미 있는 순간이 있으면 자동으로 배지가 생성돼요.
             </div>
           )}
-          <BadgeGrid badges={badges} />
+          <BadgeGrid badges={badges} cols={isSmall ? 2 : 3} />
         </div>
       )}
     </div>

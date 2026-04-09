@@ -450,6 +450,24 @@ input[type='range']::-webkit-slider-thumb {
 
   /* Timeline: narrower modal */
   .modal-box { max-width: 100% !important; margin: 0 8px; }
+
+  /* ── AppHeader / TimelinePage header 버튼 overflow 방지 ── */
+  .app-header { padding: 0 12px; }
+  .header-actions { gap: 4px; }
+  .header-actions .pixel-btn-sm {
+    font-size: 9px;
+    padding: 5px 8px;
+    border-width: 1px;
+    letter-spacing: 0.04em;
+  }
+  .logo-korean { font-size: 17px; }
+  .logo-en { font-size: 9px; letter-spacing: 0.06em; }
+
+  /* ── 타임라인 일기 카드 이미지 컬럼 ── */
+  .tl-diary-image { width: 80px !important; min-width: 80px !important; }
+
+  /* ── 키보드 단축키 힌트 모바일에서 숨김 ── */
+  .input-hint .hint-shortcut { display: none; }
 }
 
 @media (max-width: 480px) {
@@ -457,4 +475,17 @@ input[type='range']::-webkit-slider-thumb {
   .bonfire-scene svg, .bonfire-scene canvas { transform: scale(0.8); transform-origin: center; }
   .key-image-section { width: 100%; }
   .gauge-label { display: none; }
+
+  /* ── 헤더 버튼 더 작게 ── */
+  .app-header { padding: 0 8px; }
+  .header-actions { gap: 3px; }
+  .header-actions .pixel-btn-sm {
+    font-size: 7px;
+    padding: 4px 6px;
+  }
+  .logo-korean { font-size: 15px; }
+  .logo-en { display: none; }
+
+  /* ── 모달 여백 최소화 ── */
+  .modal-overlay { padding: 48px 8px 16px; }
 }

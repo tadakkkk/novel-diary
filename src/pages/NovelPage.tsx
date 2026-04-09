@@ -512,12 +512,12 @@ export default function NovelPage() {
 
       {/* ── Picker Modal ── */}
       {showPicker && (
-        <div style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.92)' }}>
-          <div style={{ width:400, border:'3px solid var(--white)', background:'#000', padding:'28px 28px 24px', position:'relative' }}>
+        <div style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.92)', padding: isMobile ? '0 16px' : 0 }}>
+          <div style={{ width: isMobile ? '100%' : 400, maxWidth:400, border:'3px solid var(--white)', background:'#000', padding: isMobile ? '24px 20px 20px' : '28px 28px 24px', position:'relative' }}>
             <button onClick={() => spreads.length > 0 ? setShowPicker(false) : navigate(-1)}
               className='modal-close' style={{ position:'absolute', top:12, right:14 }}
               title='닫기'>[ x ]</button>
-            <div style={{ fontFamily:'var(--font-pixel)', fontSize:13, color:'var(--white)', letterSpacing:'0.1em', marginBottom:22 }}>▸ 소설로 엮을 기간 선택</div>
+            <div style={{ fontFamily:'var(--font-pixel)', fontSize: isMobile ? 11 : 13, color:'var(--white)', letterSpacing:'0.1em', marginBottom:22 }}>▸ 소설로 엮을 기간 선택</div>
             <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:16 }}>
               {(['week', 'month', 'all'] as const).map((t) => (
                 <button key={t} onClick={() => setPreset(t)}
@@ -526,7 +526,7 @@ export default function NovelPage() {
                 </button>
               ))}
             </div>
-            <div style={{ display:'flex', gap:12, marginBottom:16 }}>
+            <div style={{ display:'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 8 : 12, marginBottom:16 }}>
               {[['FROM', dateFrom, setDateFrom], ['TO', dateTo, setDateTo]].map(([label, val, setter]) => (
                 <div key={label as string} style={{ flex:1 }}>
                   <label style={{ fontFamily:'var(--font-pixel)', fontSize:10, color:'var(--gray-4)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>{label as string}</label>

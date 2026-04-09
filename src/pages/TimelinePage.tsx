@@ -6,6 +6,7 @@ import * as storage from '@/services/storage'
 import * as avatar from '@/services/avatar/avatar-service'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { AvatarCanvas } from '@/components/ui/AvatarCanvas'
+import { useMobile } from '@/hooks/useMobile'
 
 // ── Storage Usage ─────────────────────────────────────────────────────────
 function StorageUsage() {
@@ -216,6 +217,7 @@ function DiaryModal({ diary, onClose, onDelete, onEdit }: {
 // ── Main Page ─────────────────────────────────────────────────────────────
 export default function TimelinePage() {
   const navigate = useNavigate()
+  const { isMobile, isSmall } = useMobile()
   const [diaries, setDiaries] = useState<NovelDiary[]>([])
   const [characters, setCharacters] = useState<Character[]>([])
   const [blockedChars, setBlockedChars] = useState<string[]>([])
@@ -303,7 +305,7 @@ export default function TimelinePage() {
       </header>
       {drawerOpen && <DrawerPopup onClose={() => setDrawerOpen(false)} />}
 
-      <div style={{ minHeight:'100vh', paddingTop:64, maxWidth:760, margin:'0 auto', padding:'64px 28px 0', position:'relative', zIndex:1 }}>
+      <div style={{ minHeight:'100vh', paddingTop:64, maxWidth:760, margin:'0 auto', padding:`64px ${isMobile ? 14 : 28}px 0`, position:'relative', zIndex:1 }}>
 
         <h1 style={{ fontFamily:'var(--font-pixel)', fontSize:14, color:'var(--fire-amb)', letterSpacing:'0.1em', textTransform:'uppercase', paddingTop:32 }}>
           일기 타임라인
@@ -465,11 +467,11 @@ export default function TimelinePage() {
                       </div>
                     </div>
                     {keyImageUrl ? (
-                      <div style={{ width:110, flexShrink:0, borderLeft:'2px solid var(--gray-3)', overflow:'hidden' }}>
+                      <div style={{ width: isSmall ? 72 : isMobile ? 88 : 110, flexShrink:0, borderLeft:'2px solid var(--gray-3)', overflow:'hidden' }}>
                         <img src={keyImageUrl} alt='' style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
                       </div>
                     ) : (
-                      <div style={{ width:110, minHeight:100, display:'flex', alignItems:'center', justifyContent:'center', background:'#0a0a0a', borderLeft:'2px solid var(--gray-3)' }}>
+                      <div style={{ width: isSmall ? 72 : isMobile ? 88 : 110, minHeight:100, display:'flex', alignItems:'center', justifyContent:'center', background:'#0a0a0a', borderLeft:'2px solid var(--gray-3)' }}>
                         <span style={{ fontFamily:'var(--font-pixel)', fontSize:8, color:'var(--text-off)', transform:'rotate(-90deg)', whiteSpace:'nowrap', letterSpacing:'0.06em' }}>NO IMAGE</span>
                       </div>
                     )}
