@@ -209,9 +209,9 @@ function BlankPage() {
 
 type ReviewResult = Awaited<ReturnType<typeof claude.generateReviews>>
 
-function ReviewPage({ reviews, readerSeeds, loading, onRegen }: {
+function ReviewPage({ reviews, readerSeeds, loading, onRegen, onClose }: {
   reviews: ReviewResult; readerSeeds: number[]
-  loading: boolean; onRegen: () => void
+  loading: boolean; onRegen: () => void; onClose: () => void
 }) {
   if (loading) return (
     <div style={{ display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>
@@ -222,6 +222,7 @@ function ReviewPage({ reviews, readerSeeds, loading, onRegen }: {
       <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', flex:1, fontFamily:'var(--font-pixel)', fontSize:9, color:'#555', letterSpacing:'0.08em', textAlign:'center', lineHeight:2 }}>
         독자들이 읽는 중...
       </div>
+      <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#888', border:'1px solid #444', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em', marginTop:12, alignSelf:'flex-start' }}>책 덮기</button>
     </div>
   )
 
@@ -233,7 +234,10 @@ function ReviewPage({ reviews, readerSeeds, loading, onRegen }: {
       </div>
       <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', flex:1, gap:14, fontFamily:'var(--font-pixel)', fontSize:9, color:'#555', letterSpacing:'0.08em', textAlign:'center', lineHeight:2 }}>
         <div>독자 반응을 불러오지 못했어요.<br />다시 시도해줘요.</div>
-        <button onClick={onRegen} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#d4881e', border:'1px solid #d4881e', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em', marginTop:12, alignSelf:'flex-start' }}>🔥 독자 불러오기</button>
+        <div style={{ display:'flex', gap:8, marginTop:12 }}>
+          <button onClick={onRegen} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#d4881e', border:'1px solid #d4881e', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>🔥 독자 불러오기</button>
+          <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#888', border:'1px solid #444', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>책 덮기</button>
+        </div>
       </div>
     </div>
   )
@@ -275,7 +279,10 @@ function ReviewPage({ reviews, readerSeeds, loading, onRegen }: {
           )
         })}
       </div>
-      <button onClick={onRegen} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#d4881e', border:'1px solid #d4881e', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em', marginTop:12, alignSelf:'flex-start' }}>🔥 다른 독자 불러오기</button>
+      <div style={{ display:'flex', gap:8, marginTop:12, flexWrap:'wrap' }}>
+        <button onClick={onRegen} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#d4881e', border:'1px solid #d4881e', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>🔥 다른 독자 불러오기</button>
+        <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#888', border:'1px solid #444', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>책 덮기</button>
+      </div>
     </div>
   )
 }
@@ -309,7 +316,7 @@ function BookPage({
       {page.type === 'diary-cont'  && <DiaryContPage page={page} pageNum={pageNum} />}
       {page.type === 'blank'       && <BlankPage />}
       {page.type === 'review'      && (
-        <ReviewPage reviews={reviews} readerSeeds={readerSeeds} loading={reviewLoading} onRegen={onRegen} />
+        <ReviewPage reviews={reviews} readerSeeds={readerSeeds} loading={reviewLoading} onRegen={onRegen} onClose={onClose} />
       )}
       {pageNum != null && page.type !== 'diary-first' && page.type !== 'diary-cont' && (
         <div style={{ ...numStyle, fontFamily:'var(--font-pixel)', fontSize:9, color:'#666', letterSpacing:'0.1em' }}>{pageNum}</div>
@@ -473,7 +480,7 @@ export default function NovelPage() {
       <PixelStars />
       <header style={{ position:'fixed', top:0, left:0, right:0, zIndex:50, height:52, borderBottom:'2px solid var(--white)', background:'#000', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 20px' }}>
         <button onClick={() => navigate('/timeline')} style={{ fontFamily:'var(--font-pixel)', fontSize:11, color:'var(--gray-4)', background:'none', border:'none', cursor:'pointer', letterSpacing:'0.08em' }}>◀ 타임라인</button>
-        <span style={{ fontFamily:'var(--font-pixel)', fontSize:13, color:'var(--white)', letterSpacing:'0.1em' }}>📖 나의 이야기</span>
+        <span style={{ fontFamily:'var(--font-pixel)', fontSize:13, color:'var(--white)', letterSpacing:'0.1em' }}>나의 이야기</span>
         <div style={{ width:80 }} />
       </header>
       <div style={{ paddingTop:52, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', minHeight:'100vh', fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', letterSpacing:'0.08em', textAlign:'center', lineHeight:2.8 }}>
@@ -491,7 +498,7 @@ export default function NovelPage() {
       {/* ── Header ── */}
       <header style={{ position:'fixed', top:0, left:0, right:0, zIndex:50, height:52, borderBottom:'2px solid var(--white)', background:'#000', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 20px' }}>
         <button onClick={() => navigate('/timeline')} style={{ fontFamily:'var(--font-pixel)', fontSize:11, color:'var(--gray-4)', background:'none', border:'none', cursor:'pointer', letterSpacing:'0.08em' }}>◀ 타임라인</button>
-        <span style={{ fontFamily:'var(--font-pixel)', fontSize:13, color:'var(--white)', letterSpacing:'0.1em' }}>📖 나의 이야기</span>
+        <span style={{ fontFamily:'var(--font-pixel)', fontSize:13, color:'var(--white)', letterSpacing:'0.1em' }}>나의 이야기</span>
         {!showPicker
           ? <button onClick={() => { setShowPicker(true); setSpreads([]) }} style={{ fontFamily:'var(--font-pixel)', fontSize:10, background:'none', border:'1px solid var(--gray-3)', color:'var(--gray-4)', padding:'5px 10px', cursor:'pointer', letterSpacing:'0.06em' }}>[기간 변경]</button>
           : <div style={{ width:80 }} />}
@@ -500,7 +507,10 @@ export default function NovelPage() {
       {/* ── Picker Modal ── */}
       {showPicker && (
         <div style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.92)' }}>
-          <div style={{ width:400, border:'3px solid var(--white)', background:'#000', padding:'28px 28px 24px' }}>
+          <div style={{ width:400, border:'3px solid var(--white)', background:'#000', padding:'28px 28px 24px', position:'relative' }}>
+            <button onClick={() => spreads.length > 0 ? setShowPicker(false) : navigate(-1)}
+              style={{ position:'absolute', top:12, right:14, fontFamily:'var(--font-pixel)', fontSize:11, background:'transparent', border:'none', color:'var(--gray-4)', cursor:'pointer', lineHeight:1, padding:'4px 6px', letterSpacing:'0.06em' }}
+              title='닫기'>✕</button>
             <div style={{ fontFamily:'var(--font-pixel)', fontSize:13, color:'var(--white)', letterSpacing:'0.1em', marginBottom:22 }}>▸ 소설로 엮을 기간 선택</div>
             <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:16 }}>
               {(['week', 'month', 'all'] as const).map((t) => (
@@ -526,7 +536,7 @@ export default function NovelPage() {
             </div>
             <button disabled={filteredCount === 0 || building} onClick={openBook}
               style={{ width:'100%', fontFamily:'var(--font-pixel)', fontSize:12, background: filteredCount === 0 || building ? 'var(--gray-3)' : 'var(--white)', color: filteredCount === 0 || building ? 'var(--gray-4)' : '#000', border:'none', padding:13, cursor: filteredCount === 0 || building ? 'not-allowed' : 'pointer', letterSpacing:'0.1em' }}>
-              {building ? 'LOADING...' : '📖 책 펼치기'}
+              {building ? 'LOADING...' : '책 펼치기'}
             </button>
           </div>
         </div>

@@ -192,6 +192,8 @@ export default function TimelinePage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [showBlocked, setShowBlocked] = useState(false)
+  const [editingRelName, setEditingRelName] = useState<string | null>(null)
+  const [editingRelVal, setEditingRelVal] = useState('')
   function handleExport() {
     const data = storage.exportAllData()
     const json = JSON.stringify(data, null, 2)
@@ -301,7 +303,31 @@ export default function TimelinePage() {
                     onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--gray-3)')}>
                     <AvatarCanvas character={char} size={48} />
                     <div style={{ fontFamily:'var(--font-korean)', fontSize:12, fontWeight:700, color:'var(--white)', textAlign:'center', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:72 }}>{char.name}</div>
-                    <div style={{ fontFamily:'var(--font-pixel)', fontSize:8, color:'var(--gray-4)', textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:72 }}>{char.relationship}</div>
+                    {editingRelName === char.name ? (
+                      <input
+                        autoFocus
+                        value={editingRelVal}
+                        onChange={(e) => setEditingRelVal(e.target.value)}
+                        onBlur={() => {
+                          const updated = { ...char, relationship: editingRelVal }
+                          storage.upsertCharacter(updated)
+                          loadData()
+                          setEditingRelName(null)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === 'Escape') (e.target as HTMLInputElement).blur()
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ fontFamily:'var(--font-pixel)', fontSize:8, color:'var(--white)', background:'#1a1a1a', border:'1px solid var(--fire-org)', outline:'none', textAlign:'center', width:72, padding:'2px 4px' }}
+                      />
+                    ) : (
+                      <div
+                        style={{ fontFamily:'var(--font-pixel)', fontSize:8, color:'var(--gray-4)', textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:72, cursor:'text', minHeight:12 }}
+                        title='클릭하여 수정'
+                        onClick={(e) => { e.stopPropagation(); setEditingRelName(char.name); setEditingRelVal(char.relationship ?? '') }}>
+                        {char.relationship || <span style={{ color:'#333' }}>설명 없음</span>}
+                      </div>
+                    )}
                     <div style={{ fontFamily:'var(--font-pixel)', fontSize:8, color:'var(--fire-org)', letterSpacing:'0.06em' }}>{(char.appearances ?? []).length}회</div>
                     <div style={{ display:'flex', gap:4, justifyContent:'center', marginTop:2 }}>
                       <button
