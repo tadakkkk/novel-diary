@@ -177,8 +177,22 @@ export default function DiaryPage() {
   const [pendingGen, setPendingGen] = useState(false)
   const [isSaved, setIsSaved]       = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
+  const [pendingNav, setPendingNav] = useState<string | null>(null)
   const isGenerating  = useRef(false)
   const abortCtrl     = useRef<AbortController | null>(null)
+
+  // 미저장 상태로 이탈 시 브라우저 경고 (탭 닫기/새로고침)
+  useEffect(() => {
+    if (status !== 'done' || isSaved) return
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [status, isSaved])
+
+  function safeNavigate(path: string) {
+    if (status === 'done' && !isSaved) { setPendingNav(path); return }
+    navigate(path)
+  }
 
   const { displayed: typedText, done: typingDone } = useTypewriter(diaryContent, status === 'done' && diaryContent !== '' && !isEditLoad)
   const displayed = isEditLoad ? diaryContent : typedText
@@ -291,10 +305,8 @@ export default function DiaryPage() {
         date: sessionDate, wordCount: content.length,
         createdAt: (prevDiary as Partial<NovelDiary>).createdAt ?? new Date().toISOString(),
       }
-      // 자동 저장 제거 — 저장 버튼 클릭 시에만 저장
-      rawChars.forEach((c) => storage.upsertCharacter(c as Character))
-
-      const savedChars = rawChars.map((c) => storage.getCharacter(c.name) ?? c as unknown as Character)
+      // 등장인물은 일기 저장 시점에만 upsert — 미저장 상태에서는 storage에 반영 안 함
+      const savedChars = rawChars as unknown as Character[]
       setDiaryContent(content); setSavedDiary(diary); setChars(savedChars); setStatus('done'); setIsSaved(false); setIsEditMode(false)
     } catch (err) {
       const msg = (err as Error).message ?? ''
@@ -325,13 +337,13 @@ export default function DiaryPage() {
     <>
       <PixelStars />
       <header className='app-header' style={{ height: 52 }}>
-        <button className='app-logo' onClick={() => navigate('/')} style={{ background:'none', border:'none', cursor:'pointer' }}>
+        <button className='app-logo' onClick={() => safeNavigate('/')} style={{ background:'none', border:'none', cursor:'pointer' }}>
           <span className='logo-korean'>타닥타닥</span>
           <span className='logo-en'>◀ 모닥불로</span>
         </button>
         <div className='header-actions'>
           <span className='px-tag px-tag-fire'>KINDLING ×{kindlings.length}</span>
-          <button className='pixel-btn pixel-btn-sm' onClick={() => navigate('/timeline')}>[타임라인]</button>
+          <button className='pixel-btn pixel-btn-sm' onClick={() => safeNavigate('/timeline')}>[타임라인]</button>
         </div>
       </header>
 
@@ -507,6 +519,8 @@ export default function DiaryPage() {
                   onClick={async () => {
                     if (!savedDiary) return
                     const diary = { ...savedDiary, content: diaryContent, wordCount: diaryContent.length }
+                    // 등장인물을 일기 저장 시점에 storage에 반영
+                    chars.forEach((c) => storage.upsertCharacter(c))
                     storage.saveDiary(diary)
                     setIsSaved(true)
                     setIsEditMode(false)
@@ -521,13 +535,18 @@ export default function DiaryPage() {
                   {isSaved ? '✓ 저장됨' : '▸ 일기 저장'}
                 </button>
                 {isSaved && (
-                  <button className='pixel-btn' onClick={() => navigate('/timeline')}>타임라인으로 →</button>
+                  <button className='pixel-btn' onClick={() => safeNavigate('/timeline')}>타임라인으로 →</button>
                 )}
               </div>
 
               {chars.length > 0 && (
                 <div className='char-section'>
                   <div className='char-section-title'>► 등장인물</div>
+                  {!isSaved && (
+                    <div style={{ fontFamily:'var(--font-pixel)', fontSize:7, color:'var(--fire-amb)', marginBottom:8, letterSpacing:'0.06em' }}>
+                      ⚠ 일기를 저장해야 등장인물이 등록돼요
+                    </div>
+                  )}
                   <div className='char-grid'>
                     {chars.map((char) => (
                       <div key={char.name} className='char-card' onClick={() => setCharModal(char)}>
@@ -551,6 +570,20 @@ export default function DiaryPage() {
         />
       )}
       {charModal && <CharacterModal character={charModal} onClose={() => setCharModal(null)} />}
+      {pendingNav && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.92)', zIndex:500, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div style={{ background:'var(--black)', border:'3px solid var(--fire-org)', boxShadow:'inset 0 0 0 2px var(--fire-org),inset 0 0 0 5px var(--black)', padding:'28px 32px', maxWidth:380, width:'90%', textAlign:'center' }}>
+            <div style={{ fontFamily:'var(--font-pixel)', fontSize:9, color:'var(--fire-amb)', letterSpacing:'0.1em', marginBottom:14 }}>⚠ UNSAVED DIARY</div>
+            <p style={{ fontFamily:'var(--font-korean)', fontSize:14, color:'var(--gray-5)', lineHeight:1.8, marginBottom:22 }}>
+              저장되지 않은 일기가 있어.<br />나가면 사라져.
+            </p>
+            <div style={{ display:'flex', gap:10, justifyContent:'center' }}>
+              <button className='pixel-btn pixel-btn-fire' onClick={() => setPendingNav(null)}>계속 작성하기</button>
+              <button className='pixel-btn' onClick={() => { navigate(pendingNav); setPendingNav(null) }}>그냥 나가기</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
