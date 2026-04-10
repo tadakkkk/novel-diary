@@ -1,4 +1,7 @@
 import { useNavigate } from 'react-router-dom'
+import { useAppContext } from '@/App'
+import { isAnonQuotaExceeded } from '@/services/quota/quota-service'
+import { getSession } from '@/services/auth/auth-service'
 import { AppHeader } from '@/components/ui/AppHeader'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { FlameAnimation } from '@/features/bonfire/FlameAnimation'
@@ -14,6 +17,7 @@ import { useMobile } from '@/hooks/useMobile'
 export default function BonfirePage() {
   const navigate = useNavigate()
   const { isMobile } = useMobile()
+  const { showPaywall } = useAppContext()
 
   const {
     sessionId,
@@ -26,6 +30,14 @@ export default function BonfirePage() {
     uploadKeyImage,
     removeKeyImage,
   } = useBonfireSession()
+
+  async function handleGoWrite() {
+    if (import.meta.env.VITE_API_URL) {
+      const session = await getSession()
+      if (!session && isAnonQuotaExceeded()) { showPaywall(); return }
+    }
+    navigate(`/diary?session=${encodeURIComponent(sessionId)}`)
+  }
 
   const count    = kindlings.length
   const ready    = isGenerationReady(count)
@@ -89,7 +101,7 @@ export default function BonfirePage() {
               {ready && (
                 <button
                   className='bf-m-genbtn'
-                  onClick={() => navigate(`/diary?session=${encodeURIComponent(sessionId)}`)}
+                  onClick={handleGoWrite}
                 >
                   ▶ 일기 쓰기 ◀
                 </button>
