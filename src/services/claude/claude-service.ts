@@ -1,9 +1,15 @@
-// ── Claude API 서비스 (claude.js 포팅) ───────────────────────────────────
+// ── Claude API 서비스 ─────────────────────────────────────────────────────
+// Server mode (VITE_API_URL set): routes through backend → no API key on client
+// Dev fallback (no VITE_API_URL): direct Anthropic call with user's own key
 import { type Kindling, type Perspective, type ProcessingLevel, type StyleReference } from '@/types'
 import { getApiKey } from '@/services/storage'
+import { serverChat, QuotaExceededError } from '@/services/api/api-client'
+
+export { QuotaExceededError }
 
 const API_URL = 'https://api.anthropic.com/v1/messages'
 const MODEL   = 'claude-opus-4-6'
+const USE_SERVER = !!import.meta.env.VITE_API_URL
 
 interface ContentBlock {
   type: 'text' | 'image'
@@ -20,6 +26,18 @@ interface CallOptions {
 }
 
 async function callApi(opts: CallOptions): Promise<string> {
+  if (USE_SERVER) {
+    const { text } = await serverChat({
+      messages: opts.messages as Parameters<typeof serverChat>[0]['messages'],
+      systemPrompt: opts.systemPrompt,
+      maxTokens: opts.maxTokens,
+      temperature: opts.temperature,
+      signal: opts.signal,
+    })
+    return text
+  }
+
+  // Dev fallback: direct Anthropic call
   const apiKey = getApiKey()
   if (!apiKey) throw new Error('API_KEY_MISSING')
 

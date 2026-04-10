@@ -15,9 +15,24 @@
 
 ## 기술 스택
 
-- Frontend: React + Vite + Tailwind CSS (TypeScript strict)
-- AI: Anthropic Claude API (문체 분석, 일기 생성, 미디어 묘사)
-- 저장소: localStorage (MVP)
+- Frontend: React + Vite + Tailwind CSS (TypeScript strict) + PWA (vite-plugin-pwa)
+- Backend: Node.js + Express + TypeScript (`server/`)
+- Auth: Supabase Auth (Google 소셜 로그인)
+- DB: Supabase (usage 테이블 — 호출 횟수, 구독 상태)
+- Payment: Stripe (weekly/monthly 구독)
+- AI: Anthropic Claude API (서버에서 호출, 클라이언트에서 직접 호출 안 함)
+- 저장소: localStorage (일기 데이터) + Supabase (사용자/결제 메타데이터)
+
+## 서버 모드 vs 개발 모드
+
+- `VITE_API_URL` 환경변수가 설정된 경우: 서버 경유 (API 키 클라이언트 불필요)
+- 미설정 시: 직접 Anthropic 호출 (개발용, 사용자 API 키 필요)
+
+## 무료 사용 정책
+
+- 신규 사용자: 30회 무료 (서버에서 카운트)
+- 30회 초과: PaywallModal 표시 → Stripe Checkout
+- 구독 중: 무제한 (`remaining: -1`)
 
 ## 코딩 규칙 참조
 
@@ -61,3 +76,11 @@
   - vercel.json: SPA 라우팅 리라이트
   - .github/workflows/deploy.yml: GitHub Pages 배포 워크플로우
   - public/404.html: GitHub Pages SPA 폴백 리다이렉트
+- [x] Phase 10: PWA + Monetization
+  - PWA: vite-plugin-pwa + manifest.json + 아이콘(192/512) + InstallBanner
+  - Backend: server/ (Express + TypeScript, Anthropic API 서버 이관)
+  - Auth: Supabase Auth Google 로그인 (src/services/auth/)
+  - Usage API: GET /api/ai/usage, POST /api/ai/chat (quota 체크 포함)
+  - Billing API: POST /api/billing/checkout, /portal, /webhook
+  - PaywallModal: 30회 초과 시 weekly/monthly 플랜 선택 UI
+  - DB: supabase/migrations/001_usage.sql

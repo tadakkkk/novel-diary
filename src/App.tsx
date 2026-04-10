@@ -1,6 +1,80 @@
 import { useEffect, useRef, useState } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import * as storage from '@/services/storage'
+
+// ── PWA Install Prompt ─────────────────────────────────────────────────────
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>
+  readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
+
+function InstallBanner() {
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [dismissed, setDismissed] = useState(() => !!localStorage.getItem('pwa-install-dismissed'))
+
+  useEffect(() => {
+    function onBeforeInstall(e: Event) {
+      e.preventDefault()
+      setDeferredPrompt(e as BeforeInstallPromptEvent)
+    }
+    window.addEventListener('beforeinstallprompt', onBeforeInstall)
+    return () => window.removeEventListener('beforeinstallprompt', onBeforeInstall)
+  }, [])
+
+  if (!deferredPrompt || dismissed) return null
+
+  async function handleInstall() {
+    if (!deferredPrompt) return
+    await deferredPrompt.prompt()
+    const { outcome } = await deferredPrompt.userChoice
+    if (outcome === 'accepted' || outcome === 'dismissed') {
+      setDeferredPrompt(null)
+      setDismissed(true)
+      localStorage.setItem('pwa-install-dismissed', '1')
+    }
+  }
+
+  function handleDismiss() {
+    setDismissed(true)
+    localStorage.setItem('pwa-install-dismissed', '1')
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)',
+      zIndex: 9998, background: '#0d0d0d', border: '2px solid var(--fire-org)',
+      boxShadow: '0 0 16px rgba(255,90,0,0.3)',
+      padding: '12px 16px', width: 'calc(100% - 32px)', maxWidth: 380,
+      display: 'flex', alignItems: 'center', gap: 12,
+    }}>
+      <span style={{ fontSize: 22, flexShrink: 0 }}>🔥</span>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--fire-tip)', letterSpacing: '0.08em', marginBottom: 3 }}>
+          홈 화면에 추가하기
+        </div>
+        <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-4)', lineHeight: 1.5 }}>
+          앱처럼 설치하면 더 편하게 사용할 수 있어요
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+        <button
+          onClick={handleInstall}
+          className='pixel-btn pixel-btn-fire'
+          style={{ fontSize: 9, padding: '8px 12px' }}
+        >
+          설치
+        </button>
+        <button
+          onClick={handleDismiss}
+          className='pixel-btn'
+          style={{ fontSize: 9, padding: '8px 10px' }}
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  )
+}
 import BonfirePage from './pages/BonfirePage'
 import DiaryPage from './pages/DiaryPage'
 import TimelinePage from './pages/TimelinePage'
@@ -49,7 +123,9 @@ function QuotaToast() {
 const ONBOARDED_KEY = 'novel-diary:onboarded'
 
 function OnboardingModal() {
-  const hasKey     = !!storage.getApiKey()
+  // In server mode (VITE_API_URL set), no API key needed — skip onboarding
+  const serverMode = !!import.meta.env.VITE_API_URL
+  const hasKey     = serverMode || !!storage.getApiKey()
   const onboarded  = !!localStorage.getItem(ONBOARDED_KEY)
   const [open, setOpen]   = useState(!hasKey && !onboarded)
   const [key,  setKey]    = useState('')
@@ -149,12 +225,49 @@ function OnboardingModal() {
   )
 }
 
+// ── Auth + Paywall context ────────────────────────────────────────────────
+import { createContext, useContext } from 'react'
+import type { User } from '@supabase/supabase-js'
+import { onAuthStateChange } from '@/services/auth/auth-service'
+import { PaywallModal } from '@/components/ui/PaywallModal'
+import { QuotaExceededError } from '@/services/claude/claude-service'
+
+interface AppContextValue {
+  user: User | null
+  showPaywall: () => void
+}
+const AppContext = createContext<AppContextValue>({ user: null, showPaywall: () => {} })
+export function useAppContext() { return useContext(AppContext) }
+
 // ── App ────────────────────────────────────────────────────────────────────
 export default function App() {
+  const [user, setUser] = useState<User | null>(null)
+  const [paywallOpen, setPaywallOpen] = useState(false)
+
+  useEffect(() => {
+    const unsub = onAuthStateChange(setUser)
+    return unsub
+  }, [])
+
+  // Global error boundary for QuotaExceededError
+  useEffect(() => {
+    function onUnhandled(e: PromiseRejectionEvent) {
+      if (e.reason instanceof QuotaExceededError) {
+        e.preventDefault()
+        setPaywallOpen(true)
+      }
+    }
+    window.addEventListener('unhandledrejection', onUnhandled)
+    return () => window.removeEventListener('unhandledrejection', onUnhandled)
+  }, [])
+
   return (
+    <AppContext.Provider value={{ user, showPaywall: () => setPaywallOpen(true) }}>
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <OnboardingModal />
       <QuotaToast />
+      <InstallBanner />
+      {paywallOpen && <PaywallModal isLoggedIn={!!user} onClose={() => setPaywallOpen(false)} />}
       <Routes>
         <Route path='/' element={<BonfirePage />} />
         <Route path='/diary' element={<DiaryPage />} />
@@ -163,5 +276,6 @@ export default function App() {
         <Route path='/novel' element={<NovelPage />} />
       </Routes>
     </BrowserRouter>
+    </AppContext.Provider>
   )
 }

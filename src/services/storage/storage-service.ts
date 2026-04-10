@@ -40,7 +40,20 @@ function write<T>(key: string, value: T): void {
   }
 }
 
-// ── API Key ───────────────────────────────────────────────────────────────
+// ── Device ID (anonymous user identifier) ────────────────────────────────
+const DEVICE_ID_KEY = 'novel-diary:device-id'
+export function getDeviceId(): string {
+  let id = localStorage.getItem(DEVICE_ID_KEY)
+  if (!id) {
+    // Generate a stable random ID using crypto
+    id = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+      .map((b) => b.toString(16).padStart(2, '0')).join('')
+    localStorage.setItem(DEVICE_ID_KEY, id)
+  }
+  return id
+}
+
+// ── API Key (kept for legacy/dev fallback) ────────────────────────────────
 export function getApiKey(): string | null {
   return localStorage.getItem(K.API_KEY) || null
 }
