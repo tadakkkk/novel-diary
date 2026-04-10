@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { signInWithGoogle } from '@/services/auth/auth-service'
 import { createCheckoutSession } from '@/services/api/api-client'
+import { isNativePlatform, purchaseIAP, restoreIAPPurchases, type IAPPlan } from '@/services/iap/iap-service'
 
 interface Props {
   user: User | null
@@ -10,8 +11,9 @@ interface Props {
 }
 
 export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
-  const [loading, setLoading] = useState<'login' | 'weekly' | 'monthly' | null>(null)
+  const [loading, setLoading] = useState<'login' | 'weekly' | 'monthly' | 'restore' | null>(null)
   const [error, setError]     = useState('')
+  const isNative = isNativePlatform()
 
   async function handleLogin() {
     setLoading('login')
@@ -28,10 +30,39 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
     setLoading(plan)
     setError('')
     try {
-      const url = await createCheckoutSession(plan)
-      window.location.href = url
+      if (isNative) {
+        // Apple In-App Purchase
+        const success = await purchaseIAP(plan as IAPPlan)
+        if (success) {
+          onClose()
+        } else {
+          setError('구독이 확인되지 않았어요. 잠시 후 다시 시도해주세요.')
+        }
+      } else {
+        // Web: Paddle checkout
+        const url = await createCheckoutSession(plan)
+        window.location.href = url
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : '오류가 발생했어요.')
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  async function handleRestore() {
+    setLoading('restore')
+    setError('')
+    try {
+      const success = await restoreIAPPurchases()
+      if (success) {
+        onClose()
+      } else {
+        setError('복원할 구독이 없어요.')
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '복원 중 오류가 발생했어요.')
+    } finally {
       setLoading(null)
     }
   }
@@ -59,8 +90,8 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
 
         <div style={{ padding: '20px 24px' }}>
 
-          {/* 비로그인: 로그인 유도 */}
-          {!user ? (
+          {/* 비로그인 & 웹: 로그인 유도 */}
+          {!user && !isNative ? (
             <>
               <div style={{
                 fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--gray-4)',
@@ -87,7 +118,7 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
               </button>
             </>
           ) : (
-            /* 로그인 상태: 플랜 선택 */
+            /* 로그인 상태 또는 네이티브 앱: 플랜 선택 */
             <>
               {/* 플랜 카드 2개 나란히 */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
@@ -101,7 +132,7 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
                     월간 구독
                   </div>
                   <div style={{ fontFamily: 'var(--font-korean)', fontSize: 20, fontWeight: 700, color: 'var(--white)', marginBottom: 2 }}>
-                    ₩3,800
+                    {isNative ? '₩3,800' : '₩3,800'}
                   </div>
                   <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--gray-4)', marginBottom: 4 }}>
                     / 월
@@ -149,6 +180,22 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
                   </button>
                 </div>
               </div>
+
+              {/* 네이티브 앱: 구매 복원 버튼 */}
+              {isNative && (
+                <button
+                  onClick={handleRestore}
+                  disabled={isLoading}
+                  style={{
+                    width: '100%', fontFamily: 'var(--font-pixel)', fontSize: 8,
+                    color: 'var(--gray-4)', background: 'none', border: '1px solid var(--gray-2)',
+                    padding: '8px', cursor: 'pointer', opacity: isLoading ? 0.6 : 1,
+                    marginBottom: 4,
+                  }}
+                >
+                  {loading === 'restore' ? '복원 중...' : '구매 복원'}
+                </button>
+              )}
             </>
           )}
 

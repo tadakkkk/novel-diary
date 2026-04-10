@@ -4,6 +4,7 @@ import cors from 'cors'
 import aiRouter from './routes/ai.js'
 import billingRouter from './routes/billing.js'
 import authRouter from './routes/auth.js'
+import iapRouter from './routes/iap.js'
 
 const app  = express()
 const PORT = process.env.PORT ?? 3001
@@ -36,6 +37,7 @@ app.use(express.json({ limit: '10mb' }))
 app.use('/api/ai',      aiRouter)
 app.use('/api/billing', billingRouter)
 app.use('/api/auth',    authRouter)
+app.use('/api/iap',     iapRouter)
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }))
 

@@ -225,6 +225,9 @@ function OnboardingModal() {
   )
 }
 
+// ── IAP Init ──────────────────────────────────────────────────────────────
+import { initIAP } from '@/services/iap/iap-service'
+
 // ── Auth + Paywall + Data Sync ────────────────────────────────────────────
 import { createContext, useCallback, useContext } from 'react'
 import type { User } from '@supabase/supabase-js'
@@ -265,6 +268,8 @@ export default function App() {
   const [paywallSource, setPaywallSource] = useState<'quota' | 'subscribe'>('quota')
   const [syncing, setSyncing]         = useState(false)
   const [usageStatus, setUsageStatus] = useState<UsageStatus | null>(null)
+
+  useEffect(() => { initIAP().catch(console.error) }, [])
 
   const refreshUsage = useCallback(async () => {
     if (!import.meta.env.VITE_API_URL) return
