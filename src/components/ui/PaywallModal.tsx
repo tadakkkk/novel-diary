@@ -18,7 +18,6 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
     setError('')
     try {
       await signInWithGoogle()
-      // Auth state change will update user in App.tsx via onAuthStateChange
     } catch {
       setError('로그인 중 오류가 발생했어요. 다시 시도해주세요.')
       setLoading(null)
@@ -60,7 +59,7 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
 
         <div style={{ padding: '20px 24px' }}>
 
-          {/* Step 1: Not logged in → show login */}
+          {/* 비로그인: 로그인 유도 */}
           {!user ? (
             <>
               <div style={{
@@ -88,41 +87,67 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
               </button>
             </>
           ) : (
-            /* Step 2: Logged in → show subscription plans */
+            /* 로그인 상태: 플랜 선택 */
             <>
-              <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--gray-4)', marginBottom: 16, lineHeight: 1.7 }}>
-                구독하면 제한 없이 계속 사용할 수 있어요.
-              </div>
+              {/* 플랜 카드 2개 나란히 */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
 
-              {/* Monthly — recommended */}
-              <div style={{ border: '2px solid var(--fire-org)', background: 'rgba(255,90,0,0.06)', padding: '16px', marginBottom: 10, position: 'relative' }}>
-                <div style={{ position: 'absolute', top: -11, left: 12, background: 'var(--fire-org)', color: '#000', fontFamily: 'var(--font-pixel)', fontSize: 8, padding: '2px 8px', letterSpacing: '0.08em' }}>
-                  추천
+                {/* 월간 — 추천 */}
+                <div style={{ border: '2px solid var(--fire-org)', background: 'rgba(255,90,0,0.06)', padding: '16px 14px', position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: -11, left: 10, background: 'var(--fire-org)', color: '#000', fontFamily: 'var(--font-pixel)', fontSize: 7, padding: '2px 7px', letterSpacing: '0.08em' }}>
+                    추천
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 10, color: 'var(--fire-tip)', letterSpacing: '0.06em', marginBottom: 6 }}>
+                    월간 구독
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-korean)', fontSize: 20, fontWeight: 700, color: 'var(--white)', marginBottom: 2 }}>
+                    ₩3,800
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--gray-4)', marginBottom: 4 }}>
+                    / 월
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-korean)', fontSize: 10, color: '#a0e080', marginBottom: 12 }}>
+                    주간 대비 약 21% 절약
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-korean)', fontSize: 10, color: 'var(--gray-4)', marginBottom: 14 }}>
+                    매월 자동 결제<br />언제든 취소 가능
+                  </div>
+                  <button
+                    className='pixel-btn pixel-btn-fire'
+                    style={{ width: '100%', fontSize: 9, opacity: isLoading ? 0.6 : 1 }}
+                    disabled={isLoading}
+                    onClick={() => handleSubscribe('monthly')}
+                  >
+                    {loading === 'monthly' ? '...' : '▸ 구독하기'}
+                  </button>
                 </div>
-                <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 11, color: 'var(--fire-tip)', letterSpacing: '0.06em', marginBottom: 4 }}>월간 구독</div>
-                <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-4)', marginBottom: 12 }}>매월 자동 결제 · 언제든 취소 가능</div>
-                <button
-                  className='pixel-btn pixel-btn-fire'
-                  style={{ width: '100%', opacity: isLoading ? 0.6 : 1 }}
-                  disabled={isLoading}
-                  onClick={() => handleSubscribe('monthly')}
-                >
-                  {loading === 'monthly' ? '잠깐만요...' : '▸ 월간 구독하기'}
-                </button>
-              </div>
 
-              {/* Weekly */}
-              <div style={{ border: '2px solid var(--gray-2)', padding: '16px' }}>
-                <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 11, color: 'var(--white)', letterSpacing: '0.06em', marginBottom: 4 }}>주간 구독</div>
-                <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-4)', marginBottom: 12 }}>매주 자동 결제 · 언제든 취소 가능</div>
-                <button
-                  className='pixel-btn'
-                  style={{ width: '100%', opacity: isLoading ? 0.6 : 1 }}
-                  disabled={isLoading}
-                  onClick={() => handleSubscribe('weekly')}
-                >
-                  {loading === 'weekly' ? '잠깐만요...' : '▸ 주간 구독하기'}
-                </button>
+                {/* 주간 */}
+                <div style={{ border: '2px solid var(--gray-2)', padding: '16px 14px' }}>
+                  <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 10, color: 'var(--white)', letterSpacing: '0.06em', marginBottom: 6 }}>
+                    주간 구독
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-korean)', fontSize: 20, fontWeight: 700, color: 'var(--white)', marginBottom: 2 }}>
+                    ₩1,200
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--gray-4)', marginBottom: 4 }}>
+                    / 주
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-korean)', fontSize: 10, color: 'var(--gray-4)', marginBottom: 12 }}>
+                    &nbsp;
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-korean)', fontSize: 10, color: 'var(--gray-4)', marginBottom: 14 }}>
+                    매주 자동 결제<br />언제든 취소 가능
+                  </div>
+                  <button
+                    className='pixel-btn'
+                    style={{ width: '100%', fontSize: 9, opacity: isLoading ? 0.6 : 1 }}
+                    disabled={isLoading}
+                    onClick={() => handleSubscribe('weekly')}
+                  >
+                    {loading === 'weekly' ? '...' : '▸ 구독하기'}
+                  </button>
+                </div>
               </div>
             </>
           )}
