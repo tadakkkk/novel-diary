@@ -4,9 +4,11 @@ node_modules/
 # Build output
 dist/
 
-# Environment variables
+# Environment variables — never commit real keys
+.env
 .env.local
 .env.*.local
+server/.env
 
 # Editor
 .vscode/

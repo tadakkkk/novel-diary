@@ -1,112 +1,146 @@
 import { Router } from 'express'
-import Stripe from 'stripe'
+import { Paddle, EventName } from '@paddle/paddle-node-sdk'
 import { requireUser, type AuthRequest } from '../middleware/auth.js'
 import {
   getUsage,
   updateSubscription,
-  getUserByStripeCustomer,
+  getUserByPaddleCustomer,
 } from '../services/supabase.js'
 
 const router = Router()
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
-const PRICES = {
-  weekly:  process.env.STRIPE_PRICE_WEEKLY!,
-  monthly: process.env.STRIPE_PRICE_MONTHLY!,
+const paddle = new Paddle(process.env.PADDLE_API_KEY!)
+
+const PRICES: Record<string, string> = {
+  weekly:  process.env.PADDLE_PRICE_WEEKLY!,
+  monthly: process.env.PADDLE_PRICE_MONTHLY!,
 }
 
-// ── POST /api/billing/checkout — create Stripe Checkout session ───────────
+// ── POST /api/billing/checkout — Paddle 결제 링크 생성 ────────────────────
 router.post('/checkout', requireUser, async (req: AuthRequest, res) => {
   const { plan } = req.body as { plan: 'weekly' | 'monthly' }
   if (!PRICES[plan]) return res.status(400).json({ error: 'Invalid plan' })
 
   const usage = await getUsage(req.userId!)
 
-  const sessionParams: Stripe.Checkout.SessionCreateParams = {
-    mode: 'subscription',
-    payment_method_types: ['card'],
-    line_items: [{ price: PRICES[plan], quantity: 1 }],
-    success_url: `${process.env.CLIENT_ORIGIN}/diary?checkout=success`,
-    cancel_url:  `${process.env.CLIENT_ORIGIN}/diary?checkout=cancel`,
-    metadata: { userId: req.userId!, plan },
-    subscription_data: {
-      metadata: { userId: req.userId!, plan },
-    },
+  const txParams: Parameters<typeof paddle.transactions.create>[0] = {
+    items: [{ priceId: PRICES[plan], quantity: 1 }],
+    customData: { userId: req.userId!, plan },
+    checkout: { url: `${process.env.CLIENT_ORIGIN}/diary?checkout=success` },
   }
 
-  // Reuse existing Stripe customer if available
-  if (usage.stripe_customer_id) {
-    sessionParams.customer = usage.stripe_customer_id
+  // Reuse existing Paddle customer if available
+  if (usage.paddle_customer_id) {
+    txParams.customerId = usage.paddle_customer_id
   }
 
-  const session = await stripe.checkout.sessions.create(sessionParams)
-  res.json({ url: session.url })
+  const transaction = await paddle.transactions.create(txParams)
+  // Paddle hosted checkout URL
+  const checkoutUrl = `https://checkout.paddle.com/checkout/buy/${transaction.id}`
+
+  res.json({ url: checkoutUrl })
 })
 
-// ── POST /api/billing/portal — customer billing portal ───────────────────
-router.post('/portal', requireUser, async (req: AuthRequest, res) => {
-  const usage = await getUsage(req.userId!)
-  if (!usage.stripe_customer_id) {
-    return res.status(400).json({ error: 'No billing account found' })
-  }
-
-  const session = await stripe.billingPortal.sessions.create({
-    customer: usage.stripe_customer_id,
-    return_url: `${process.env.CLIENT_ORIGIN}/diary`,
-  })
-  res.json({ url: session.url })
-})
-
-// ── POST /api/billing/webhook — Stripe webhooks ───────────────────────────
+// ── POST /api/billing/webhook — Paddle 웹훅 처리 ─────────────────────────
 router.post('/webhook', async (req, res) => {
-  const sig = req.headers['stripe-signature'] as string
-  let event: Stripe.Event
+  const signature = req.headers['paddle-signature'] as string | undefined
+  const webhookSecret = process.env.PADDLE_WEBHOOK_SECRET
 
-  try {
-    event = stripe.webhooks.constructEvent(
-      req.body as Buffer,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    )
-  } catch {
-    return res.status(400).send('Webhook signature verification failed')
+  let eventData: { event_type: string; data: Record<string, unknown> }
+
+  if (webhookSecret && signature) {
+    try {
+      const rawBody = (req as unknown as { rawBody: string }).rawBody ?? ''
+      paddle.webhooks.unmarshal(rawBody, webhookSecret, signature)
+      eventData = req.body as typeof eventData
+    } catch {
+      return res.status(400).send('Webhook signature verification failed')
+    }
+  } else {
+    // Webhook secret not yet configured — accept without verification (dev only)
+    eventData = req.body as typeof eventData
   }
 
-  switch (event.type) {
-    case 'checkout.session.completed': {
-      const session = event.data.object as Stripe.Checkout.Session
-      const userId  = session.metadata?.userId
-      const plan    = session.metadata?.plan as 'weekly' | 'monthly' | undefined
+  const { event_type, data } = eventData
+
+  switch (event_type) {
+    case EventName.SubscriptionActivated:
+    case EventName.SubscriptionUpdated: {
+      const sub = data as {
+        customer_id?: string
+        id?: string
+        status?: string
+        custom_data?: { userId?: string; plan?: string }
+        items?: Array<{ price?: { id?: string } }>
+      }
+      const customerId = sub.customer_id
+      const subscriptionId = sub.id
+      const isActive = sub.status === 'active'
+
+      const userId = sub.custom_data?.userId
       if (!userId) break
 
+      const plan = sub.custom_data?.plan as 'weekly' | 'monthly' | undefined
+
       await updateSubscription(userId, {
-        subscription_status:  'active',
-        subscription_plan:    plan ?? null,
-        stripe_customer_id:   session.customer as string,
-        stripe_subscription_id: session.subscription as string,
+        subscription_status:    isActive ? 'active' : 'canceled',
+        subscription_plan:      isActive ? (plan ?? null) : null,
+        paddle_customer_id:     customerId ?? null,
+        paddle_subscription_id: subscriptionId ?? null,
       })
       break
     }
 
-    case 'customer.subscription.updated':
-    case 'customer.subscription.deleted': {
-      const sub = event.data.object as Stripe.Subscription
-      const customerId = sub.customer as string
-      const usage = await getUserByStripeCustomer(customerId)
+    case EventName.SubscriptionCanceled: {
+      const sub = data as {
+        customer_id?: string
+        custom_data?: { userId?: string }
+      }
+      const customerId = sub.customer_id
+      if (!customerId) break
+
+      const usage = await getUserByPaddleCustomer(customerId)
       if (!usage) break
 
-      const isActive = sub.status === 'active'
       await updateSubscription(usage.user_id, {
-        subscription_status: isActive ? 'active' : (sub.status as 'canceled' | 'past_due'),
-        subscription_plan: isActive
-          ? (sub.metadata?.plan as 'weekly' | 'monthly' ?? usage.subscription_plan)
-          : null,
+        subscription_status: 'canceled',
+        subscription_plan:   null,
       })
+      break
+    }
+
+    case EventName.TransactionCompleted: {
+      // Subscription activation is handled by SubscriptionActivated
+      // TransactionCompleted fires for every payment — update customer ID if missing
+      const tx = data as {
+        customer_id?: string
+        subscription_id?: string
+        custom_data?: { userId?: string; plan?: string }
+      }
+      const userId = tx.custom_data?.userId
+      if (!userId || !tx.customer_id) break
+
+      const usage = await getUsage(userId)
+      if (!usage.paddle_customer_id) {
+        await updateSubscription(userId, {
+          paddle_customer_id:     tx.customer_id,
+          paddle_subscription_id: tx.subscription_id ?? null,
+        })
+      }
       break
     }
   }
 
   res.json({ received: true })
+})
+
+// ── GET /api/billing/subscription — 현재 구독 상태 ────────────────────────
+router.get('/subscription', requireUser, async (req: AuthRequest, res) => {
+  const usage = await getUsage(req.userId!)
+  res.json({
+    status: usage.subscription_status,
+    plan:   usage.subscription_plan,
+  })
 })
 
 export default router

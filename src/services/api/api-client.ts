@@ -79,7 +79,7 @@ export async function fetchUsageStatus(): Promise<UsageStatus> {
   return res.json() as Promise<UsageStatus>
 }
 
-// ── Stripe Checkout ───────────────────────────────────────────────────────
+// ── Paddle Checkout ───────────────────────────────────────────────────────
 export async function createCheckoutSession(plan: 'weekly' | 'monthly'): Promise<string> {
   if (!API_BASE) throw new Error('VITE_API_URL not set')
 
@@ -89,20 +89,7 @@ export async function createCheckoutSession(plan: 'weekly' | 'monthly'): Promise
     headers: { 'Content-Type': 'application/json', ...headers },
     body: JSON.stringify({ plan }),
   })
-  if (!res.ok) throw new Error('Failed to create checkout session')
-  const { url } = await res.json() as { url: string }
-  return url
-}
-
-export async function openBillingPortal(): Promise<string> {
-  if (!API_BASE) throw new Error('VITE_API_URL not set')
-
-  const headers = await getAuthHeaders()
-  const res = await fetch(`${API_BASE}/api/billing/portal`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...headers },
-  })
-  if (!res.ok) throw new Error('Failed to open billing portal')
+  if (!res.ok) throw new Error('결제 페이지를 열 수 없어요. 잠시 후 다시 시도해주세요.')
   const { url } = await res.json() as { url: string }
   return url
 }

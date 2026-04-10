@@ -13,7 +13,6 @@ export function PaywallModal({ onClose, isLoggedIn }: Props) {
 
   async function handleSubscribe(plan: 'weekly' | 'monthly') {
     if (!isLoggedIn) {
-      // Must log in first
       setLoading('login')
       try { await signInWithGoogle() } catch { setLoading(null) }
       return
@@ -24,8 +23,8 @@ export function PaywallModal({ onClose, isLoggedIn }: Props) {
     try {
       const url = await createCheckoutSession(plan)
       window.location.href = url
-    } catch {
-      setError('결제 페이지를 열지 못했어요. 잠시 후 다시 시도해줘요.')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '오류가 발생했어요.')
       setLoading(null)
     }
   }
@@ -50,12 +49,13 @@ export function PaywallModal({ onClose, isLoggedIn }: Props) {
             🔥 무료 횟수를 모두 사용했어요
           </div>
           <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--gray-4)', lineHeight: 1.7 }}>
-            30회 무료 사용이 끝났어요. 구독하면 계속 쓸 수 있어요.
+            30회 무료 사용이 끝났어요. 구독하면 제한 없이 계속 쓸 수 있어요.
           </div>
         </div>
 
         {/* Plans */}
         <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+
           {/* Monthly — recommended */}
           <div style={{
             border: '2px solid var(--fire-org)',
@@ -71,14 +71,12 @@ export function PaywallModal({ onClose, isLoggedIn }: Props) {
             }}>
               추천
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-              <div>
-                <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-tip)', letterSpacing: '0.06em' }}>
-                  월간 구독
-                </div>
-                <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-4)', marginTop: 4 }}>
-                  매월 자동 결제 · 언제든 취소 가능
-                </div>
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-tip)', letterSpacing: '0.06em' }}>
+                월간 구독
+              </div>
+              <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-4)', marginTop: 4 }}>
+                매월 자동 결제 · 언제든 취소 가능
               </div>
             </div>
             <button
@@ -93,14 +91,12 @@ export function PaywallModal({ onClose, isLoggedIn }: Props) {
 
           {/* Weekly */}
           <div style={{ border: '2px solid var(--gray-2)', padding: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-              <div>
-                <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--white)', letterSpacing: '0.06em' }}>
-                  주간 구독
-                </div>
-                <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-4)', marginTop: 4 }}>
-                  매주 자동 결제 · 언제든 취소 가능
-                </div>
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--white)', letterSpacing: '0.06em' }}>
+                주간 구독
+              </div>
+              <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-4)', marginTop: 4 }}>
+                매주 자동 결제 · 언제든 취소 가능
               </div>
             </div>
             <button
@@ -114,14 +110,19 @@ export function PaywallModal({ onClose, isLoggedIn }: Props) {
           </div>
 
           {error && (
-            <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: '#ff4444', textAlign: 'center' }}>
+            <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: '#ff4444', textAlign: 'center', lineHeight: 1.6 }}>
               {error}
             </div>
           )}
 
           {!isLoggedIn && (
-            <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-3)', textAlign: 'center', lineHeight: 1.6 }}>
+            <div style={{
+              fontFamily: 'var(--font-korean)', fontSize: 12,
+              color: 'var(--gray-3)', textAlign: 'center', lineHeight: 1.6,
+              padding: '8px', border: '1px solid var(--gray-1)',
+            }}>
               구독을 위해 Google 계정 로그인이 필요해요
+              {loading === 'login' && <span style={{ marginLeft: 6 }}>로그인 중...</span>}
             </div>
           )}
         </div>
