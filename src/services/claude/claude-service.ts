@@ -4,6 +4,8 @@
 import { type Kindling, type Perspective, type ProcessingLevel, type StyleReference } from '@/types'
 import { getApiKey } from '@/services/storage'
 import { serverChat, QuotaExceededError } from '@/services/api/api-client'
+import { isAnonQuotaExceeded, incrementAnonCallCount } from '@/services/quota/quota-service'
+import { getSession } from '@/services/auth/auth-service'
 
 export { QuotaExceededError }
 
@@ -27,6 +29,10 @@ interface CallOptions {
 
 async function callApi(opts: CallOptions): Promise<string> {
   if (USE_SERVER) {
+    // Anonymous quota check (localStorage) — logged-in users skip this
+    const session = await getSession()
+    if (!session && isAnonQuotaExceeded()) throw new QuotaExceededError()
+
     const { text } = await serverChat({
       messages: opts.messages as Parameters<typeof serverChat>[0]['messages'],
       systemPrompt: opts.systemPrompt,
@@ -34,6 +40,10 @@ async function callApi(opts: CallOptions): Promise<string> {
       temperature: opts.temperature,
       signal: opts.signal,
     })
+
+    // Increment localStorage counter for anonymous users
+    if (!session) incrementAnonCallCount()
+
     return text
   }
 

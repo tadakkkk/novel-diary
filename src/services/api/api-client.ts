@@ -2,6 +2,7 @@
 // Routes all AI calls through our backend server.
 // Falls back to direct Anthropic calls if VITE_API_URL is not set (dev mode).
 
+import type { User } from '@supabase/supabase-js'
 import { getSession } from '@/services/auth/auth-service'
 import { getDeviceId } from '@/services/storage'
 
@@ -77,6 +78,30 @@ export async function fetchUsageStatus(): Promise<UsageStatus> {
   const res = await fetch(`${API_BASE}/api/ai/usage`, { headers })
   if (!res.ok) throw new Error('Failed to fetch usage')
   return res.json() as Promise<UsageStatus>
+}
+
+// ── Login data sync ───────────────────────────────────────────────────────
+// On first login: upload localStorage dump + anon call count to server
+export async function syncUserData(user: User, anonCallCount: number): Promise<void> {
+  if (!API_BASE || !user) return
+
+  // Collect all localStorage entries for this app
+  const data: Record<string, unknown> = {}
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i)
+    if (k?.startsWith('novel-diary:')) {
+      try { data[k] = JSON.parse(localStorage.getItem(k) ?? 'null') } catch { data[k] = localStorage.getItem(k) }
+    }
+  }
+
+  const session = await getSession()
+  if (!session?.access_token) return
+
+  await fetch(`${API_BASE}/api/auth/sync`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+    body: JSON.stringify({ anonCallCount, data }),
+  }).catch(() => { /* non-fatal */ })
 }
 
 // ── Paddle Checkout ───────────────────────────────────────────────────────

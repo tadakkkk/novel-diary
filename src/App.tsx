@@ -225,12 +225,14 @@ function OnboardingModal() {
   )
 }
 
-// ── Auth + Paywall context ────────────────────────────────────────────────
+// ── Auth + Paywall + Data Sync ────────────────────────────────────────────
 import { createContext, useContext } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { onAuthStateChange } from '@/services/auth/auth-service'
+import { syncUserData } from '@/services/api/api-client'
 import { PaywallModal } from '@/components/ui/PaywallModal'
 import { QuotaExceededError } from '@/services/claude/claude-service'
+import { getAnonCallCount } from '@/services/quota/quota-service'
 
 interface AppContextValue {
   user: User | null
@@ -239,14 +241,39 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue>({ user: null, showPaywall: () => {} })
 export function useAppContext() { return useContext(AppContext) }
 
+// ── Data sync overlay ─────────────────────────────────────────────────────
+function SyncOverlay() {
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.92)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+      <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-tip)', letterSpacing: '0.08em' }}>동기화 중...</div>
+      <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--gray-4)' }}>데이터를 서버에 저장하고 있어요</div>
+    </div>
+  )
+}
+
 // ── App ────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser]           = useState<User | null>(null)
   const [paywallOpen, setPaywallOpen] = useState(false)
+  const [syncing, setSyncing]     = useState(false)
 
   useEffect(() => {
-    const unsub = onAuthStateChange(setUser)
+    const unsub = onAuthStateChange(async (newUser) => {
+      const prevUser = user
+      setUser(newUser)
+
+      // First login: sync local data to server
+      if (newUser && !prevUser && import.meta.env.VITE_API_URL) {
+        setSyncing(true)
+        try {
+          await syncUserData(newUser, getAnonCallCount())
+        } catch { /* non-fatal */ } finally {
+          setSyncing(false)
+        }
+      }
+    })
     return unsub
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Global error boundary for QuotaExceededError
@@ -267,7 +294,8 @@ export default function App() {
       <OnboardingModal />
       <QuotaToast />
       <InstallBanner />
-      {paywallOpen && <PaywallModal isLoggedIn={!!user} onClose={() => setPaywallOpen(false)} />}
+      {syncing && <SyncOverlay />}
+      {paywallOpen && <PaywallModal user={user} onClose={() => setPaywallOpen(false)} />}
       <Routes>
         <Route path='/' element={<BonfirePage />} />
         <Route path='/diary' element={<DiaryPage />} />
