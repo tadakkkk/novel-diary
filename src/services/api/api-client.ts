@@ -114,7 +114,11 @@ export async function createCheckoutSession(plan: 'weekly' | 'monthly'): Promise
     headers: { 'Content-Type': 'application/json', ...headers },
     body: JSON.stringify({ plan }),
   })
-  if (!res.ok) throw new Error('결제 페이지를 열 수 없어요. 잠시 후 다시 시도해주세요.')
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as { error?: string; detail?: unknown }
+    console.error('[createCheckoutSession] server error:', body)
+    throw new Error(body.error ?? '결제 페이지를 열 수 없어요. 잠시 후 다시 시도해주세요.')
+  }
   const { url } = await res.json() as { url: string }
   return url
 }

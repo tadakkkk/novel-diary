@@ -98,14 +98,16 @@ router.post('/checkout', requireUser, async (req: AuthRequest, res) => {
     res.json({ url: checkoutUrl })
   } catch (err) {
     const e = err as Error & { code?: string; detail?: string; errors?: unknown; type?: string }
-    console.error('[billing/checkout] ERROR:', JSON.stringify({
+    const errDetail = {
       message: e.message,
       code:    e.code,
       type:    e.type,
       detail:  e.detail,
       errors:  e.errors,
-    }))
-    res.status(500).json({ error: '결제 페이지를 생성할 수 없어요. 잠시 후 다시 시도해주세요.' })
+    }
+    console.error('[billing/checkout] ERROR:', JSON.stringify(errDetail))
+    // Return detail in dev/debug mode so we can see it in the browser
+    res.status(500).json({ error: e.message ?? '결제 페이지를 생성할 수 없어요.', detail: errDetail })
   }
 })
 
