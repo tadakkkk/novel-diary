@@ -5,6 +5,8 @@ import { type Character, type NovelDiary, type Perspective, type ProcessingLevel
 import * as storage from '@/services/storage'
 import * as claude from '@/services/claude/claude-service'
 import { useAppContext } from '@/App'
+import { isAnonQuotaExceeded } from '@/services/quota/quota-service'
+import { getSession } from '@/services/auth/auth-service'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { AvatarCanvas } from '@/components/ui/AvatarCanvas'
 
@@ -250,7 +252,13 @@ export default function DiaryPage() {
 
   // ── Generation ─────────────────────────────────────────────────────────
   const startGeneration = useCallback(async () => {
-    if (!storage.getApiKey()) { setShowApiModal(true); setPendingGen(true); return }
+    // Server mode: check quota before even calling the API
+    if (import.meta.env.VITE_API_URL) {
+      const session = await getSession()
+      if (!session && isAnonQuotaExceeded()) { showPaywall(); return }
+    } else {
+      if (!storage.getApiKey()) { setShowApiModal(true); setPendingGen(true); return }
+    }
     await doGenerate()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [perspective, procLevel, weather, nickname, selectedSrIds])
