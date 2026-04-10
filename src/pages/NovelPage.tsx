@@ -522,7 +522,7 @@ export default function NovelPage() {
               {(['week', 'month', 'all'] as const).map((t) => (
                 <button key={t} onClick={() => setPreset(t)}
                   style={{ fontFamily:'var(--font-pixel)', fontSize:10, background:'#000', color: activePreset === t ? 'var(--fire-org)' : 'var(--gray-4)', border: activePreset === t ? '1px solid var(--fire-org)' : '1px solid var(--gray-3)', padding:'6px 10px', cursor:'pointer', letterSpacing:'0.05em' }}>
-                  {t === 'week' ? '최근 1주일' : t === 'month' ? '최근 한 달' : '전체 일기'}
+                  {t === 'week' ? '최근 1주일' : t === 'month' ? '최근 1 달' : '전체 일기'}
                 </button>
               ))}
             </div>
