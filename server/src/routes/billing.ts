@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { Paddle, EventName } from '@paddle/paddle-node-sdk'
+import { Paddle, EventName, Environment } from '@paddle/paddle-node-sdk'
 import { requireUser, type AuthRequest } from '../middleware/auth.js'
 import {
   getUsage,
@@ -15,7 +15,10 @@ function getPaddle(): Paddle {
   if (!_paddle) {
     const key = process.env.PADDLE_API_KEY
     if (!key) throw new Error('PADDLE_API_KEY not set')
-    _paddle = new Paddle(key)
+    const isSandbox = key.startsWith('pdl_sdbx_')
+    const env = isSandbox ? Environment.sandbox : Environment.production
+    console.log(`[billing] Paddle init: ${isSandbox ? 'SANDBOX' : 'LIVE'} mode`)
+    _paddle = new Paddle(key, { environment: env })
   }
   return _paddle
 }
@@ -24,6 +27,41 @@ const PRICES: Record<string, string | undefined> = {
   weekly:  process.env.PADDLE_PRICE_WEEKLY,
   monthly: process.env.PADDLE_PRICE_MONTHLY,
 }
+
+// ── GET /api/billing/ping — Paddle 환경 진단 ─────────────────────────────
+router.get('/ping', async (_req, res) => {
+  const key = process.env.PADDLE_API_KEY ?? ''
+  const isSandbox = key.startsWith('pdl_sdbx_')
+  const info = {
+    keyType:      isSandbox ? 'sandbox' : key.startsWith('pdl_live_') ? 'live' : 'unknown',
+    keyPrefix:    key.slice(0, 18) + '...',
+    priceWeekly:  process.env.PADDLE_PRICE_WEEKLY ?? 'NOT SET',
+    priceMonthly: process.env.PADDLE_PRICE_MONTHLY ?? 'NOT SET',
+    environment:  isSandbox ? 'sandbox' : 'production',
+  }
+  console.log('[billing/ping]', JSON.stringify(info))
+
+  // Try to verify connectivity by listing 1 price
+  try {
+    const paddle = getPaddle()
+    const weekly = process.env.PADDLE_PRICE_WEEKLY
+    if (weekly) {
+      const price = await paddle.prices.get(weekly)
+      res.json({ ok: true, ...info, priceWeeklyStatus: price.status })
+    } else {
+      res.json({ ok: true, ...info, priceWeeklyStatus: 'not checked' })
+    }
+  } catch (err) {
+    const e = err as Error & { code?: string; detail?: string; errors?: unknown }
+    res.status(500).json({
+      ok: false, ...info,
+      error: e.message,
+      code:  e.code,
+      detail: e.detail,
+      errors: e.errors,
+    })
+  }
+})
 
 // ── POST /api/billing/checkout — Paddle 결제 링크 생성 ────────────────────
 router.post('/checkout', requireUser, async (req: AuthRequest, res) => {
@@ -59,7 +97,14 @@ router.post('/checkout', requireUser, async (req: AuthRequest, res) => {
     console.log(`[billing] checkout created: plan=${plan} txId=${transaction.id} url=${checkoutUrl}`)
     res.json({ url: checkoutUrl })
   } catch (err) {
-    console.error('[billing/checkout]', (err as Error).message, err)
+    const e = err as Error & { code?: string; detail?: string; errors?: unknown; type?: string }
+    console.error('[billing/checkout] ERROR:', JSON.stringify({
+      message: e.message,
+      code:    e.code,
+      type:    e.type,
+      detail:  e.detail,
+      errors:  e.errors,
+    }))
     res.status(500).json({ error: '결제 페이지를 생성할 수 없어요. 잠시 후 다시 시도해주세요.' })
   }
 })
