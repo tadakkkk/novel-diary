@@ -6,9 +6,10 @@ import { createCheckoutSession } from '@/services/api/api-client'
 interface Props {
   user: User | null
   onClose: () => void
+  source?: 'quota' | 'subscribe'
 }
 
-export function PaywallModal({ user, onClose }: Props) {
+export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
   const [loading, setLoading] = useState<'login' | 'weekly' | 'monthly' | null>(null)
   const [error, setError]     = useState('')
 
@@ -50,10 +51,10 @@ export function PaywallModal({ user, onClose }: Props) {
         {/* Header */}
         <div style={{ padding: '20px 24px 16px', borderBottom: '2px solid var(--gray-2)' }}>
           <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 16, color: 'var(--fire-tip)', letterSpacing: '0.06em', marginBottom: 8 }}>
-            🔥 무료 횟수를 모두 사용했어요
+            {source === 'subscribe' ? '✨ 구독 플랜 선택' : '🔥 무료 횟수를 모두 사용했어요'}
           </div>
           <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--gray-4)', lineHeight: 1.7 }}>
-            30회 무료 사용이 끝났어요.
+            {source === 'subscribe' ? '구독하면 제한 없이 일기를 쓸 수 있어요.' : '30회 무료 사용이 끝났어요.'}
           </div>
         </div>
 

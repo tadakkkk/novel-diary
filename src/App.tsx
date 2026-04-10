@@ -226,19 +226,26 @@ function OnboardingModal() {
 }
 
 // ── Auth + Paywall + Data Sync ────────────────────────────────────────────
-import { createContext, useContext } from 'react'
+import { createContext, useCallback, useContext } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { onAuthStateChange } from '@/services/auth/auth-service'
-import { syncUserData } from '@/services/api/api-client'
+import { syncUserData, fetchUsageStatus, type UsageStatus } from '@/services/api/api-client'
 import { PaywallModal } from '@/components/ui/PaywallModal'
 import { QuotaExceededError } from '@/services/claude/claude-service'
 import { getAnonCallCount } from '@/services/quota/quota-service'
 
 interface AppContextValue {
   user: User | null
-  showPaywall: () => void
+  showPaywall: (source?: 'quota' | 'subscribe') => void
+  usageStatus: UsageStatus | null
+  refreshUsage: () => Promise<void>
 }
-const AppContext = createContext<AppContextValue>({ user: null, showPaywall: () => {} })
+const AppContext = createContext<AppContextValue>({
+  user: null,
+  showPaywall: () => {},
+  usageStatus: null,
+  refreshUsage: async () => {},
+})
 export function useAppContext() { return useContext(AppContext) }
 
 // ── Data sync overlay ─────────────────────────────────────────────────────
@@ -253,23 +260,32 @@ function SyncOverlay() {
 
 // ── App ────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [user, setUser]           = useState<User | null>(null)
+  const [user, setUser]               = useState<User | null>(null)
   const [paywallOpen, setPaywallOpen] = useState(false)
-  const [syncing, setSyncing]     = useState(false)
+  const [paywallSource, setPaywallSource] = useState<'quota' | 'subscribe'>('quota')
+  const [syncing, setSyncing]         = useState(false)
+  const [usageStatus, setUsageStatus] = useState<UsageStatus | null>(null)
+
+  const refreshUsage = useCallback(async () => {
+    if (!import.meta.env.VITE_API_URL) return
+    try { setUsageStatus(await fetchUsageStatus()) } catch { /* ignore */ }
+  }, [])
 
   useEffect(() => {
     const unsub = onAuthStateChange(async (newUser) => {
       const prevUser = user
       setUser(newUser)
 
-      // First login: sync local data to server
-      if (newUser && !prevUser && import.meta.env.VITE_API_URL) {
-        setSyncing(true)
-        try {
-          await syncUserData(newUser, getAnonCallCount())
-        } catch { /* non-fatal */ } finally {
-          setSyncing(false)
+      if (newUser && import.meta.env.VITE_API_URL) {
+        // First login: sync local data to server
+        if (!prevUser) {
+          setSyncing(true)
+          try { await syncUserData(newUser, getAnonCallCount()) } catch { /* non-fatal */ } finally { setSyncing(false) }
         }
+        // Fetch usage for logged-in user
+        try { setUsageStatus(await fetchUsageStatus()) } catch { /* ignore */ }
+      } else if (!newUser) {
+        setUsageStatus(null)
       }
     })
     return unsub
@@ -281,6 +297,7 @@ export default function App() {
     function onUnhandled(e: PromiseRejectionEvent) {
       if (e.reason instanceof QuotaExceededError) {
         e.preventDefault()
+        setPaywallSource('quota')
         setPaywallOpen(true)
       }
     }
@@ -288,14 +305,19 @@ export default function App() {
     return () => window.removeEventListener('unhandledrejection', onUnhandled)
   }, [])
 
+  function showPaywall(source: 'quota' | 'subscribe' = 'quota') {
+    setPaywallSource(source)
+    setPaywallOpen(true)
+  }
+
   return (
-    <AppContext.Provider value={{ user, showPaywall: () => setPaywallOpen(true) }}>
+    <AppContext.Provider value={{ user, showPaywall, usageStatus, refreshUsage }}>
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <OnboardingModal />
       <QuotaToast />
       <InstallBanner />
       {syncing && <SyncOverlay />}
-      {paywallOpen && <PaywallModal user={user} onClose={() => setPaywallOpen(false)} />}
+      {paywallOpen && <PaywallModal user={user} source={paywallSource} onClose={() => setPaywallOpen(false)} />}
       <Routes>
         <Route path='/' element={<BonfirePage />} />
         <Route path='/diary' element={<DiaryPage />} />
