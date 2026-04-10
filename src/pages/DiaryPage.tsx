@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid'
 import { type Character, type NovelDiary, type Perspective, type ProcessingLevel, type StyleReference } from '@/types'
 import * as storage from '@/services/storage'
 import * as claude from '@/services/claude/claude-service'
+import { useAppContext } from '@/App'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { AvatarCanvas } from '@/components/ui/AvatarCanvas'
 
@@ -130,6 +131,7 @@ function CharacterModal({ character, onClose }: { character: Character; onClose:
 export default function DiaryPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
+  const { showPaywall } = useAppContext()
 
   // ── 초기 상태 로드 ─────────────────────────────────────────────────────
   const sessionId     = params.get('session') ?? ''
@@ -314,6 +316,11 @@ export default function DiaryPage() {
       const msg = (err as Error).message ?? ''
       if ((err as Error).name === 'AbortError' || msg.includes('AbortError')) {
         // 사용자가 취소함 — 조용히 처리
+        return
+      }
+      if (msg === 'QUOTA_EXCEEDED') {
+        setStatus('idle')
+        showPaywall()
         return
       }
       if (msg === 'API_KEY_MISSING') {
