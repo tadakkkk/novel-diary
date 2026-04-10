@@ -1,29 +1,36 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Request, Response, NextFunction } from 'express'
 
-const supabasePublic = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!,
-)
+// Lazy init — env vars are guaranteed to be loaded by the time first request comes in
+let _supabase: SupabaseClient | null = null
+function getSupabase(): SupabaseClient {
+  if (!_supabase) {
+    const url = process.env.SUPABASE_URL
+    const key = process.env.SUPABASE_ANON_KEY
+    if (!url || !key) throw new Error(`Missing env: SUPABASE_URL=${url} SUPABASE_ANON_KEY=${key ? '(set)' : '(missing)'}`)
+    _supabase = createClient(url, key)
+  }
+  return _supabase
+}
 
 export interface AuthRequest extends Request {
   userId?: string
   isAnonymous?: boolean
 }
 
-// Require auth — attaches userId to req
-// Anonymous users pass a device ID header (x-device-id) as fallback
 export async function requireUser(req: AuthRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization
 
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.slice(7)
-    const { data: { user }, error } = await supabasePublic.auth.getUser(token)
-    if (!error && user) {
-      req.userId = user.id
-      req.isAnonymous = false
-      return next()
-    }
+    try {
+      const { data: { user }, error } = await getSupabase().auth.getUser(token)
+      if (!error && user) {
+        req.userId = user.id
+        req.isAnonymous = false
+        return next()
+      }
+    } catch { /* fall through to device ID */ }
   }
 
   // Fallback: anonymous device ID

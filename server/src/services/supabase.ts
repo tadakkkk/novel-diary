@@ -1,10 +1,22 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-const url = process.env.SUPABASE_URL!
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY!
+// Lazy init — avoids crash when env vars not loaded at module parse time
+let _supabase: SupabaseClient | null = null
+function getClient(): SupabaseClient {
+  if (!_supabase) {
+    const url = process.env.SUPABASE_URL
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!url || !key) throw new Error(`Missing env: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY`)
+    _supabase = createClient(url, key, { auth: { persistSession: false } })
+  }
+  return _supabase
+}
 
-export const supabase = createClient(url, key, {
-  auth: { persistSession: false },
+// Proxy so callers can use `supabase.from(...)` without changing call sites
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    return (getClient() as unknown as Record<string | symbol, unknown>)[prop]
+  },
 })
 
 // ── Usage tracking ─────────────────────────────────────────────────────────
