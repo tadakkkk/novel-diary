@@ -57,7 +57,8 @@ export function KindlingInput({ onAdd }: Props) {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     const trimmed = value.trim()
 
-    if (trimmed.length < REBUTTAL_MIN || trimmed.length > REBUTTAL_MAX || !storage.getApiKey()) {
+    const canCall = !!import.meta.env.VITE_API_URL || !!storage.getApiKey()
+    if (trimmed.length < REBUTTAL_MIN || trimmed.length > REBUTTAL_MAX || !canCall) {
       setQuestionVisible(false)
       return
     }
