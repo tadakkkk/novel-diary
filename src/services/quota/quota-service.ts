@@ -2,7 +2,7 @@
 // Logged-in + subscribed users bypass this check entirely.
 
 const KEY   = 'novel-diary:anon-call-count'
-export const FREE_LIMIT = 30
+export const FREE_LIMIT = 3 // TODO: 테스트 후 30으로 복원
 
 export function getAnonCallCount(): number {
   return parseInt(localStorage.getItem(KEY) ?? '0', 10)
