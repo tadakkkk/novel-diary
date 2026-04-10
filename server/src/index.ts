@@ -39,6 +39,15 @@ app.use('/api/auth',    authRouter)
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }))
 
+// Global error handler — prevents unhandled errors from crashing Railway
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('[global error]', err.message, err.stack)
+  res.status(500).json({ error: err.message ?? 'Internal server error' })
+})
+
 app.listen(PORT, () => {
   console.log(`[server] listening on port ${PORT}`)
+  console.log(`[env] ANTHROPIC_API_KEY: ${process.env.ANTHROPIC_API_KEY ? '(set)' : 'MISSING'}`)
+  console.log(`[env] SUPABASE_URL: ${process.env.SUPABASE_URL ?? 'MISSING'}`)
+  console.log(`[env] PADDLE_API_KEY: ${process.env.PADDLE_API_KEY ? '(set)' : 'MISSING'}`)
 })
