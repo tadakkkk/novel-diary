@@ -456,25 +456,19 @@ input[type='range']::-webkit-slider-thumb {
   .bf-m-date { font-size: 11px !important; margin-bottom: 0 !important; letter-spacing: 0.08em; text-align: center; }
   .bf-m-date .date-main { font-size: 15px !important; margin-bottom: 2px !important; display: block; }
 
-  /* 불꽃: max-height: 30dvh */
-  .bf-m-flame { margin-bottom: 0 !important; max-height: 30dvh; overflow: hidden; }
+  /* 불꽃: max-height 120px로 제한 */
+  .bf-m-flame { margin-bottom: 0 !important; max-height: 120px; overflow: hidden; display: block; }
   .bf-m-flame svg,
-  .bf-m-flame canvas { display: block; max-height: 30dvh; width: auto; }
+  .bf-m-flame canvas { display: block; max-height: 120px; width: auto; }
   .bf-m-flame .pixel-ground { width: 84px; }
-
-  /* 게이지 */
-  .bf-m-middle .gauge-row { margin-bottom: 0; }
-  .bf-m-middle .gauge-bar { font-size: 16px; }
-  .bf-m-middle .gauge-count { font-size: 13px; }
-  .bf-m-middle .gauge-label { display: none; }
 
   /* 힌트 */
   .bf-m-hint { height: auto !important; margin-top: 0 !important; font-size: 11px !important; }
 
-  /* 대표 이미지 compact */
-  .bf-m-middle .key-image-section { margin-top: 0; width: 100%; max-width: 280px; }
-  .bf-m-middle .key-image-upload { height: 52px; }
-  .bf-m-middle .key-image-placeholder { font-size: 9px; line-height: 1.8; }
+  /* 대표 이미지 compact (bf-m-root 기준으로 타겟) */
+  .bf-m-root .key-image-section { margin-top: 0; width: 100%; max-width: 280px; }
+  .bf-m-root .key-image-upload { height: 60px; }
+  .bf-m-root .key-image-placeholder { font-size: 9px; line-height: 1.8; }
 
   /* 4. empty-state 완전 숨김 */
   .bf-m-root .empty-state { display: none !important; }
