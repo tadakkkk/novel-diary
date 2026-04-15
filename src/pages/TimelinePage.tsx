@@ -294,13 +294,12 @@ export default function TimelinePage() {
           <span className='logo-korean'>타닥타닥</span>
           <span className='logo-en'>◀ 모닥불로</span>
         </button>
-        <div className='header-actions'>
+        <div className='header-actions' style={{ marginLeft:'auto' }}>
           <button className='pixel-btn pixel-btn-sm' onClick={handleExport} title='전체 데이터 내보내기'>↓ 내보내기</button>
           <label className='pixel-btn pixel-btn-sm' style={{ cursor:'pointer' }} title='백업 파일 가져오기'>
             ↑ 가져오기
             <input type='file' accept='.json' style={{ display:'none' }} onChange={handleImport} />
           </label>
-          <button className='pixel-btn pixel-btn-sm' style={{ borderColor:'var(--fire-org)', color:'var(--fire-org)' }} onClick={() => setDrawerOpen(true)}>[주인공의 서랍]</button>
         </div>
       </header>
       {drawerOpen && <DrawerPopup onClose={() => setDrawerOpen(false)} />}
