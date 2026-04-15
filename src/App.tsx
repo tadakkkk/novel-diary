@@ -80,6 +80,10 @@ import DiaryPage from './pages/DiaryPage'
 import TimelinePage from './pages/TimelinePage'
 import StyleRefPage from './pages/StyleRefPage'
 import NovelPage from './pages/NovelPage'
+import PastSelfPage from './pages/PastSelfPage'
+import CharacterDexPage from './pages/CharacterDexPage'
+import StoryPage from './pages/StoryPage'
+import NextChapterPage from './pages/NextChapterPage'
 
 // ── Quota Toast ────────────────────────────────────────────────────────────
 function QuotaToast() {
@@ -329,6 +333,10 @@ export default function App() {
         <Route path='/timeline' element={<TimelinePage />} />
         <Route path='/style-ref' element={<StyleRefPage />} />
         <Route path='/novel' element={<NovelPage />} />
+        <Route path='/past-self' element={<PastSelfPage />} />
+        <Route path='/character-dex' element={<CharacterDexPage />} />
+        <Route path='/story' element={<StoryPage />} />
+        <Route path='/next-chapter' element={<NextChapterPage />} />
       </Routes>
     </BrowserRouter>
     </AppContext.Provider>

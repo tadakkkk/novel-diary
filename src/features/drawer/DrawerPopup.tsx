@@ -1,23 +1,151 @@
 import { useEffect, useState } from 'react'
-import { PastSelfChat } from './PastSelfChat'
-import { CharacterDex } from './CharacterDex'
-import { StoryTab } from './StoryTab'
+import { useNavigate } from 'react-router-dom'
 import { useMobile } from '@/hooks/useMobile'
 
-type Tab = 0 | 1 | 2
+const DRAWER_BG      = '#0d0a07'
+const DRAWER_BORDER  = '#2a1e0f'
+const DRAWER_DIVIDER = '#1a1208'
+const TEXT_BASE      = '#c8b49a'
+const TEXT_DESC      = '#4a3520'
+const TEXT_NUM       = '#3a2a18'
+const HANDLE_BG      = '#1e1610'
+const HANDLE_PIN     = '#3a2a18'
+const ACCENT         = '#EF9F27'
+const HEADER_BG      = '#111008'
+
+interface SlotDef {
+  num: string
+  name: string
+  desc: string
+  path: string
+  isNew?: boolean
+}
+
+const SLOTS: SlotDef[] = [
+  { num: '01', name: '과거의 주인공에게 묻기', desc: '일기 기반 대화',    path: '/past-self' },
+  { num: '02', name: '주인공 도감',           desc: '성향 분석 + 배지', path: '/character-dex' },
+  { num: '03', name: '주인공의 이야기',        desc: '소설로 엮기',      path: '/story' },
+  { num: '04', name: '다음 챕터',             desc: '오늘 -???의 편지', path: '/next-chapter', isNew: true },
+]
 
 interface Props {
   onClose: () => void
 }
 
-const TABS = [
-  { label: '과거의 주인공에게 묻기', icon: '✉' },
-  { label: '주인공 도감',          icon: '◈' },
-  { label: '주인공의 이야기',       icon: '▒' },
-]
+function DrawerSlot({ slot, onNavigate }: { slot: SlotDef; onNavigate: (path: string) => void }) {
+  const [hovered, setHovered] = useState(false)
+  const { isSmall } = useMobile()
+
+  return (
+    <button
+      onClick={() => onNavigate(slot.path)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: `0 16px`,
+        height: 60,
+        background: hovered ? '#1a1208' : DRAWER_BG,
+        border: 'none',
+        borderBottom: `1px solid ${DRAWER_DIVIDER}`,
+        cursor: 'pointer',
+        transition: 'background 0.12s',
+        textAlign: 'left',
+      }}
+    >
+      {/* 번호 */}
+      <div style={{
+        fontFamily: 'var(--font-pixel)',
+        fontSize: 9,
+        color: hovered ? TEXT_BASE : TEXT_NUM,
+        letterSpacing: '0.06em',
+        flexShrink: 0,
+        width: 20,
+        transition: 'color 0.12s',
+      }}>
+        {slot.num}
+      </div>
+
+      {/* 이름 + 설명 */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{
+            fontFamily: 'var(--font-pixel)',
+            fontSize: isSmall ? 9 : 10,
+            color: hovered ? TEXT_BASE : '#8a7060',
+            letterSpacing: '0.06em',
+            transition: 'color 0.12s',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {slot.name}
+          </span>
+          {slot.isNew && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+              <span style={{
+                fontFamily: 'var(--font-pixel)',
+                fontSize: 7,
+                color: ACCENT,
+                border: `1px solid ${ACCENT}`,
+                padding: '1px 4px',
+                letterSpacing: '0.06em',
+              }}>NEW</span>
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: ACCENT, flexShrink: 0 }} />
+            </span>
+          )}
+        </div>
+        <div style={{
+          fontFamily: 'var(--font-pixel)',
+          fontSize: 8,
+          color: hovered ? TEXT_DESC : '#2a1e10',
+          letterSpacing: '0.05em',
+          marginTop: 3,
+          transition: 'color 0.12s',
+        }}>
+          {slot.desc}
+        </div>
+      </div>
+
+      {/* 손잡이 (가운데 정렬) */}
+      <div style={{
+        width: 36,
+        height: 16,
+        border: `2px solid ${hovered ? ACCENT : HANDLE_PIN}`,
+        background: HANDLE_BG,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        transition: 'border-color 0.12s',
+      }}>
+        <div style={{
+          width: 16,
+          height: 5,
+          background: hovered ? ACCENT : HANDLE_PIN,
+          transition: 'background 0.12s',
+        }} />
+      </div>
+
+      {/* 화살표 */}
+      <div style={{
+        fontFamily: 'var(--font-pixel)',
+        fontSize: 12,
+        color: hovered ? ACCENT : TEXT_NUM,
+        transform: hovered ? 'translateX(3px)' : 'translateX(0)',
+        transition: 'color 0.12s, transform 0.12s',
+        flexShrink: 0,
+        lineHeight: 1,
+      }}>›</div>
+    </button>
+  )
+}
 
 export function DrawerPopup({ onClose }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab | null>(null)
+  const navigate = useNavigate()
   const { isMobile, isSmall } = useMobile()
 
   useEffect(() => {
@@ -26,123 +154,73 @@ export function DrawerPopup({ onClose }: Props) {
     return () => window.removeEventListener('keydown', fn)
   }, [onClose])
 
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 500,
-      background: 'rgba(0,0,0,0.88)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: isSmall ? '8px' : isMobile ? '12px 12px' : '20px 16px',
-    }} onClick={onClose}>
-      <div style={{
-        width: '100%', maxWidth: 520,
-        background: '#0a0a0a',
-        border: '3px solid var(--white)',
-        boxShadow: 'inset 0 0 0 2px var(--white), inset 0 0 0 5px #0a0a0a, 6px 6px 0 0 #333',
-        maxHeight: isSmall ? '95vh' : '90vh', overflowY: 'auto',
-      }} onClick={(e) => e.stopPropagation()}>
+  function handleNavigate(path: string) {
+    onClose()
+    navigate(path)
+  }
 
-        {/* ── 서랍장 헤더 ── */}
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 500,
+        background: 'rgba(0,0,0,0.9)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: isSmall ? '8px' : isMobile ? '12px' : '20px 16px',
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          width: '100%', maxWidth: 480,
+          background: DRAWER_BG,
+          border: `3px solid ${DRAWER_BORDER}`,
+          boxShadow: `inset 0 0 0 1px ${DRAWER_BORDER}, 4px 4px 0 0 #1a1208`,
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 헤더 */}
         <div style={{
           padding: '12px 16px 10px',
-          borderBottom: '2px solid var(--gray-2)',
+          borderBottom: `2px solid ${DRAWER_DIVIDER}`,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          background: '#111',
+          background: HEADER_BG,
         }}>
           <div>
-            <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 13, color: 'var(--fire-org)', letterSpacing: '0.1em' }}>
+            <div style={{
+              fontFamily: 'var(--font-pixel)', fontSize: 12,
+              color: ACCENT, letterSpacing: '0.1em',
+            }}>
               ▸ 주인공의 서랍
             </div>
-            <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--text-off)', letterSpacing: '0.08em', marginTop: 3 }}>
+            <div style={{
+              fontFamily: 'var(--font-pixel)', fontSize: 7,
+              color: TEXT_NUM, letterSpacing: '0.08em', marginTop: 3,
+            }}>
               THE PROTAGONIST'S DRAWER
             </div>
           </div>
-          <button className='modal-close' onClick={onClose}>[ x ]</button>
+          <button
+            onClick={onClose}
+            style={{
+              fontFamily: 'var(--font-pixel)', fontSize: 10,
+              color: TEXT_DESC, background: 'transparent', border: 'none',
+              cursor: 'pointer', letterSpacing: '0.06em', padding: '4px 6px',
+            }}
+          >[ x ]</button>
         </div>
 
-        {/* ── 서랍 3칸 ── */}
-        {TABS.map((tab, i) => {
-          const isOpen = activeTab === i
-          return (
-            <div key={i}>
-              {/* 서랍 손잡이 행 */}
-              <button
-                onClick={() => setActiveTab(isOpen ? null : i as Tab)}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-                  padding: '0 16px',
-                  height: 52,
-                  background: isOpen ? '#1a1000' : '#0d0d0d',
-                  border: 'none',
-                  borderBottom: `2px solid ${isOpen ? 'var(--fire-org)' : 'var(--gray-2)'}`,
-                  borderTop: i === 0 ? 'none' : undefined,
-                  cursor: 'pointer',
-                  transition: 'background 0.15s',
-                }}>
-                {/* 픽셀 손잡이 */}
-                <div style={{
-                  width: 32, height: 14,
-                  border: `2px solid ${isOpen ? 'var(--fire-org)' : 'var(--gray-3)'}`,
-                  borderRadius: 2,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: isOpen ? '#3a2000' : '#1a1a1a',
-                  flexShrink: 0,
-                  boxShadow: isOpen ? '0 0 6px var(--fire-org)' : 'none',
-                  transition: 'all 0.15s',
-                }}>
-                  <div style={{ width: 14, height: 4, background: isOpen ? 'var(--fire-org)' : 'var(--gray-3)', borderRadius: 1 }} />
-                </div>
-                {/* 서랍 번호 */}
-                <div style={{
-                  fontFamily: 'var(--font-pixel)', fontSize: 8,
-                  color: isOpen ? 'var(--fire-amb)' : 'var(--gray-3)',
-                  letterSpacing: '0.06em', flexShrink: 0,
-                }}>
-                  0{i + 1}
-                </div>
-                {/* 탭 이름 */}
-                <div style={{
-                  fontFamily: 'var(--font-pixel)', fontSize: isSmall ? 9 : 10,
-                  color: isOpen ? 'var(--fire-tip)' : 'var(--gray-5)',
-                  letterSpacing: isSmall ? '0.04em' : '0.08em', flex: 1, textAlign: 'left',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {tab.icon} {tab.label}
-                </div>
-                {/* 열림 표시 */}
-                <div style={{
-                  fontFamily: 'var(--font-pixel)', fontSize: 9,
-                  color: isOpen ? 'var(--fire-org)' : 'var(--gray-3)',
-                  transform: isOpen ? 'rotate(180deg)' : 'none',
-                  transition: 'transform 0.2s',
-                }}>▼</div>
-              </button>
+        {/* 슬롯 목록 */}
+        {SLOTS.map((slot) => (
+          <DrawerSlot key={slot.num} slot={slot} onNavigate={handleNavigate} />
+        ))}
 
-              {/* 콘텐츠 영역 */}
-              {isOpen && (
-                <div style={{
-                  borderBottom: '2px solid var(--fire-org)',
-                  background: '#070707',
-                  animation: 'drawerOpen 0.18s ease-out',
-                }}>
-                  {i === 0 && <PastSelfChat />}
-                  {i === 1 && <CharacterDex />}
-                  {i === 2 && <StoryTab onClose={onClose} />}
-                </div>
-              )}
-            </div>
-          )
-        })}
-
-        {/* 서랍장 하단 바닥 */}
-        <div style={{ height: 12, background: '#111', borderTop: '2px solid var(--gray-2)' }} />
+        {/* 하단 바닥 */}
+        <div style={{
+          height: 10,
+          background: HEADER_BG,
+          borderTop: `1px solid ${DRAWER_DIVIDER}`,
+        }} />
       </div>
-
-      <style>{`
-        @keyframes drawerOpen {
-          from { opacity: 0; transform: translateY(-8px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   )
 }

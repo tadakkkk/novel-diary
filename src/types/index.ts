@@ -155,3 +155,13 @@ export interface CharacterProfile {
   stats: Array<{ label: string; value: number }>
   generatedAt: string
 }
+
+// ── Next Chapter Letter (-???) ─────────────────────────────────────────────
+export interface Letter {
+  id: string
+  date: string       // 'YYYY-MM-DD' — 생성된 날짜
+  content: string    // 편지 본문
+  arrivedAt: string  // 표시용 도착 시각 (자정~오전 6시 랜덤, ISO)
+  read: boolean
+  createdAt: string
+}

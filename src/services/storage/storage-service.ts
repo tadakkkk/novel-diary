@@ -1,7 +1,7 @@
 // ── Storage Service (localStorage 전용 접근 레이어) ─────────────────────
 import {
   type Badge, type Character, type CharacterProfile, type ChatMessage,
-  type DiarySession, type KeyImage, type Kindling,
+  type DiarySession, type KeyImage, type Kindling, type Letter,
   type MediaAttachment, type NovelDiary, type StyleReference, type UserPrefs,
 } from '@/types'
 
@@ -18,6 +18,7 @@ const K = {
   CHAT:         `${P}drawer-chat`,
   BADGES:       `${P}drawer-badges`,
   CHAR_PROFILE: `${P}drawer-char-profile`,
+  LETTERS:      `${P}letters`,
   kindlings:    (id: string) => `${P}kindlings:${id}`,
   keyImage:     (id: string) => `${P}key-image:${id}`,
   attachments:  (id: string) => `${P}attachments:${id}`,
@@ -257,3 +258,19 @@ export function saveBadge(badge: Badge): void {
 // ── Drawer: Character Profile ─────────────────────────────────────────────
 export function getCharacterProfile(): CharacterProfile | null { return read<CharacterProfile>(K.CHAR_PROFILE) }
 export function saveCharacterProfile(profile: CharacterProfile): void { write(K.CHAR_PROFILE, profile) }
+
+// ── Next Chapter Letters ──────────────────────────────────────────────────
+export function getLetters(): Letter[] { return read<Letter[]>(K.LETTERS) ?? [] }
+export function saveLetter(letter: Letter): void {
+  const list = getLetters().filter((l) => l.id !== letter.id)
+  list.unshift(letter)
+  write(K.LETTERS, list.slice(0, 30)) // 최대 30통 보관
+}
+export function markLetterRead(id: string): void {
+  const list = getLetters().map((l) => l.id === id ? { ...l, read: true } : l)
+  write(K.LETTERS, list)
+}
+export function getTodayLetter(): Letter | null {
+  const today = new Date().toISOString().slice(0, 10)
+  return getLetters().find((l) => l.date === today) ?? null
+}
