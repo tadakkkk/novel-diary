@@ -155,8 +155,8 @@ export function DrawerPopup({ onClose }: Props) {
   }, [onClose])
 
   function handleNavigate(path: string) {
-    onClose()
     navigate(path)
+    onClose()
   }
 
   return (
