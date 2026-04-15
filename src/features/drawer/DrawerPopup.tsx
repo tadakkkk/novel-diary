@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useMobile } from '@/hooks/useMobile'
 
 const DRAWER_BG      = '#0d0a07'
@@ -146,7 +146,16 @@ function DrawerSlot({ slot, onNavigate }: { slot: SlotDef; onNavigate: (path: st
 
 export function DrawerPopup({ onClose }: Props) {
   const navigate = useNavigate()
+  const location = useLocation()
   const { isMobile, isSmall } = useMobile()
+  const initialPath = useRef(location.pathname)
+
+  // location이 바뀐 뒤에 닫기 — route 전환 render가 먼저, drawer 해제는 그 다음
+  useEffect(() => {
+    if (location.pathname !== initialPath.current) {
+      onClose()
+    }
+  }, [location.pathname, onClose])
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -156,7 +165,7 @@ export function DrawerPopup({ onClose }: Props) {
 
   function handleNavigate(path: string) {
     navigate(path)
-    onClose()
+    // onClose는 useEffect에서 location 변경 감지 후 처리
   }
 
   return (
