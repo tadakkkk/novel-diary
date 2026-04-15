@@ -25,7 +25,7 @@ const SLOTS: SlotDef[] = [
   { num: '01', name: '과거의 주인공에게 묻기', desc: '일기 기반 대화',    path: '/past-self' },
   { num: '02', name: '주인공 도감',           desc: '성향 분석 + 배지', path: '/character-dex' },
   { num: '03', name: '주인공의 이야기',        desc: '소설로 엮기',      path: '/story' },
-  { num: '04', name: '다음 챕터',             desc: '오늘 -???의 편지', path: '/next-chapter' },
+  { num: '04', name: '다음 챕터',             desc: '오늘 ???의 편지', path: '/next-chapter' },
 ]
 
 interface Props {
