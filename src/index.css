@@ -456,10 +456,10 @@ input[type='range']::-webkit-slider-thumb {
   .bf-m-date { font-size: 11px !important; margin-bottom: 0 !important; letter-spacing: 0.08em; text-align: center; }
   .bf-m-date .date-main { font-size: 15px !important; margin-bottom: 2px !important; display: block; }
 
-  /* 불꽃: max-height 120px로 제한 */
-  .bf-m-flame { margin-bottom: 0 !important; max-height: 120px; overflow: hidden; display: block; }
+  /* 불꽃: max-height 180px */
+  .bf-m-flame { margin-top: 4px; margin-bottom: 0 !important; max-height: 180px; overflow: hidden; display: block; }
   .bf-m-flame svg,
-  .bf-m-flame canvas { display: block; max-height: 120px; width: auto; }
+  .bf-m-flame canvas { display: block; max-height: 180px; width: auto; }
   .bf-m-flame .pixel-ground { width: 84px; }
 
   /* 힌트 */
