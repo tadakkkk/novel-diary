@@ -379,7 +379,7 @@ export default function NovelPage() {
 
   const loadReviews = useCallback(async (prevReviews: ReviewResult = null) => {
     if (reviewLoading) return
-    if (!storage.getApiKey()) { setReviews(null); return }
+    if (!storage.getApiKey() && !import.meta.env.VITE_API_URL) { setReviews(null); return }
     setReviewLoading(true)
     try {
       const result = await claude.generateReviews(diaries, prevReviews)

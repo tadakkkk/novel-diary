@@ -515,20 +515,29 @@ input[type='range']::-webkit-slider-thumb {
   }
   .kindling-list-wrap { max-height: 40vh; }
 
-  /* DiaryPage: stack vertically */
-  .diary-grid { grid-template-columns: 1fr !important; height: auto !important; }
+  /* DiaryPage: 모바일 단일 컬럼 레이아웃 */
+  .diary-grid { grid-template-columns: 1fr !important; height: auto !important; min-height: 100dvh !important; }
+  /* 옵션 패널: sticky 해제, left border 제거, 상단 구분선으로 교체 */
   .diary-aside {
-    height: auto !important; position: static !important;
-    border-right: none !important; border-bottom: 3px solid var(--white);
-  }
-  /* DiaryPage: main panel — 모바일에서 고정 높이 해제, 자연스러운 페이지 스크롤 */
-  .diary-main {
     height: auto !important;
+    position: static !important;
+    top: auto !important;
+    z-index: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    border-top: 3px solid var(--white) !important;
     overflow-y: visible !important;
+  }
+  /* 일기 본문 패널: 뷰포트 고정 높이 + 내부 스크롤 — 페이지 잘림 방지 */
+  .diary-main {
+    height: calc(100dvh - 52px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
     padding: 20px 16px !important;
   }
-  /* 등장인물 섹션 모바일 여백 */
-  .char-section { margin-top: 16px; }
+  /* 등장인물 섹션: 일기 본문 아래 세로 배치, 절대 위치 없음 */
+  .char-section { margin-top: 16px; position: static !important; }
   /* 액션 버튼 모바일 간격 */
   .diary-actions { gap: 6px; }
 

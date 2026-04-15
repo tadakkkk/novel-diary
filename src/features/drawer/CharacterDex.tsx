@@ -126,8 +126,9 @@ export function CharacterDex() {
   const diaries = storage.getDiaries().filter((d) => d.content)
 
   // 스탯이 없으면 자동 생성 (진입 시 1회)
+  const noApiAccess = !storage.getApiKey() && !import.meta.env.VITE_API_URL
   useEffect(() => {
-    if (hasGenerated.current || profile?.stats?.length || !storage.getApiKey() || diaries.length === 0) return
+    if (hasGenerated.current || profile?.stats?.length || noApiAccess || diaries.length === 0) return
     hasGenerated.current = true
     setLoadingStats(true)
     claude.generateCharacterStats(diaries).then((stats) => {
@@ -190,7 +191,7 @@ export function CharacterDex() {
           <button
             className='pixel-btn pixel-btn-fire'
             style={{ fontSize: 9, padding: '8px 14px' }}
-            disabled={loadingStory || !storage.getApiKey() || diaries.length === 0}
+            disabled={loadingStory || noApiAccess || diaries.length === 0}
             onClick={handleGenerateStory}>
             {loadingStory ? '▸ 생성 중...' : profile?.story ? '↺ 스토리 업데이트' : '▸ 캐릭터 스토리 보기'}
           </button>

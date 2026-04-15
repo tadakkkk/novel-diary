@@ -542,7 +542,7 @@ export default function DiaryPage() {
                     setIsEditMode(false)
                     console.log('[DiaryPage] saved → isSaved: true, isEditMode: false')
                     // 배지 감지 (백그라운드, 에러 무시)
-                    if (storage.getApiKey()) {
+                    if (storage.getApiKey() || import.meta.env.VITE_API_URL) {
                       claude.detectBadge(diary).then((badge) => {
                         if (badge) storage.saveBadge({ ...badge, id: uuid(), earnedAt: new Date().toISOString(), diaryId: diary.id })
                       }).catch(() => {})
