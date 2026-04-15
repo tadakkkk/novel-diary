@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppContext } from '@/App'
 import { isAnonQuotaExceeded } from '@/services/quota/quota-service'
@@ -18,6 +19,7 @@ export default function BonfirePage() {
   const navigate = useNavigate()
   const { isMobile } = useMobile()
   const { showPaywall } = useAppContext()
+  const [prefillValue, setPrefillValue] = useState('')
 
   const {
     sessionId,
@@ -30,6 +32,11 @@ export default function BonfirePage() {
     uploadKeyImage,
     removeKeyImage,
   } = useBonfireSession()
+
+  function handleEditWithQuestion(id: string, newText: string) {
+    removeKindling(id)
+    setPrefillValue(newText)
+  }
 
   async function handleGoWrite() {
     if (import.meta.env.VITE_API_URL) {
@@ -107,7 +114,11 @@ export default function BonfirePage() {
                 </button>
               )}
             </div>
-            <KindlingInput onAdd={addKindling} />
+            <KindlingInput
+              onAdd={addKindling}
+              prefillValue={prefillValue}
+              onPrefillConsumed={() => setPrefillValue('')}
+            />
           </div>
         </div>
       </>
@@ -175,9 +186,18 @@ export default function BonfirePage() {
             <span className='px-tag px-tag-white'>CTRL+ENTER</span>
           </div>
 
-          <KindlingList kindlings={kindlings} onRemove={removeKindling} onReorder={reorderKindlings} />
+          <KindlingList
+            kindlings={kindlings}
+            onRemove={removeKindling}
+            onReorder={reorderKindlings}
+            onEditWithQuestion={handleEditWithQuestion}
+          />
 
-          <KindlingInput onAdd={addKindling} />
+          <KindlingInput
+            onAdd={addKindling}
+            prefillValue={prefillValue}
+            onPrefillConsumed={() => setPrefillValue('')}
+          />
         </aside>
       </div>
 

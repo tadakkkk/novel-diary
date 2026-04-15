@@ -33,7 +33,65 @@ function randomArrivalTime(dateStr: string): string {
   return d.toISOString()
 }
 
-// ── 봉투 픽셀아트 ─────────────────────────────────────────────────────────
+// ── 우체통 픽셀아트 (미수신용) ────────────────────────────────────────────
+function Mailbox() {
+  return (
+    <div style={{ position: 'relative', width: 80, height: 100, margin: '0 auto' }}>
+      {/* 기둥 */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+        width: 10, height: 36,
+        background: '#2a1e10',
+      }} />
+      {/* 우체통 몸체 */}
+      <div style={{
+        position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
+        width: 64, height: 62,
+        background: '#1e1610',
+        border: `2px solid #3a2a18`,
+        borderRadius: '8px 8px 4px 4px',
+      }}>
+        {/* 반원 지붕 */}
+        <div style={{
+          position: 'absolute', top: -1, left: -2, right: -2, height: 22,
+          background: '#261c10',
+          border: `2px solid #3a2a18`,
+          borderRadius: '30px 30px 0 0',
+          borderBottom: 'none',
+        }} />
+        {/* 투입구 */}
+        <div style={{
+          position: 'absolute', bottom: 16, left: 8, right: 8, height: 6,
+          background: '#0d0a07',
+          border: `1px solid #2a1e10`,
+          borderRadius: 1,
+        }} />
+        {/* 경첩 점 */}
+        <div style={{
+          position: 'absolute', bottom: 6, left: '50%', transform: 'translateX(-50%)',
+          width: 6, height: 6,
+          background: '#3a2a18',
+          borderRadius: '50%',
+        }} />
+      </div>
+      {/* 깃발 (내려간 상태 = 편지 없음) */}
+      <div style={{
+        position: 'absolute', top: 12, right: 4,
+        width: 3, height: 18,
+        background: '#3a2a18',
+      }}>
+        <div style={{
+          position: 'absolute', bottom: 0, left: 3,
+          width: 10, height: 7,
+          background: '#4a3520',
+          borderRadius: '0 2px 2px 0',
+        }} />
+      </div>
+    </div>
+  )
+}
+
+// ── 봉투 픽셀아트 (수신용) ────────────────────────────────────────────────
 function Envelope({ open, pulse }: { open: boolean; pulse?: boolean }) {
   return (
     <div style={{
@@ -50,12 +108,6 @@ function Envelope({ open, pulse }: { open: boolean; pulse?: boolean }) {
         border: `2px solid ${open ? ACCENT : '#3a2a18'}`,
         transition: 'border-color 0.3s',
       }}>
-        {/* 봉투 하단 V자 접힘선 */}
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0, height: 28,
-          background: 'transparent',
-          borderTop: `1px solid ${open ? '#3a2a18' : '#2a1e10'}`,
-        }} />
         {/* 봉투 가운데 모서리 선 */}
         <div style={{
           position: 'absolute',
@@ -263,7 +315,7 @@ export default function NextChapterPage() {
             다음 챕터
           </div>
           <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: '#4a3520', letterSpacing: '0.08em', marginTop: 2 }}>
-            FROM. -???
+            FROM. ???
           </div>
         </div>
       </header>
@@ -281,20 +333,12 @@ export default function NextChapterPage() {
         {/* ── 미수신 (일기 없음) ── */}
         {!loading && !todayLetter && diaries.length === 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 64, gap: 24 }}>
-            <Envelope open={false} />
-            <div style={{ textAlign: 'center' }}>
-              <div style={{
-                fontFamily: 'var(--font-pixel)', fontSize: 12,
-                color: TEXT_BASE, letterSpacing: '0.08em', marginBottom: 12,
-              }}>
-                아직 편지가 오지 않았어
-              </div>
-              <div style={{
-                fontFamily: 'var(--font-korean)', fontSize: 13,
-                color: '#4a3520', lineHeight: 1.8,
-              }}>
-                오늘 일기를 쓰면 -???가 읽고<br />편지를 보내줄 거야
-              </div>
+            <Mailbox />
+            <div style={{
+              fontFamily: 'var(--font-pixel)', fontSize: 12,
+              color: TEXT_BASE, letterSpacing: '0.08em',
+            }}>
+              아직 편지가 오지 않았어
             </div>
           </div>
         )}
