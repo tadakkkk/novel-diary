@@ -43,27 +43,27 @@ export interface IAPProduct {
 
 export async function fetchIAPProducts(): Promise<IAPProduct[]> {
   const Purchases = await getPurchases()
-  const { offerings } = await Purchases.getOfferings()
+  const offerings = await Purchases.getOfferings()
   const current = offerings.current
   if (!current) return []
 
   return current.availablePackages
     .map(pkg => ({
-      productIdentifier: pkg.product.productIdentifier,
-      localizedTitle: pkg.product.localizedTitle,
-      localizedDescription: pkg.product.localizedDescription,
-      localizedPriceString: pkg.product.localizedPriceString,
+      productIdentifier: pkg.product.identifier,
+      localizedTitle: pkg.product.title,
+      localizedDescription: pkg.product.description,
+      localizedPriceString: pkg.product.priceString,
     }))
 }
 
 export async function purchaseIAP(plan: IAPPlan): Promise<boolean> {
   const Purchases = await getPurchases()
-  const { offerings } = await Purchases.getOfferings()
+  const offerings = await Purchases.getOfferings()
   const current = offerings.current
   if (!current) throw new Error('No offerings available')
 
   const pkg = current.availablePackages.find(
-    p => p.product.productIdentifier === IAP_PRODUCTS[plan]
+    p => p.product.identifier === IAP_PRODUCTS[plan]
   )
   if (!pkg) throw new Error(`Product not found: ${IAP_PRODUCTS[plan]}`)
 
