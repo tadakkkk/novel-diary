@@ -459,7 +459,7 @@ export default function NextChapterPage() {
               fontFamily: 'var(--font-pixel)', fontSize: 10,
               color: '#4a3520', letterSpacing: '0.06em', textAlign: 'center', lineHeight: 2,
             }}>
-              편지가 쓰여지고 있어<br />
+              편지가 배송되고 있어<br />
               <span style={{ color: TEXT_BASE }}>{pendingTime}</span>
             </div>
           </div>
