@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { DrawerPopup } from '@/features/drawer/DrawerPopup'
 import { useAppContext } from '@/App'
 import { signInWithGoogle, signOut } from '@/services/auth/auth-service'
 import { getAnonRemaining } from '@/services/quota/quota-service'
@@ -9,9 +8,8 @@ import * as storage from '@/services/storage'
 export function AppHeader() {
   const navigate  = useNavigate()
   const location  = useLocation()
-  const { user, showPaywall, usageStatus } = useAppContext()
+  const { user, showPaywall, usageStatus, openDrawer } = useAppContext()
 
-  const [drawerOpen,  setDrawerOpen]  = useState(false)
   const [navOpen,     setNavOpen]     = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [apiKeyInput, setApiKeyInput] = useState('')
@@ -53,7 +51,7 @@ export function AppHeader() {
 
   function handleNavItem(item: typeof NAV_ITEMS[number]) {
     setNavOpen(false)
-    if (item.drawer) { setDrawerOpen(true); return }
+    if (item.drawer) { openDrawer(); return }
     if (item.path)   navigate(item.path)
   }
 
@@ -272,7 +270,6 @@ export function AppHeader() {
         </div>
       </header>
 
-      {drawerOpen && <DrawerPopup onClose={() => setDrawerOpen(false)} />}
     </>
   )
 }

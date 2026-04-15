@@ -75,6 +75,7 @@ function InstallBanner() {
     </div>
   )
 }
+import { DrawerPopup } from '@/features/drawer/DrawerPopup'
 import BonfirePage from './pages/BonfirePage'
 import DiaryPage from './pages/DiaryPage'
 import TimelinePage from './pages/TimelinePage'
@@ -246,12 +247,14 @@ interface AppContextValue {
   showPaywall: (source?: 'quota' | 'subscribe') => void
   usageStatus: UsageStatus | null
   refreshUsage: () => Promise<void>
+  openDrawer: () => void
 }
 const AppContext = createContext<AppContextValue>({
   user: null,
   showPaywall: () => {},
   usageStatus: null,
   refreshUsage: async () => {},
+  openDrawer: () => {},
 })
 export function useAppContext() { return useContext(AppContext) }
 
@@ -272,6 +275,7 @@ export default function App() {
   const [paywallSource, setPaywallSource] = useState<'quota' | 'subscribe'>('quota')
   const [syncing, setSyncing]         = useState(false)
   const [usageStatus, setUsageStatus] = useState<UsageStatus | null>(null)
+  const [drawerOpen, setDrawerOpen]   = useState(false)
 
   useEffect(() => { initIAP().catch(console.error) }, [])
 
@@ -320,13 +324,14 @@ export default function App() {
   }
 
   return (
-    <AppContext.Provider value={{ user, showPaywall, usageStatus, refreshUsage }}>
+    <AppContext.Provider value={{ user, showPaywall, usageStatus, refreshUsage, openDrawer: () => setDrawerOpen(true) }}>
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <OnboardingModal />
       <QuotaToast />
       <InstallBanner />
       {syncing && <SyncOverlay />}
       {paywallOpen && <PaywallModal user={user} source={paywallSource} onClose={() => setPaywallOpen(false)} />}
+      {drawerOpen && <DrawerPopup onClose={() => setDrawerOpen(false)} />}
       <Routes>
         <Route path='/' element={<BonfirePage />} />
         <Route path='/diary' element={<DiaryPage />} />
