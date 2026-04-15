@@ -23,7 +23,7 @@ export default function StoryPage() {
         </div>
       </header>
       <div style={{ paddingTop: 56, position: 'relative', zIndex: 1 }}>
-        <StoryTab onClose={() => navigate(-1)} />
+        <StoryTab />
       </div>
     </>
   )

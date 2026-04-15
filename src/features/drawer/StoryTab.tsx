@@ -1,15 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 import * as storage from '@/services/storage'
 
-interface Props { onClose: () => void }
-
-export function StoryTab({ onClose }: Props) {
+export function StoryTab() {
   const navigate = useNavigate()
   const diaries = storage.getDiaries().filter((d) => d.content)
   const dates = diaries.map((d) => d.date ?? '').filter(Boolean).sort()
 
   function go() {
-    onClose()
     navigate('/novel')
   }
 

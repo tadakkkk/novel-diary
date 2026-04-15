@@ -5,6 +5,7 @@ import aiRouter from './routes/ai.js'
 import billingRouter from './routes/billing.js'
 import authRouter from './routes/auth.js'
 import iapRouter from './routes/iap.js'
+import lettersRouter from './routes/letters.js'
 
 const app  = express()
 const PORT = process.env.PORT ?? 3001
@@ -42,6 +43,7 @@ app.use('/api/ai',      aiRouter)
 app.use('/api/billing', billingRouter)
 app.use('/api/auth',    authRouter)
 app.use('/api/iap',     iapRouter)
+app.use('/api/letters', lettersRouter)
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }))
 

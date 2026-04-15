@@ -104,6 +104,57 @@ export async function syncUserData(user: User, anonCallCount: number): Promise<v
   }).catch(() => { /* non-fatal */ })
 }
 
+// ── Letters API ───────────────────────────────────────────────────────────
+
+export interface ServerLetter {
+  id:           string
+  user_id:      string
+  date:         string
+  content:      string
+  scheduled_at: string   // ISO — gate: only show content after this time
+  is_read:      boolean
+  created_at:   string
+}
+
+export async function fetchTodayLetter(): Promise<ServerLetter | null> {
+  if (!API_BASE) return null
+  const headers = await getAuthHeaders()
+  const res = await fetch(`${API_BASE}/api/letters/today`, { headers })
+  if (!res.ok) return null
+  return res.json() as Promise<ServerLetter | null>
+}
+
+export async function fetchAllLetters(): Promise<ServerLetter[]> {
+  if (!API_BASE) return []
+  const headers = await getAuthHeaders()
+  const res = await fetch(`${API_BASE}/api/letters`, { headers })
+  if (!res.ok) return []
+  return res.json() as Promise<ServerLetter[]>
+}
+
+export async function requestLetterGeneration(
+  diaries: Array<{ date?: string; content?: string }>
+): Promise<ServerLetter> {
+  if (!API_BASE) throw new Error('VITE_API_URL not set')
+  const headers = await getAuthHeaders()
+  const res = await fetch(`${API_BASE}/api/letters/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: JSON.stringify({ diaries }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({})) as { error?: string }
+    throw new Error(err.error ?? `HTTP ${res.status}`)
+  }
+  return res.json() as Promise<ServerLetter>
+}
+
+export async function markServerLetterRead(): Promise<void> {
+  if (!API_BASE) return
+  const headers = await getAuthHeaders()
+  await fetch(`${API_BASE}/api/letters/read`, { method: 'PATCH', headers })
+}
+
 // ── Paddle Checkout ───────────────────────────────────────────────────────
 export async function createCheckoutSession(plan: 'weekly' | 'monthly'): Promise<string> {
   if (!API_BASE) throw new Error('VITE_API_URL not set')

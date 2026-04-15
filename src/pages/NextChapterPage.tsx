@@ -4,8 +4,14 @@ import { v4 as uuid } from 'uuid'
 import { type Letter } from '@/types'
 import * as storage from '@/services/storage'
 import * as claude from '@/services/claude/claude-service'
+import {
+  fetchTodayLetter, fetchAllLetters, requestLetterGeneration, markServerLetterRead,
+  type ServerLetter,
+} from '@/services/api/api-client'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { useMobile } from '@/hooks/useMobile'
+
+const SERVER_MODE = !!import.meta.env.VITE_API_URL
 
 const ACCENT   = '#EF9F27'
 const LETTER_BG = '#1a1208'
@@ -24,13 +30,35 @@ function formatArrivedAt(iso: string): string {
   return `${y}년 ${mo}월 ${day}일 ${ampm} ${h12}:${m} 도착`
 }
 
-// ── 자정~오전 6시 랜덤 도착 시각 ─────────────────────────────────────────
+// ── 자정~오전 6시 랜덤 도착 시각 (로컬 fallback용) ──────────────────────
 function randomArrivalTime(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00')
   d.setHours(Math.floor(Math.random() * 6))
   d.setMinutes(Math.floor(Math.random() * 60))
   d.setSeconds(Math.floor(Math.random() * 60))
   return d.toISOString()
+}
+
+// 편지가 도착 가능한지 (scheduled_at가 현재 시각 이전)
+function isDelivered(letter: { arrivedAt: string } | { scheduled_at: string }): boolean {
+  const ts = 'arrivedAt' in letter ? letter.arrivedAt : letter.scheduled_at
+  return new Date(ts) <= new Date()
+}
+
+// scheduled_at 포맷: "내일 오전 3:17에 도착할 예정이야"
+function formatScheduledAt(iso: string): string {
+  const d = new Date(iso)
+  const now = new Date()
+  const isToday =
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  const h = d.getHours()
+  const m = String(d.getMinutes()).padStart(2, '0')
+  const ampm = h < 12 ? '오전' : '오후'
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+  const dayLabel = isToday ? '오늘' : '내일'
+  return `${dayLabel} ${ampm} ${h12}:${m}에 도착할 예정이야`
 }
 
 // ── 우체통 픽셀아트 (미수신용) ────────────────────────────────────────────
@@ -240,46 +268,99 @@ export default function NextChapterPage() {
   const navigate = useNavigate()
   const { isMobile } = useMobile()
 
-  const [todayLetter, setTodayLetter] = useState<Letter | null>(null)
-  const [allLetters, setAllLetters]   = useState<Letter[]>([])
+  // 공통: 표시용 편지 (Letter | ServerLetter 모두 저장, content + scheduled/arrivedAt 포함)
+  const [todayLetter, setTodayLetter] = useState<Letter | ServerLetter | null>(null)
+  const [allLetters, setAllLetters]   = useState<(Letter | ServerLetter)[]>([])
   const [loading, setLoading]         = useState(false)
+  const [pending, setPending]         = useState(false)   // 편지 도착 대기 중
+  const [pendingTime, setPendingTime] = useState('')      // "내일 오전 3:17에 도착할 예정이야"
   const [opened, setOpened]           = useState(false)
   const [typingDone, setTypingDone]   = useState(false)
   const [showArchive, setShowArchive] = useState(false)
   const [expandedId, setExpandedId]   = useState<string | null>(null)
 
-  const diaries = storage.getDiaries()
+  const diaries = storage.getDiaries().filter((d) => d.content)
   const today   = new Date().toISOString().slice(0, 10)
 
   useEffect(() => {
-    const letters  = storage.getLetters()
-    const existing = letters.find((l) => l.date === today)
-    setAllLetters(letters)
-    if (existing) {
-      setTodayLetter(existing)
-      return
-    }
-    // 일기가 1편 이상이면 자동 생성
-    if (diaries.length === 0) return
-    void generateLetter()
+    void loadLetter()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function generateLetter() {
+  async function loadLetter() {
+    if (SERVER_MODE) {
+      // ── 서버 모드 ─────────────────────────────────────────────────────
+      setLoading(true)
+      try {
+        const [existing, all] = await Promise.all([fetchTodayLetter(), fetchAllLetters()])
+        setAllLetters(all)
+
+        if (existing) {
+          if (!isDelivered({ scheduled_at: existing.scheduled_at })) {
+            setPending(true)
+            setPendingTime(formatScheduledAt(existing.scheduled_at))
+          } else {
+            setTodayLetter(existing)
+          }
+          return
+        }
+
+        // 일기 없으면 생성 안 함
+        if (diaries.length === 0) return
+
+        // 서버에 편지 생성 요청
+        const letter = await requestLetterGeneration(diaries)
+        if (!isDelivered({ scheduled_at: letter.scheduled_at })) {
+          setPending(true)
+          setPendingTime(formatScheduledAt(letter.scheduled_at))
+          // 생성은 했지만 도착 전 — 목록에는 반영
+          setAllLetters((prev) => [letter, ...prev.filter((l) => l.date !== today)])
+        } else {
+          setTodayLetter(letter)
+          setAllLetters((prev) => [letter, ...prev.filter((l) => l.date !== today)])
+        }
+      } catch (e) {
+        console.error('[NextChapter] 서버 편지 로드 실패:', e)
+      } finally {
+        setLoading(false)
+      }
+    } else {
+      // ── 로컬 모드 (VITE_API_URL 없음) ────────────────────────────────
+      const letters  = storage.getLetters()
+      const existing = letters.find((l) => l.date === today)
+      setAllLetters(letters)
+      if (existing) {
+        if (!isDelivered({ arrivedAt: existing.arrivedAt })) {
+          setPending(true)
+          setPendingTime(formatScheduledAt(existing.arrivedAt))
+        } else {
+          setTodayLetter(existing)
+        }
+        return
+      }
+      if (diaries.length === 0) return
+      void generateLetterLocal()
+    }
+  }
+
+  async function generateLetterLocal() {
     setLoading(true)
     try {
       const content = await claude.generateNextChapterLetter(diaries)
+      const arrivedAt = randomArrivalTime(today)
       const letter: Letter = {
-        id:        uuid(),
-        date:      today,
-        content,
-        arrivedAt: randomArrivalTime(today),
-        read:      false,
+        id: uuid(), date: today, content, arrivedAt, read: false,
         createdAt: new Date().toISOString(),
       }
       storage.saveLetter(letter)
-      setTodayLetter(letter)
-      setAllLetters(storage.getLetters())
+      if (!isDelivered({ arrivedAt })) {
+        setPending(true)
+        setPendingTime(formatScheduledAt(arrivedAt))
+        setAllLetters(storage.getLetters())
+      } else {
+        setTodayLetter(letter)
+        setAllLetters(storage.getLetters())
+      }
     } catch (e) {
       console.error('[NextChapter] 편지 생성 실패:', e)
     } finally {
@@ -290,10 +371,18 @@ export default function NextChapterPage() {
   function handleOpen() {
     if (!todayLetter) return
     setOpened(true)
-    if (!todayLetter.read) {
+    if ('read' in todayLetter && !todayLetter.read) {
       storage.markLetterRead(todayLetter.id)
-      setTodayLetter({ ...todayLetter, read: true })
+      setTodayLetter({ ...todayLetter, read: true } as Letter)
+    } else if ('is_read' in todayLetter && !todayLetter.is_read) {
+      void markServerLetterRead()
+      setTodayLetter({ ...todayLetter, is_read: true } as ServerLetter)
     }
+  }
+
+  // 편지의 도착 시각 (Letter or ServerLetter)
+  function getArrivedAt(letter: Letter | ServerLetter): string {
+    return 'arrivedAt' in letter ? letter.arrivedAt : letter.scheduled_at
   }
 
   const px = isMobile ? 16 : 32
@@ -331,7 +420,7 @@ export default function NextChapterPage() {
       }}>
 
         {/* ── 미수신 (일기 없음) ── */}
-        {!loading && !todayLetter && diaries.length === 0 && (
+        {!loading && !todayLetter && !pending && diaries.length === 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 64, gap: 24 }}>
             <Mailbox />
             <div style={{
@@ -339,6 +428,12 @@ export default function NextChapterPage() {
               color: TEXT_BASE, letterSpacing: '0.08em',
             }}>
               아직 편지가 오지 않았어
+            </div>
+            <div style={{
+              fontFamily: 'var(--font-pixel)', fontSize: 9,
+              color: '#4a3520', letterSpacing: '0.06em', textAlign: 'center', lineHeight: 2,
+            }}>
+              오늘 일기를 쓰면<br />-???가 읽고 편지를 보내줄 거야
             </div>
           </div>
         )}
@@ -356,6 +451,20 @@ export default function NextChapterPage() {
           </div>
         )}
 
+        {/* ── 도착 대기 중 ── */}
+        {!loading && pending && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 64, gap: 24 }}>
+            <Envelope open={false} />
+            <div style={{
+              fontFamily: 'var(--font-pixel)', fontSize: 10,
+              color: '#4a3520', letterSpacing: '0.06em', textAlign: 'center', lineHeight: 2,
+            }}>
+              편지가 쓰여지고 있어<br />
+              <span style={{ color: TEXT_BASE }}>{pendingTime}</span>
+            </div>
+          </div>
+        )}
+
         {/* ── 수신 완료 ── */}
         {!loading && todayLetter && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -366,7 +475,7 @@ export default function NextChapterPage() {
               color: '#4a3520', letterSpacing: '0.08em', textAlign: 'center',
               paddingTop: 24,
             }}>
-              {formatArrivedAt(todayLetter.arrivedAt)}
+              {formatArrivedAt(getArrivedAt(todayLetter))}
             </div>
 
             {/* 봉투 */}
@@ -490,7 +599,7 @@ export default function NextChapterPage() {
                       fontFamily: 'var(--font-pixel)', fontSize: 8,
                       color: '#4a3520', letterSpacing: '0.08em', marginBottom: 12,
                     }}>
-                      {formatArrivedAt(letter.arrivedAt)}
+                      {formatArrivedAt(getArrivedAt(letter))}
                     </div>
                     <LetterContent content={letter.content} />
                   </div>

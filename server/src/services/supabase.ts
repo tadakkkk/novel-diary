@@ -93,3 +93,51 @@ export async function getUserByPaddleCustomer(
     .single()
   return data as UsageRecord | null
 }
+
+// ── Letter storage ─────────────────────────────────────────────────────────
+
+export interface LetterRecord {
+  id:           string
+  user_id:      string
+  date:         string       // 'YYYY-MM-DD'
+  content:      string
+  scheduled_at: string       // ISO timestamp — gated delivery time
+  is_read:      boolean
+  created_at:   string
+}
+
+export async function getTodayLetter(userId: string, today: string): Promise<LetterRecord | null> {
+  const { data } = await supabase
+    .from('letters')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('date', today)
+    .single()
+  return (data as LetterRecord | null)
+}
+
+export async function insertLetter(
+  record: Pick<LetterRecord, 'user_id' | 'date' | 'content' | 'scheduled_at'>
+): Promise<LetterRecord> {
+  const { data, error } = await supabase
+    .from('letters')
+    .insert(record)
+    .select()
+    .single()
+  if (error) throw error
+  return data as LetterRecord
+}
+
+export async function markLetterReadDb(userId: string, date: string): Promise<void> {
+  await supabase.from('letters').update({ is_read: true }).eq('user_id', userId).eq('date', date)
+}
+
+export async function getUserLetters(userId: string): Promise<LetterRecord[]> {
+  const { data } = await supabase
+    .from('letters')
+    .select('*')
+    .eq('user_id', userId)
+    .order('date', { ascending: false })
+    .limit(30)
+  return (data ?? []) as LetterRecord[]
+}
