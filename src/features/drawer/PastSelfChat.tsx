@@ -42,7 +42,7 @@ export function PastSelfChat() {
     console.log('[PastSelfChat] mounted — diaries with content:', loaded.length, loaded.map((d) => d.date))
   }, [])
 
-  const hasKey = !!storage.getApiKey()
+  const diaryCount = storage.getDiaries().filter((d) => d.content).length
 
   async function sendMessage() {
     const text = input.trim()
@@ -108,16 +108,15 @@ export function PastSelfChat() {
 
   const chatMessages = (
     <>
-      {messages.length === 0 && (
+      {diaryCount === 0 ? (
+        <div style={{ textAlign: 'center', padding: '32px 0', fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--text-off)', letterSpacing: '0.08em', lineHeight: 2.2 }}>
+          아직 쌓인 이야기가 없어.<br />
+          일기를 먼저 써봐.
+        </div>
+      ) : messages.length === 0 && (
         <div style={{ textAlign: 'center', padding: '32px 0', fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--text-off)', letterSpacing: '0.08em', lineHeight: 2.2 }}>
           과거의 주인공이 기다리고 있어.<br />
           지금의 고민을 말해봐.
-        </div>
-      )}
-
-      {!hasKey && (
-        <div style={{ textAlign: 'center', padding: '8px', fontFamily: 'var(--font-pixel)', fontSize: 8, color: '#ff6644', border: '1px solid #441100', background: '#1a0500', marginBottom: 4 }}>
-          API 키가 없으면 답변을 받을 수 없어요
         </div>
       )}
 

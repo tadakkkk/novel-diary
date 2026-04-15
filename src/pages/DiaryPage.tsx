@@ -45,25 +45,6 @@ function useTypewriter(text: string, active: boolean) {
   return { displayed, done }
 }
 
-// ── API Key Status ────────────────────────────────────────────────────────
-function ApiKeyStatus({ onClear }: { onClear: () => void }) {
-  const [key, setKey] = useState(() => storage.getApiKey())
-  function clear() { storage.saveApiKey(''); setKey(null); onClear() }
-  if (!key) return (
-    <div style={{ fontFamily:'var(--font-pixel)', fontSize:6, color:'var(--gray-3)', letterSpacing:'0.06em', textAlign:'center' }}>
-      API KEY: <span style={{ color:'#ff4444' }}>NOT SET</span>
-    </div>
-  )
-  return (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:6 }}>
-      <div style={{ fontFamily:'var(--font-pixel)', fontSize:6, color:'var(--gray-3)', letterSpacing:'0.06em' }}>
-        API KEY: <span style={{ color:'var(--fire-org)' }}>{'●●●●' + key.slice(-4)}</span>
-      </div>
-      <button onClick={clear} style={{ fontFamily:'var(--font-pixel)', fontSize:6, color:'var(--gray-3)', background:'transparent', border:'1px solid var(--gray-3)', padding:'2px 5px', cursor:'pointer', letterSpacing:'0.04em', whiteSpace:'nowrap' }}>변경</button>
-    </div>
-  )
-}
-
 // ── API Key Modal ─────────────────────────────────────────────────────────
 function ApiKeyModal({ onSaved, onClose }: { onSaved: () => void; onClose: () => void }) {
   const [val, setVal] = useState('')
@@ -364,10 +345,10 @@ export default function DiaryPage() {
         </div>
       </header>
 
-      <div className='diary-grid' style={{ minHeight:'100vh', paddingTop:52, display:'grid', gridTemplateColumns:'300px 1fr', height:'100vh', position:'relative', zIndex:1 }}>
+      <div className='diary-grid' style={{ minHeight:'100vh', paddingTop:52, display:'grid', gridTemplateColumns:'1fr 300px', height:'100vh', position:'relative', zIndex:1 }}>
 
-        {/* ── LEFT: Options Panel ── */}
-        <aside className='diary-aside' style={{ borderRight:'3px solid var(--white)', height:'calc(100vh - 52px)', position:'sticky', top:52, overflowY:'auto', padding:'16px 14px', display:'flex', flexDirection:'column', gap:18, background:'var(--black)' }}>
+        {/* ── RIGHT: Options Panel ── */}
+        <aside className='diary-aside' style={{ order:2, borderLeft:'3px solid var(--white)', height:'calc(100vh - 52px)', position:'sticky', top:52, overflowY:'auto', padding:'16px 14px', display:'flex', flexDirection:'column', gap:18, background:'var(--black)' }}>
 
           {/* Weather */}
           <div>
@@ -444,17 +425,16 @@ export default function DiaryPage() {
             )}
           </div>
 
-          {/* API Key status */}
-          <div style={{ marginTop:'auto', display:'flex', flexDirection:'column', gap:8 }}>
-            <ApiKeyStatus key={showApiModal ? 'open' : 'closed'} onClear={() => setShowApiModal(true)} />
+          {/* Generate button */}
+          <div style={{ marginTop:'auto' }}>
             <button className='gen-btn' disabled={status === 'generating'} onClick={startGeneration}>
               ▶ GENERATE DIARY ◀
             </button>
           </div>
         </aside>
 
-        {/* ── RIGHT: Result Panel ── */}
-        <main className='diary-main' style={{ padding:'32px 40px', height:'calc(100vh - 52px)', overflowY:'auto', background:'var(--black)' }}>
+        {/* ── LEFT: Result Panel ── */}
+        <main className='diary-main' style={{ order:1, padding:'32px 40px', height:'calc(100vh - 52px)', overflowY:'auto', background:'var(--black)' }}>
           {status === 'idle' && (
             <div className='diary-empty'>
               <div className='de-ascii'>▒▒▒▒▒<br />░░░░░<br />▒▒▒▒▒</div>

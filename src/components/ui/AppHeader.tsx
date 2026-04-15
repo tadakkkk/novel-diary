@@ -4,6 +4,7 @@ import { DrawerPopup } from '@/features/drawer/DrawerPopup'
 import { useAppContext } from '@/App'
 import { signInWithGoogle, signOut } from '@/services/auth/auth-service'
 import { getAnonRemaining } from '@/services/quota/quota-service'
+import * as storage from '@/services/storage'
 
 export function AppHeader() {
   const navigate  = useNavigate()
@@ -13,6 +14,9 @@ export function AppHeader() {
   const [drawerOpen,  setDrawerOpen]  = useState(false)
   const [navOpen,     setNavOpen]     = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [apiKeyInput, setApiKeyInput] = useState('')
+  const [apiKeySaved, setApiKeySaved] = useState(() => !!storage.getApiKey())
+  const [apiKeyExpanded, setApiKeyExpanded] = useState(false)
 
   const navRef     = useRef<HTMLDivElement>(null)
   const profileRef = useRef<HTMLDivElement>(null)
@@ -202,9 +206,62 @@ export function AppHeader() {
                   >
                     {isSubscribed ? '구독 관리' : '구독하기'}
                   </button>
+
+                  {/* API Key section */}
+                  <div style={{ borderTop: '1px solid var(--gray-1)', padding: '10px 16px 8px' }}>
+                    <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: 'var(--gray-3)', letterSpacing: '0.06em', marginBottom: 6 }}>
+                      ANTHROPIC API KEY
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: apiKeyExpanded ? 8 : 0 }}>
+                      <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: apiKeySaved ? 'var(--fire-org)' : 'var(--gray-3)', letterSpacing: '0.04em' }}>
+                        {apiKeySaved ? '설정됨' : '미설정'}
+                      </span>
+                      <button
+                        onClick={() => { setApiKeyExpanded(v => !v); setApiKeyInput('') }}
+                        style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--gray-3)', background: 'transparent', border: '1px solid var(--gray-2)', padding: '2px 6px', cursor: 'pointer', letterSpacing: '0.04em' }}
+                      >
+                        {apiKeyExpanded ? '닫기' : (apiKeySaved ? '변경' : '입력')}
+                      </button>
+                    </div>
+                    {apiKeyExpanded && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                        <input
+                          type='password'
+                          placeholder='sk-ant-api...'
+                          value={apiKeyInput}
+                          onChange={(e) => setApiKeyInput(e.target.value)}
+                          style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, padding: '6px 8px', background: '#111', border: '1px solid var(--gray-2)', color: 'var(--gray-4)', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+                        />
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button
+                            onClick={() => {
+                              const k = apiKeyInput.trim()
+                              if (!k) return
+                              storage.saveApiKey(k)
+                              setApiKeySaved(true)
+                              setApiKeyExpanded(false)
+                              setApiKeyInput('')
+                            }}
+                            style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: '#000', background: 'var(--fire-org)', border: 'none', padding: '4px 10px', cursor: 'pointer', letterSpacing: '0.04em', flex: 1 }}
+                          >
+                            저장
+                          </button>
+                          {apiKeySaved && (
+                            <button
+                              onClick={() => { storage.saveApiKey(''); setApiKeySaved(false); setApiKeyExpanded(false) }}
+                              style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--gray-3)', background: 'transparent', border: '1px solid var(--gray-2)', padding: '4px 8px', cursor: 'pointer', letterSpacing: '0.04em' }}
+                            >
+                              삭제
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <button
                     onClick={() => { setProfileOpen(false); signOut() }}
-                    style={{ ...DROP_ITEM, color: 'var(--gray-3)' }}
+                    style={{ ...DROP_ITEM, color: 'var(--gray-3)', borderTop: '1px solid var(--gray-1)' }}
                   >
                     로그아웃
                   </button>
