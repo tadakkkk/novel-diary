@@ -58,67 +58,92 @@ export default function BonfirePage() {
   }
 
   // ── 모바일 레이아웃 ────────────────────────────────────────────────────
-  // AppHeader를 bf-m-root 안으로 포함 → 전체 100dvh flex column 구성
   if (isMobile) {
     return (
       <>
         <PixelStars />
         <div className='bf-m-root'>
-          {/* 헤더: bf-m-root 안에서 position:relative, height:48px */}
+          {/* 헤더 */}
           <AppHeader />
 
-          {/* 중간: 날짜/불꽃/게이지/이미지/버튼 — flex:1, space-evenly */}
-          <div className='bf-m-middle'>
+          {/* 상단 50%: 날짜/불꽃/게이지/이미지/버튼 */}
+          <div style={{
+            height: '50%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'space-evenly',
+            padding: '4px 12px 2px',
+            overflow: 'hidden',
+          }}>
             {/* 날짜 */}
-            <div className='scene-date bf-m-date'>
+            <div className='scene-date bf-m-date' style={{ marginBottom: 0 }}>
               <span className='date-main'>{formatKoreanDate()}</span>
               TODAY / BONFIRE NIGHT
             </div>
 
-            {/* 불꽃 — max-height: 30dvh */}
-            <div className='bonfire-scene bf-m-flame'>
+            {/* 불꽃 */}
+            <div className='bonfire-scene bf-m-flame' style={{ flexShrink: 1, minHeight: 0 }}>
               <FlameAnimation level={flameLevel} />
               <div className='pixel-ground' />
             </div>
 
             {/* 게이지 + 카운터 */}
-            <div className='gauge-row'>
+            <div className='gauge-row' style={{ margin: 0 }}>
               <span className='gauge-bar'>{gaugeBar}</span>
               <span className='gauge-count'>[<span>{count}</span>/∞]</span>
             </div>
 
             {/* 힌트 */}
-            <div className='threshold-hint bf-m-hint' style={{ color: ready ? 'var(--fire-tip)' : 'var(--text-dim)' }}>
+            <div className='threshold-hint bf-m-hint' style={{ color: ready ? 'var(--fire-tip)' : 'var(--text-dim)', margin: 0 }}>
               {hint}
             </div>
 
             {/* 대표 이미지 */}
             <KeyImageUploader keyImage={keyImage} onUpload={uploadKeyImage} onRemove={removeKeyImage} />
 
-            {/* 새 일기 버튼 */}
+            {/* 새 일기 시작 버튼 */}
             <button className='pixel-btn pixel-btn-sm' style={{ fontSize: 9 }} onClick={handleNewSession}>
               🔥 새 일기 시작
             </button>
           </div>
 
-          {/* 하단: KINDLING 입력창 */}
-          <div className='bf-m-bottom'>
-            <div className='bf-m-bottom-hd'>
+          {/* 하단 50%: KINDLING 헤더 + 땔감 목록(스크롤) + 입력창(고정) */}
+          <div style={{
+            height: '50%',
+            display: 'flex',
+            flexDirection: 'column',
+            borderTop: '2px solid var(--gray-2)',
+            overflow: 'hidden',
+          }}>
+            {/* 헤더 행 */}
+            <div className='bf-m-bottom-hd' style={{ flexShrink: 0 }}>
               <span className='bf-m-kcount'>KINDLING <b>{count}</b></span>
               {ready && (
-                <button
-                  className='bf-m-genbtn'
-                  onClick={handleGoWrite}
-                >
+                <button className='bf-m-genbtn' onClick={handleGoWrite}>
                   ▶ 일기 쓰기 ◀
                 </button>
               )}
             </div>
-            <KindlingInput
-              onAdd={addKindling}
-              prefillValue={prefillValue}
-              onPrefillConsumed={() => setPrefillValue('')}
-            />
+
+            {/* 땔감 목록 (스크롤 영역) */}
+            <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+              <KindlingList
+                kindlings={kindlings}
+                onRemove={removeKindling}
+                onReorder={reorderKindlings}
+                onEditWithQuestion={handleEditWithQuestion}
+              />
+            </div>
+
+            {/* 입력창 */}
+            <div style={{ flexShrink: 0 }}>
+              <KindlingInput
+                onAdd={addKindling}
+                prefillValue={prefillValue}
+                onPrefillConsumed={() => setPrefillValue('')}
+              />
+            </div>
           </div>
         </div>
       </>

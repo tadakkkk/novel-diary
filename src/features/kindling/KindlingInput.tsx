@@ -63,8 +63,7 @@ export function KindlingInput({ onAdd, prefillValue, onPrefillConsumed }: Props)
           +
         </button>
       </div>
-      <div className='input-hint' style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <span>Ctrl+Enter로 추가</span>
+      <div className='input-hint' style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <span style={{ color: nearLimit ? 'var(--fire-tip)' : 'var(--text-off)' }}>
           {value.length}/{MAX_KINDLING_LENGTH}
         </span>

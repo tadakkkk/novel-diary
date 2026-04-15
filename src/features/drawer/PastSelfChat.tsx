@@ -85,87 +85,120 @@ export function PastSelfChat() {
   const firstChar = storage.getCharacters()[0]
   const avatarChar = firstChar ?? DUMMY_CHAR as Parameters<typeof AvatarCanvas>[0]['character']
 
-  const chatHeight = isSmall ? 280 : isMobile ? 340 : 420
+  // 입력 영역 공통 렌더
+  const inputArea = (
+    <div style={{ borderTop: '2px solid var(--gray-2)', padding: '10px 12px', display: 'flex', gap: 8, background: '#0d0d0d' }}>
+      <textarea
+        className='pixel-input'
+        placeholder='지금의 고민을 말해봐...'
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
+        style={{ flex: 1, fontSize: 12, minHeight: 38, resize: 'none', padding: '8px 10px' }}
+        rows={1}
+      />
+      <button
+        className='pixel-btn pixel-btn-fire'
+        style={{ fontSize: 10, padding: '0 14px', flexShrink: 0, alignSelf: 'flex-end' }}
+        onClick={sendMessage}
+        disabled={loading || !input.trim()}
+      >▸</button>
+    </div>
+  )
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: chatHeight }}>
-      {/* 채팅 영역 */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+  const chatMessages = (
+    <>
+      {messages.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '32px 0', fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--text-off)', letterSpacing: '0.08em', lineHeight: 2.2 }}>
+          과거의 주인공이 기다리고 있어.<br />
+          지금의 고민을 말해봐.
+        </div>
+      )}
 
-        {messages.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '32px 0', fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--text-off)', letterSpacing: '0.08em', lineHeight: 2.2 }}>
-            과거의 주인공이 기다리고 있어.<br />
-            지금의 고민을 말해봐.
-          </div>
-        )}
+      {!hasKey && (
+        <div style={{ textAlign: 'center', padding: '8px', fontFamily: 'var(--font-pixel)', fontSize: 8, color: '#ff6644', border: '1px solid #441100', background: '#1a0500', marginBottom: 4 }}>
+          API 키가 없으면 답변을 받을 수 없어요
+        </div>
+      )}
 
-        {!hasKey && (
-          <div style={{ textAlign: 'center', padding: '8px', fontFamily: 'var(--font-pixel)', fontSize: 8, color: '#ff6644', border: '1px solid #441100', background: '#1a0500', marginBottom: 4 }}>
-            API 키가 없으면 답변을 받을 수 없어요
-          </div>
-        )}
-
-        {messages.map((msg) => (
-          <div key={msg.id} style={{ display: 'flex', flexDirection: msg.role === 'user' ? 'row-reverse' : 'row', gap: 8, alignItems: 'flex-end' }}>
-            {msg.role === 'assistant' && (
-              <div style={{ width: 32, height: 48, flexShrink: 0, border: '1px solid var(--gray-2)' }}>
-                <AvatarCanvas character={avatarChar} w={32} h={48} />
-              </div>
-            )}
-            <div style={{ maxWidth: '72%' }}>
-              <div style={{
-                padding: '8px 12px',
-                background: msg.role === 'user' ? 'var(--fire-org)' : '#1a1a1a',
-                border: msg.role === 'user' ? 'none' : '1px solid var(--gray-2)',
-                color: msg.role === 'user' ? '#000' : 'var(--gray-5)',
-                fontFamily: 'var(--font-korean)', fontSize: 13, lineHeight: 1.65,
-                wordBreak: 'keep-all', whiteSpace: 'pre-wrap',
-                borderRadius: msg.role === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-              }}>
-                {msg.content}
-              </div>
-              {msg.role === 'assistant' && msg.sourceDate && (
-                <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--fire-amb)', marginTop: 4, letterSpacing: '0.06em', cursor: 'default' }}>
-                  {msg.sourceDate}의 나
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-
-        {loading && (
-          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+      {messages.map((msg) => (
+        <div key={msg.id} style={{ display: 'flex', flexDirection: msg.role === 'user' ? 'row-reverse' : 'row', gap: 8, alignItems: 'flex-end' }}>
+          {msg.role === 'assistant' && (
             <div style={{ width: 32, height: 48, flexShrink: 0, border: '1px solid var(--gray-2)' }}>
               <AvatarCanvas character={avatarChar} w={32} h={48} />
             </div>
-            <div style={{ background: '#1a1a1a', border: '1px solid var(--gray-2)', borderRadius: '12px 12px 12px 2px' }}>
-              <TypingDots />
+          )}
+          <div style={{ maxWidth: '72%' }}>
+            <div style={{
+              padding: '8px 12px',
+              background: msg.role === 'user' ? 'var(--fire-org)' : '#1a1a1a',
+              border: msg.role === 'user' ? 'none' : '1px solid var(--gray-2)',
+              color: msg.role === 'user' ? '#000' : 'var(--gray-5)',
+              fontFamily: 'var(--font-korean)', fontSize: 13, lineHeight: 1.65,
+              wordBreak: 'keep-all', whiteSpace: 'pre-wrap',
+              borderRadius: msg.role === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
+            }}>
+              {msg.content}
             </div>
+            {msg.role === 'assistant' && msg.sourceDate && (
+              <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--fire-amb)', marginTop: 4, letterSpacing: '0.06em', cursor: 'default' }}>
+                {msg.sourceDate}의 나
+              </div>
+            )}
           </div>
-        )}
+        </div>
+      ))}
 
-        <div ref={bottomRef} />
+      {loading && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+          <div style={{ width: 32, height: 48, flexShrink: 0, border: '1px solid var(--gray-2)' }}>
+            <AvatarCanvas character={avatarChar} w={32} h={48} />
+          </div>
+          <div style={{ background: '#1a1a1a', border: '1px solid var(--gray-2)', borderRadius: '12px 12px 12px 2px' }}>
+            <TypingDots />
+          </div>
+        </div>
+      )}
+
+      <div ref={bottomRef} />
+    </>
+  )
+
+  // 모바일: 입력창 화면 하단 fixed
+  if (isMobile) {
+    return (
+      <>
+        {/* 채팅 영역 — 하단 입력창 높이만큼 패딩 */}
+        <div style={{
+          position: 'fixed', top: 56, left: 0, right: 0, bottom: 62,
+          overflowY: 'auto',
+          padding: '12px 14px',
+          display: 'flex', flexDirection: 'column', gap: 10,
+        }}>
+          {chatMessages}
+        </div>
+        {/* 입력창 하단 고정 */}
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 10 }}>
+          {inputArea}
+        </div>
+        <style>{`
+          @keyframes dotBounce {
+            0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+            40% { transform: translateY(-5px); opacity: 1; }
+          }
+        `}</style>
+      </>
+    )
+  }
+
+  // PC: 기존 고정 높이 레이아웃
+  const chatHeight = isSmall ? 280 : 420
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: chatHeight }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {chatMessages}
       </div>
-
-      {/* 입력 영역 */}
-      <div style={{ borderTop: '2px solid var(--gray-2)', padding: '10px 12px', display: 'flex', gap: 8, background: '#0d0d0d' }}>
-        <textarea
-          className='pixel-input'
-          placeholder='지금의 고민을 말해봐...'
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
-          style={{ flex: 1, fontSize: 12, minHeight: 38, resize: 'none', padding: '8px 10px' }}
-          rows={1}
-        />
-        <button
-          className='pixel-btn pixel-btn-fire'
-          style={{ fontSize: 10, padding: '0 14px', flexShrink: 0, alignSelf: 'flex-end' }}
-          onClick={sendMessage}
-          disabled={loading || !input.trim()}
-        >▸</button>
-      </div>
-
+      {inputArea}
       <style>{`
         @keyframes dotBounce {
           0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
