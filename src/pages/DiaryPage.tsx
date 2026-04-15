@@ -317,8 +317,8 @@ export default function DiaryPage() {
       } else {
         setStatus('idle')
         const userMsg =
-          msg.includes('401') || msg.includes('authentication') || msg.includes('invalid x-api-key')
-            ? 'API 키가 올바르지 않아요. 키를 다시 확인해주세요.'
+          msg.includes('401') || msg.includes('Unauthorized') || msg.includes('authentication') || msg.includes('invalid x-api-key')
+            ? '인증에 실패했어요. 다시 로그인하거나 잠시 후 시도해주세요.'
           : msg.includes('429') || msg.includes('rate_limit') || msg.includes('overloaded')
             ? 'Claude 서버가 혼잡해요. 잠시 후 다시 시도해주세요.'
           : msg.includes('fetch') || msg.includes('network') || msg.includes('Failed to fetch')
@@ -339,7 +339,7 @@ export default function DiaryPage() {
           <span className='logo-korean'>타닥타닥</span>
           <span className='logo-en'>◀ 모닥불로</span>
         </button>
-        <div className='header-actions'>
+        <div className='header-actions' style={{ marginLeft: 'auto' }}>
           <span className='px-tag px-tag-fire diary-kindling-count'>KINDLING ×{kindlings.length}</span>
           <button className='pixel-btn pixel-btn-sm' onClick={() => safeNavigate('/timeline')}>[타임라인]</button>
         </div>

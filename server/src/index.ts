@@ -17,19 +17,23 @@ app.use('/api/billing/webhook', express.raw({ type: 'application/json' }), (req:
 
 // CORS — allow GitHub Pages origin (tadakkkk.github.io) and localhost for dev
 const allowedOrigins = [
-  process.env.CLIENT_ORIGIN ?? 'http://localhost:5173',
+  'https://tadakkkk.github.io',
   'http://localhost:5173',
   'http://localhost:4173',
+  'http://localhost:3000',
+  ...(process.env.CLIENT_ORIGIN ? [process.env.CLIENT_ORIGIN] : []),
 ]
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, etc.)
+    // Allow requests with no origin (mobile apps, curl, Capacitor, etc.)
     if (!origin) return callback(null, true)
     if (allowedOrigins.includes(origin)) return callback(null, true)
     callback(new Error(`CORS: ${origin} not allowed`))
   },
   credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-device-id'],
+  exposedHeaders: ['x-calls-remaining'],
 }))
 
 app.use(express.json({ limit: '10mb' }))

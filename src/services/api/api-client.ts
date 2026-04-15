@@ -18,13 +18,13 @@ export interface UsageStatus {
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const session = await getSession()
-  const headers: Record<string, string> = {}
+  const headers: Record<string, string> = {
+    // Always send device ID — server falls back to it when token is invalid/expired
+    'x-device-id': getDeviceId(),
+  }
 
   if (session?.access_token) {
     headers['Authorization'] = `Bearer ${session.access_token}`
-  } else {
-    // Anonymous fallback: use stable device ID from localStorage
-    headers['x-device-id'] = getDeviceId()
   }
 
   return headers
