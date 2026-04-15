@@ -433,7 +433,7 @@ export default function NextChapterPage() {
               fontFamily: 'var(--font-pixel)', fontSize: 9,
               color: '#4a3520', letterSpacing: '0.06em', textAlign: 'center', lineHeight: 2,
             }}>
-              오늘 일기를 쓰면<br />-???가 읽고 편지를 보내줄 거야
+              오늘 일기를 쓰면<br />???가 읽고 편지를 보내줄 거야
             </div>
           </div>
         )}
