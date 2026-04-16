@@ -156,6 +156,18 @@ export interface CharacterProfile {
   generatedAt: string
 }
 
+// ── Saved Novel (나의 이야기 책장) ────────────────────────────────────────
+export interface SavedNovel {
+  id: string
+  title: string           // 날짜 범위 자동 생성 ("2026.04.10 ~ 2026.04.15")
+  content: string         // 소설 본문 전체
+  readerReactions: string | null  // JSON(ReviewResult) 직렬화
+  coverImage: string | null       // 대표 이미지 URL
+  diaryDateFrom: string
+  diaryDateTo: string
+  createdAt: string
+}
+
 // ── Next Chapter Letter (-???) ─────────────────────────────────────────────
 export interface Letter {
   id: string

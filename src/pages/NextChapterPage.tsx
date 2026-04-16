@@ -15,7 +15,7 @@ const SERVER_MODE = !!import.meta.env.VITE_API_URL
 
 const ACCENT   = '#EF9F27'
 const LETTER_BG = '#1a1208'
-const TEXT_BASE = '#c8b49a'
+const TEXT_BASE = '#e8d4bc'
 
 // ── 도착 시각 포맷 ─────────────────────────────────────────────────────────
 function formatArrivedAt(iso: string): string {

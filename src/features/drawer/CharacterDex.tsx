@@ -113,6 +113,9 @@ function BadgeGrid({ badges, cols = 3 }: { badges: Badge[]; cols?: number }) {
   )
 }
 
+const MIN_DIARIES = 3
+const MIN_CHARS   = 200
+
 // ── 메인 컴포넌트 ─────────────────────────────────────────────────────────
 export function CharacterDex() {
   const [profile, setProfile] = useState<CharacterProfile | null>(() => storage.getCharacterProfile())
@@ -124,11 +127,13 @@ export function CharacterDex() {
   const { isMobile, isSmall } = useMobile()
 
   const diaries = storage.getDiaries().filter((d) => d.content)
+  const totalChars = diaries.reduce((sum, d) => sum + (d.content?.length ?? 0), 0)
+  const canAnalyze = diaries.length >= MIN_DIARIES && totalChars >= MIN_CHARS
 
   // 스탯이 없으면 자동 생성 (진입 시 1회)
   const noApiAccess = !storage.getApiKey() && !import.meta.env.VITE_API_URL
   useEffect(() => {
-    if (hasGenerated.current || profile?.stats?.length || noApiAccess || diaries.length === 0) return
+    if (hasGenerated.current || profile?.stats?.length || noApiAccess || !canAnalyze) return
     hasGenerated.current = true
     setLoadingStats(true)
     claude.generateCharacterStats(diaries).then((stats) => {
@@ -209,6 +214,13 @@ export function CharacterDex() {
           <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--fire-amb)', letterSpacing: '0.1em', marginBottom: 12 }}>► ABILITY STATS</div>
           {loadingStats ? (
             <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--gray-4)', textAlign: 'center', padding: '24px 0' }}>분석 중...</div>
+          ) : !canAnalyze ? (
+            <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--text-off)', textAlign: 'center', padding: '24px 0', lineHeight: 1.9 }}>
+              일기가 조금 더 쌓이면 분석할 수 있어<br />
+              <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: 'var(--gray-4)', letterSpacing: '0.06em' }}>
+                (현재 {diaries.length}개 / {MIN_DIARIES}개 필요)
+              </span>
+            </div>
           ) : profile?.stats && profile.stats.length > 0 ? (
             <>
               <RadarChart stats={profile.stats} size={isSmall ? 180 : isMobile ? 200 : 220} />
@@ -218,7 +230,7 @@ export function CharacterDex() {
             </>
           ) : (
             <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--text-off)', textAlign: 'center', padding: '24px 0' }}>
-              {diaries.length === 0 ? '일기가 없어 분석할 수 없어요.' : '분석 중이에요...'}
+              분석 중이에요...
             </div>
           )}
         </div>

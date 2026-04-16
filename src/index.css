@@ -33,6 +33,13 @@
 
   --font-pixel:  'Press Start 2P', 'Courier New', monospace;
   --font-korean: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+
+  /* ── 한국어 본문 폰트 크기 기준 ── */
+  --fs-heading:   20px;   /* 페이지 제목 */
+  --fs-section:   15px;   /* 섹션 소제목 */
+  --fs-body:      14px;   /* 일반 본문 */
+  --fs-secondary: 13px;   /* 보조 텍스트 */
+  --fs-button:    12px;   /* 버튼 레이블 */
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -561,6 +568,19 @@ input[type='range']::-webkit-slider-thumb {
 
   /* ── DiaryPage: 헤더 KINDLING ×n 숨김 ── */
   .diary-kindling-count { display: none; }
+}
+
+/* ── 모바일 나의 이야기 텍스트 잘림 방지 ─────────────────────────────────── */
+.book-page-text {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 768px) {
+  .book-page-text {
+    padding: 0 4px;
+    font-size: var(--fs-body) !important;
+  }
 }
 
 @media (max-width: 480px) {

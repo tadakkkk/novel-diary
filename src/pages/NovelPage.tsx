@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { type Character, type NovelDiary } from '@/types'
+import { type Character, type NovelDiary, type SavedNovel } from '@/types'
 import * as storage from '@/services/storage'
 import * as claude from '@/services/claude/claude-service'
 import * as avatar from '@/services/avatar/avatar-service'
@@ -215,9 +215,88 @@ function BlankPage() {
 
 type ReviewResult = Awaited<ReturnType<typeof claude.generateReviews>>
 
-function ReviewPage({ reviews, readerSeeds, loading, onRegen, onClose }: {
+// ── 픽셀 책 커버 ───────────────────────────────────────────────────────────
+function PixelBookCover({ seed, w = 40, h = 60 }: { seed: number; w?: number; h?: number }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+  useEffect(() => {
+    const canvas = ref.current
+    if (!canvas) return
+    const SC = 2
+    canvas.width = w * SC; canvas.height = h * SC
+    const ctx = canvas.getContext('2d')!
+    ctx.imageSmoothingEnabled = false
+    const rng = (n: number) => { let s = (seed * 9301 + n * 49297) % 233280; return s / 233280 }
+    const PALETTES = [
+      ['#8B1A1A','#C0392B','#E74C3C'],
+      ['#1A3A8B','#2980B9','#5DADE2'],
+      ['#1A6B3A','#27AE60','#58D68D'],
+      ['#6B3A1A','#D4881E','#F0C050'],
+      ['#4A1A6B','#8E44AD','#C39BD3'],
+      ['#1A5A6B','#17A589','#4ECDC4'],
+    ]
+    const pal = PALETTES[Math.floor(rng(1) * PALETTES.length)]
+    const px = (x: number, y: number, c: string) => {
+      ctx.fillStyle = c; ctx.fillRect(x * SC, y * SC, SC, SC)
+    }
+    // 배경
+    ctx.fillStyle = pal[0]; ctx.fillRect(0, 0, canvas.width, canvas.height)
+    // 제목 영역
+    ctx.fillStyle = pal[1]
+    for (let x = 2; x < w - 2; x++) for (let y = 4; y < 14; y++) px(x, y, pal[1])
+    // 패턴
+    for (let i = 0; i < 6; i++) {
+      const bx = Math.floor(rng(i * 2 + 10) * (w - 6)) + 2
+      const by = Math.floor(rng(i * 2 + 11) * (h - 20)) + 16
+      const bs = Math.floor(rng(i * 3) * 4) + 2
+      ctx.fillStyle = pal[2]; ctx.fillRect(bx * SC, by * SC, bs * SC, bs * SC)
+    }
+    // 세로 선
+    ctx.fillStyle = pal[2]
+    for (let y = 0; y < h; y++) { px(0, y, pal[2]); px(1, y, pal[1]) }
+    // 가로선 장식
+    for (let x = 2; x < w - 2; x++) { px(x, 15, pal[2]); px(x, h - 4, pal[2]) }
+  }, [seed, w, h])
+  return <canvas ref={ref} style={{ width: w, height: h, imageRendering: 'pixelated', display: 'block', cursor: 'pointer' }} />
+}
+
+// ── 저장된 소설 뷰어 ──────────────────────────────────────────────────────
+function SavedNovelView({ novel, onClose, onDelete }: {
+  novel: SavedNovel; onClose: () => void; onDelete: (id: string) => void
+}) {
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.96)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', overflowY: 'auto', padding: '20px 16px 48px' }}>
+      <div style={{ width: '100%', maxWidth: 600 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: '#d4881e', letterSpacing: '0.1em', marginBottom: 4 }}>▸ 책장</div>
+            <div style={{ fontFamily: "'Noto Serif KR',serif", fontWeight: 700, fontSize: 16, color: '#f5e6c8' }}>{novel.title}</div>
+          </div>
+          <button onClick={onClose} style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, background: '#000', color: '#888', border: '1px solid #444', padding: '6px 10px', cursor: 'pointer', letterSpacing: '0.06em', flexShrink: 0 }}>[ 닫기 ]</button>
+        </div>
+        <div style={{ fontFamily: "'Nanum Myeongjo',serif", fontSize: 15, color: '#f5e6c8', lineHeight: 2.1, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', marginBottom: 28, borderLeft: '3px solid #d4881e', paddingLeft: 16 }}>
+          {novel.content}
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {!confirmDelete ? (
+            <button onClick={() => setConfirmDelete(true)} style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, background: '#000', color: '#c0392b', border: '1px solid #c0392b', padding: '7px 12px', cursor: 'pointer', letterSpacing: '0.06em' }}>삭제</button>
+          ) : (
+            <>
+              <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: '#c0392b', alignSelf: 'center' }}>정말 삭제할까요?</span>
+              <button onClick={() => { onDelete(novel.id); onClose() }} style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, background: '#c0392b', color: '#fff', border: '1px solid #c0392b', padding: '7px 12px', cursor: 'pointer', letterSpacing: '0.06em' }}>삭제</button>
+              <button onClick={() => setConfirmDelete(false)} style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, background: '#000', color: '#888', border: '1px solid #444', padding: '7px 12px', cursor: 'pointer', letterSpacing: '0.06em' }}>취소</button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ReviewPage({ reviews, readerSeeds, loading, onRegen, onClose, onSave, savedAlready }: {
   reviews: ReviewResult; readerSeeds: number[]
   loading: boolean; onRegen: () => void; onClose: () => void
+  onSave?: () => void; savedAlready?: boolean
 }) {
   if (loading) return (
     <div style={{ display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>
@@ -287,6 +366,11 @@ function ReviewPage({ reviews, readerSeeds, loading, onRegen, onClose }: {
       </div>
       <div style={{ display:'flex', gap:8, marginTop:12, flexWrap:'wrap' }}>
         <button onClick={onRegen} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#d4881e', border:'1px solid #d4881e', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>🔥 다른 독자 불러오기</button>
+        {onSave && (
+          <button onClick={onSave} disabled={savedAlready} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background: savedAlready ? '#111' : '#000', color: savedAlready ? '#555' : '#f5e6c8', border: savedAlready ? '1px solid #333' : '1px solid #f5e6c8', padding:'7px 12px', cursor: savedAlready ? 'not-allowed' : 'pointer', letterSpacing:'0.06em' }}>
+            {savedAlready ? '✓ 책장에 꽂혔어' : '📚 책장에 꽂기'}
+          </button>
+        )}
         <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#888', border:'1px solid #444', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>책 덮기</button>
       </div>
     </div>
@@ -295,11 +379,12 @@ function ReviewPage({ reviews, readerSeeds, loading, onRegen, onClose }: {
 
 // ── Page Component ─────────────────────────────────────────────────────────
 function BookPage({
-  page, side, allPages, diaries, reviews, readerSeeds, reviewLoading, onClose, onRegen,
+  page, side, allPages, diaries, reviews, readerSeeds, reviewLoading, onClose, onRegen, onSave, savedAlready,
 }: {
   page: DiaryPage; side: 'left' | 'right'; allPages: DiaryPage[]
   diaries: NovelDiary[]; reviews: ReviewResult; readerSeeds: number[]
   reviewLoading: boolean; onClose: () => void; onRegen: () => void
+  onSave?: () => void; savedAlready?: boolean
 }) {
   const pageNum = (() => {
     if (page.type === 'cover-left' || page.type === 'cover-right' || page.type === 'blank' || page.type === 'review') return null
@@ -322,7 +407,7 @@ function BookPage({
       {page.type === 'diary-cont'  && <DiaryContPage page={page} pageNum={pageNum} />}
       {page.type === 'blank'       && <BlankPage />}
       {page.type === 'review'      && (
-        <ReviewPage reviews={reviews} readerSeeds={readerSeeds} loading={reviewLoading} onRegen={onRegen} onClose={onClose} />
+        <ReviewPage reviews={reviews} readerSeeds={readerSeeds} loading={reviewLoading} onRegen={onRegen} onClose={onClose} onSave={onSave} savedAlready={savedAlready} />
       )}
       {pageNum != null && page.type !== 'diary-first' && page.type !== 'diary-cont' && (
         <div style={{ ...numStyle, fontFamily:'var(--font-pixel)', fontSize:9, color:'#666', letterSpacing:'0.1em' }}>{pageNum}</div>
@@ -362,6 +447,52 @@ export default function NovelPage() {
   const [readerSeeds,  setReaderSeeds]  = useState<number[]>([])
   const [reviewLoading, setReviewLoading] = useState(false)
   const reviewRequested = useRef(false)
+
+  const [savedNovels,    setSavedNovels]    = useState<SavedNovel[]>(() => storage.getSavedNovels())
+  const [savedThisBook,  setSavedThisBook]  = useState(false)
+  const [toastMsg,       setToastMsg]       = useState('')
+  const [viewingNovel,   setViewingNovel]   = useState<SavedNovel | null>(null)
+
+  function buildNovelTitle(ds: NovelDiary[]): string {
+    const from = ds[0]?.date ?? ''
+    const to   = ds[ds.length - 1]?.date ?? ''
+    const fmt  = (d: string) => d.replace(/-/g, '.')
+    return from === to ? fmt(from) : `${fmt(from)} ~ ${fmt(to)}`
+  }
+
+  function showToast(msg: string) {
+    setToastMsg(msg)
+    setTimeout(() => setToastMsg(''), 2400)
+  }
+
+  function handleSaveNovel() {
+    if (savedThisBook || diaries.length === 0) return
+    const combined = diaries.map((d) => (d.title ? `[ ${d.title} ]\n\n` : '') + (d.content ?? '')).join('\n\n\n')
+    const coverImage = (() => {
+      const ki = diaries[0]?.keyImage
+      if (!ki) return null
+      return typeof ki === 'string' ? ki : (ki as { dataUrl: string }).dataUrl ?? null
+    })()
+    const novel: SavedNovel = {
+      id: `novel-${Date.now()}`,
+      title: buildNovelTitle(diaries),
+      content: combined,
+      readerReactions: reviews ? JSON.stringify(reviews) : null,
+      coverImage,
+      diaryDateFrom: diaries[0]?.date ?? '',
+      diaryDateTo:   diaries[diaries.length - 1]?.date ?? '',
+      createdAt: new Date().toISOString(),
+    }
+    storage.saveNovel(novel)
+    setSavedNovels(storage.getSavedNovels())
+    setSavedThisBook(true)
+    showToast('책장에 꽂혔어')
+  }
+
+  function handleDeleteNovel(id: string) {
+    storage.deleteNovel(id)
+    setSavedNovels(storage.getSavedNovels())
+  }
 
   const filteredCount = allDiaries.filter((d) => d.date && d.date >= dateFrom && d.date <= dateTo).length
 
@@ -413,6 +544,7 @@ export default function NovelPage() {
     setDiaries(filtered)
     setReviews(null)
     setReaderSeeds([])
+    setSavedThisBook(false)
     reviewRequested.current = false
 
     const pages: DiaryPage[] = []
@@ -518,6 +650,25 @@ export default function NovelPage() {
               className='modal-close' style={{ position:'absolute', top:12, right:14 }}
               title='닫기'>[ x ]</button>
             <div style={{ fontFamily:'var(--font-pixel)', fontSize: isMobile ? 11 : 13, color:'var(--white)', letterSpacing:'0.1em', marginBottom:22 }}>▸ 소설로 엮을 기간 선택</div>
+            {/* ── 책장 ── */}
+            {savedNovels.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontFamily:'var(--font-pixel)', fontSize:8, color:'var(--gray-4)', letterSpacing:'0.08em', marginBottom:10 }}>▸ 책장</div>
+                <div style={{ display:'flex', gap:8, overflowX:'auto', paddingBottom:8, WebkitOverflowScrolling:'touch' as React.CSSProperties['WebkitOverflowScrolling'] }}>
+                  {savedNovels.map((n) => {
+                    const seed = n.id.split('').reduce((s, c) => s + c.charCodeAt(0), 0)
+                    return (
+                      <div key={n.id} style={{ flexShrink:0, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}
+                        onClick={() => setViewingNovel(n)}>
+                        <PixelBookCover seed={seed} w={40} h={60} />
+                        <div style={{ fontFamily:'var(--font-pixel)', fontSize:6, color:'var(--gray-4)', textAlign:'center', maxWidth:44, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{n.title.split(' ~ ')[0]}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div style={{ height:1, background:'var(--gray-2)', marginTop:12, marginBottom:4 }} />
+              </div>
+            )}
             <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:16 }}>
               {(['week', 'month', 'all'] as const).map((t) => (
                 <button key={t} onClick={() => setPreset(t)}
@@ -575,7 +726,8 @@ export default function NovelPage() {
                 page={flatPage} side={side} allPages={allPages}
                 diaries={diaries} reviews={reviews} readerSeeds={readerSeeds}
                 reviewLoading={reviewLoading} onClose={() => { setShowPicker(true); setSpreads([]); setCurPage(0) }}
-                onRegen={() => { const prev = reviews; setReviews(null); setReaderSeeds([]); loadReviews(prev) }} />
+                onRegen={() => { const prev = reviews; setReviews(null); setReaderSeeds([]); loadReviews(prev) }}
+                onSave={handleSaveNovel} savedAlready={savedThisBook} />
             </div>
             <div style={{ display:'flex', alignItems:'center', gap:24, margin:'18px auto 40px', justifyContent:'center' }}>
               <button disabled={curPage === 0} onClick={() => navPage(-1)} className='nav-btn'
@@ -598,13 +750,15 @@ export default function NovelPage() {
                 page={spreads[curSpread].left} side='left' allPages={allPages}
                 diaries={diaries} reviews={reviews} readerSeeds={readerSeeds}
                 reviewLoading={reviewLoading} onClose={() => { setShowPicker(true); setSpreads([]) }}
-                onRegen={() => { const prev = reviews; setReviews(null); setReaderSeeds([]); loadReviews(prev) }} />
+                onRegen={() => { const prev = reviews; setReviews(null); setReaderSeeds([]); loadReviews(prev) }}
+                onSave={handleSaveNovel} savedAlready={savedThisBook} />
               <div style={{ width:8, flexShrink:0, background:'linear-gradient(90deg,#5a3e00 0%,#a06c00 45%,#5a3e00 100%)' }} />
               <BookPage
                 page={spreads[curSpread].right} side='right' allPages={allPages}
                 diaries={diaries} reviews={reviews} readerSeeds={readerSeeds}
                 reviewLoading={reviewLoading} onClose={() => { setShowPicker(true); setSpreads([]) }}
-                onRegen={() => { const prev = reviews; setReviews(null); setReaderSeeds([]); loadReviews(prev) }} />
+                onRegen={() => { const prev = reviews; setReviews(null); setReaderSeeds([]); loadReviews(prev) }}
+                onSave={handleSaveNovel} savedAlready={savedThisBook} />
             </div>
           </div>
           </div>
@@ -616,6 +770,22 @@ export default function NovelPage() {
               style={{ fontFamily:'var(--font-pixel)', fontSize:11, background:'#000', color: curSpread === spreads.length - 1 ? '#444' : 'var(--white)', border: curSpread === spreads.length - 1 ? '2px solid #333' : '2px solid var(--white)', padding:'10px 20px', cursor: curSpread === spreads.length - 1 ? 'not-allowed' : 'pointer', letterSpacing:'0.08em' }}>다음 ▶</button>
           </div>
         </div>
+      )}
+
+      {/* ── 저장 토스트 ── */}
+      {toastMsg && (
+        <div style={{ position:'fixed', bottom:32, left:'50%', transform:'translateX(-50%)', zIndex:999, background:'#1a1a1a', border:'2px solid #f5e6c8', color:'#f5e6c8', fontFamily:'var(--font-korean)', fontSize:14, padding:'10px 20px', letterSpacing:'0.04em', whiteSpace:'nowrap', boxShadow:'4px 4px 0 0 #333' }}>
+          {toastMsg}
+        </div>
+      )}
+
+      {/* ── 저장된 소설 뷰어 ── */}
+      {viewingNovel && (
+        <SavedNovelView
+          novel={viewingNovel}
+          onClose={() => setViewingNovel(null)}
+          onDelete={handleDeleteNovel}
+        />
       )}
 
       <style>{`

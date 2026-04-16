@@ -2,7 +2,7 @@
 import {
   type Badge, type Character, type CharacterProfile, type ChatMessage,
   type DiarySession, type KeyImage, type Kindling, type Letter,
-  type MediaAttachment, type NovelDiary, type StyleReference, type UserPrefs,
+  type MediaAttachment, type NovelDiary, type SavedNovel, type StyleReference, type UserPrefs,
 } from '@/types'
 
 // ── 키 상수 ──────────────────────────────────────────────────────────────
@@ -19,6 +19,7 @@ const K = {
   BADGES:       `${P}drawer-badges`,
   CHAR_PROFILE: `${P}drawer-char-profile`,
   LETTERS:      `${P}letters`,
+  SAVED_NOVELS: `${P}saved-novels`,
   kindlings:    (id: string) => `${P}kindlings:${id}`,
   keyImage:     (id: string) => `${P}key-image:${id}`,
   attachments:  (id: string) => `${P}attachments:${id}`,
@@ -273,4 +274,15 @@ export function markLetterRead(id: string): void {
 export function getTodayLetter(): Letter | null {
   const today = new Date().toISOString().slice(0, 10)
   return getLetters().find((l) => l.date === today) ?? null
+}
+
+// ── Saved Novels (책장) ────────────────────────────────────────────────────
+export function getSavedNovels(): SavedNovel[] { return read<SavedNovel[]>(K.SAVED_NOVELS) ?? [] }
+export function saveNovel(novel: SavedNovel): void {
+  const list = getSavedNovels().filter((n) => n.id !== novel.id)
+  list.unshift(novel)
+  write(K.SAVED_NOVELS, list.slice(0, 50)) // 최대 50편 보관
+}
+export function deleteNovel(id: string): void {
+  write(K.SAVED_NOVELS, getSavedNovels().filter((n) => n.id !== id))
 }
