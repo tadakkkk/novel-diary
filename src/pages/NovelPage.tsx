@@ -536,7 +536,7 @@ export default function NovelPage() {
   async function openBook() {
     const filtered = allDiaries
       .filter((d) => d.date && d.date >= dateFrom && d.date <= dateTo)
-      .sort((a, b) => (a.date ?? '') < (b.date ?? '') ? -1 : 1)
+      .sort((a, b) => (a.createdAt ?? '') < (b.createdAt ?? '') ? -1 : 1)
     if (!filtered.length) return
 
     setBuilding(true)
