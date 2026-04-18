@@ -88,16 +88,15 @@ jobs:
             archive
 
       # ── 빌드 산출물 위치 진단 ──────────────────────────────────────────────
-      - name: Find build artifacts
+      - name: Debug: Find build output
         run: |
-          echo "=== .xcarchive search ==="
-          find $GITHUB_WORKSPACE -name "*.xcarchive" 2>/dev/null || echo "xcarchive not found in GITHUB_WORKSPACE"
-          find /Users/runner -name "*.xcarchive" 2>/dev/null || echo "xcarchive not found in /Users/runner"
-
-          echo "=== .ipa search ==="
-          find $GITHUB_WORKSPACE -name "*.ipa" 2>/dev/null || echo "ipa not found in GITHUB_WORKSPACE"
-          find ~ -name "*.ipa" 2>/dev/null || echo "ipa not found in home"
-          find /Users/runner -name "*.ipa" 2>/dev/null || echo "ipa not found in /Users/runner"
+          echo "=== 전체 파일 검색 ==="
+          find /Users/runner/work/novel-diary -type f -name "*.ipa" 2>/dev/null
+          find /Users/runner/work/novel-diary -type d -name "*.xcarchive" 2>/dev/null
+          echo "=== DerivedData 확인 ==="
+          ls ~/Library/Developer/Xcode/DerivedData/ 2>/dev/null || echo "DerivedData 없음"
+          echo "=== build 폴더 확인 ==="
+          find /Users/runner/work/novel-diary/novel-diary/ios -type f 2>/dev/null | head -50
 
       # ── 서명된 IPA export ──────────────────────────────────────────────────
       - name: Export signed IPA
