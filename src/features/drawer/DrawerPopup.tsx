@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useMobile } from '@/hooks/useMobile'
+import { hasUnreadDeliveredLetter } from '@/services/storage'
 
 const DRAWER_BG      = '#0d0a07'
 const DRAWER_BORDER  = '#2a1e0f'
@@ -32,7 +33,7 @@ interface Props {
   onClose: () => void
 }
 
-function DrawerSlot({ slot, onNavigate }: { slot: SlotDef; onNavigate: (path: string) => void }) {
+function DrawerSlot({ slot, onNavigate, showUnreadDot }: { slot: SlotDef; onNavigate: (path: string) => void; showUnreadDot?: boolean }) {
   const [hovered, setHovered] = useState(false)
   const { isSmall } = useMobile()
 
@@ -97,6 +98,9 @@ function DrawerSlot({ slot, onNavigate }: { slot: SlotDef; onNavigate: (path: st
               <span style={{ width: 5, height: 5, borderRadius: '50%', background: ACCENT, flexShrink: 0 }} />
             </span>
           )}
+          {showUnreadDot && (
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: ACCENT, flexShrink: 0 }} />
+          )}
         </div>
         <div style={{
           fontFamily: 'var(--font-pixel)',
@@ -149,6 +153,11 @@ export function DrawerPopup({ onClose }: Props) {
   const location = useLocation()
   const { isMobile, isSmall } = useMobile()
   const initialPath = useRef(location.pathname)
+  const [hasUnread, setHasUnread] = useState(false)
+
+  useEffect(() => {
+    setHasUnread(hasUnreadDeliveredLetter())
+  }, [])
 
   // location이 바뀐 뒤에 닫기 — route 전환 render가 먼저, drawer 해제는 그 다음
   useEffect(() => {
@@ -220,7 +229,12 @@ export function DrawerPopup({ onClose }: Props) {
 
         {/* 슬롯 목록 */}
         {SLOTS.map((slot) => (
-          <DrawerSlot key={slot.num} slot={slot} onNavigate={handleNavigate} />
+          <DrawerSlot
+            key={slot.num}
+            slot={slot}
+            onNavigate={handleNavigate}
+            showUnreadDot={slot.num === '04' && hasUnread}
+          />
         ))}
 
         {/* 하단 바닥 */}

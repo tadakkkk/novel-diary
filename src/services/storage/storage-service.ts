@@ -275,6 +275,10 @@ export function getTodayLetter(): Letter | null {
   const today = new Date().toISOString().slice(0, 10)
   return getLetters().find((l) => l.date === today) ?? null
 }
+export function hasUnreadDeliveredLetter(): boolean {
+  const now = new Date()
+  return getLetters().some((l) => !l.read && new Date(l.arrivedAt) <= now)
+}
 
 // ── Saved Novels (책장) ────────────────────────────────────────────────────
 export function getSavedNovels(): SavedNovel[] { return read<SavedNovel[]>(K.SAVED_NOVELS) ?? [] }
