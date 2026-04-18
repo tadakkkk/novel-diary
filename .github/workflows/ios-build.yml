@@ -16,6 +16,9 @@ jobs:
       APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
       APPLE_PROVISIONING_PROFILE: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      ASC_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+      ASC_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+      ASC_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
 
     steps:
       - uses: actions/checkout@v4
@@ -35,7 +38,8 @@ jobs:
       - name: Sync Capacitor iOS
         run: npx cap sync ios
 
-      - name: Setup signing (Apple Developer 계정 필요)
+      # ── 서명 설정 (Apple Developer 계정 있을 때만) ──────────────────────────
+      - name: Setup signing
         if: ${{ env.APPLE_CERTIFICATE != '' }}
         run: |
           echo "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
@@ -46,9 +50,25 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
 
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "$APPLE_PROVISIONING_PROFILE" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+          echo "$APPLE_PROVISIONING_PROFILE" | base64 --decode \
+            > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
 
-      - name: Build (서명 없음)
+      # ── 서명 있는 빌드 (TestFlight 업로드용) ───────────────────────────────
+      - name: Build (signed)
+        if: ${{ env.APPLE_CERTIFICATE != '' }}
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -destination generic/platform=iOS \
+            -archivePath ${{ runner.temp }}/App.xcarchive \
+            -quiet \
+            archive
+
+      # ── 서명 없는 빌드 (개발/확인용) ───────────────────────────────────────
+      - name: Build (unsigned)
+        if: ${{ env.APPLE_CERTIFICATE == '' }}
         run: |
           xcodebuild \
             -project ios/App/App.xcodeproj \
@@ -62,19 +82,11 @@ jobs:
             -quiet \
             archive
 
-      - name: Export unsigned IPA (Apple Developer 계정 없이)
-        if: ${{ env.APPLE_TEAM_ID == '' }}
-        run: |
-          APP=$(find ${{ runner.temp }}/App.xcarchive/Products/Applications -name "*.app" | head -1)
-          mkdir -p ${{ runner.temp }}/ipa/Payload
-          cp -r "$APP" ${{ runner.temp }}/ipa/Payload/
-          cd ${{ runner.temp }}/ipa && zip -r App-unsigned.ipa Payload/
-          echo "Unsigned IPA created: ${{ runner.temp }}/ipa/App-unsigned.ipa"
-
-      - name: Export signed IPA (Apple Developer 계정 필요)
+      # ── 서명된 IPA export ──────────────────────────────────────────────────
+      - name: Export signed IPA
         if: ${{ env.APPLE_TEAM_ID != '' }}
         run: |
-          cat > /tmp/ExportOptions.plist <<EOF
+          cat > /tmp/ExportOptions.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
@@ -83,6 +95,10 @@ jobs:
             <string>app-store</string>
             <key>teamID</key>
             <string>${APPLE_TEAM_ID}</string>
+            <key>uploadBitcode</key>
+            <false/>
+            <key>uploadSymbols</key>
+            <true/>
           </dict>
           </plist>
           EOF
@@ -92,12 +108,60 @@ jobs:
             -exportOptionsPlist /tmp/ExportOptions.plist \
             -exportPath ${{ runner.temp }}/ipa
 
-      - name: Upload build artifact
+      # ── unsigned IPA 패키징 (Apple Developer 계정 없을 때 artifact용) ──────
+      - name: Package unsigned IPA
+        if: ${{ env.APPLE_TEAM_ID == '' }}
+        run: |
+          APP=$(find ${{ runner.temp }}/App.xcarchive/Products/Applications -name "*.app" | head -1)
+          mkdir -p ${{ runner.temp }}/ipa/Payload
+          cp -r "$APP" ${{ runner.temp }}/ipa/Payload/
+          cd ${{ runner.temp }}/ipa && zip -r App-unsigned.ipa Payload/
+          echo "Unsigned IPA: ${{ runner.temp }}/ipa/App-unsigned.ipa"
+
+      # ── .ipa 존재 확인 ─────────────────────────────────────────────────────
+      - name: Verify IPA
+        run: |
+          IPA=$(find ${{ runner.temp }}/ipa -name "*.ipa" | head -1)
+          if [ -z "$IPA" ]; then
+            echo "ERROR: .ipa file not found"
+            exit 1
+          fi
+          echo "IPA_PATH=$IPA" >> $GITHUB_ENV
+          ls -lh "$IPA"
+          echo "IPA verified: $IPA"
+
+      # ── TestFlight 업로드 (API 키 + 서명된 IPA 있을 때만) ──────────────────
+      - name: Upload to TestFlight
+        if: ${{ env.APPLE_TEAM_ID != '' && env.ASC_API_KEY_ID != '' }}
+        run: |
+          # API key .p8 파일 생성
+          echo "$ASC_API_KEY_BASE64" | base64 --decode > /tmp/AuthKey_${ASC_API_KEY_ID}.p8
+
+          # Fastlane api_key.json 생성
+          cat > /tmp/api_key.json << EOF
+          {
+            "key_id": "${ASC_API_KEY_ID}",
+            "issuer_id": "${ASC_API_ISSUER_ID}",
+            "key_filepath": "/tmp/AuthKey_${ASC_API_KEY_ID}.p8",
+            "duration": 1200,
+            "in_house": false
+          }
+          EOF
+
+          echo "Uploading $IPA_PATH to TestFlight..."
+          fastlane run upload_to_testflight \
+            api_key_path:"/tmp/api_key.json" \
+            ipa:"$IPA_PATH" \
+            skip_waiting_for_build_processing:true
+
+          echo "TestFlight upload complete"
+
+      # ── GitHub Artifacts 업로드 ────────────────────────────────────────────
+      - name: Upload IPA to Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ios-build-${{ github.sha }}
-          path: |
-            ${{ runner.temp }}/ipa/*.ipa
+          path: ${{ runner.temp }}/ipa/*.ipa
           if-no-files-found: warn
           retention-days: 7
