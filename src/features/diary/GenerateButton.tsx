@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useAppContext } from '@/App'
-import { isAnonQuotaExceeded } from '@/services/quota/quota-service'
-import { getSession } from '@/services/auth/auth-service'
+import { isQuotaExceeded } from '@/services/quota/quota-service'
 
 interface Props {
   visible: boolean
@@ -13,10 +12,7 @@ export function GenerateButton({ visible, sessionId }: Props) {
   const { showPaywall } = useAppContext()
 
   async function handleClick() {
-    if (import.meta.env.VITE_API_URL) {
-      const session = await getSession()
-      if (!session && isAnonQuotaExceeded()) { showPaywall(); return }
-    }
+    if (await isQuotaExceeded()) { showPaywall(); return }
     navigate(`/diary?session=${encodeURIComponent(sessionId)}`)
   }
 
