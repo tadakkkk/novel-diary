@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { type Character, type NovelDiary, type SavedNovel } from '@/types'
 import * as storage from '@/services/storage'
 import * as claude from '@/services/claude/claude-service'
@@ -293,10 +293,11 @@ function SavedNovelView({ novel, onClose, onDelete }: {
   )
 }
 
-function ReviewPage({ reviews, readerSeeds, loading, onRegen, onClose, onSave, savedAlready }: {
+function ReviewPage({ reviews, readerSeeds, loading, onRegen, onClose, onSave, savedAlready, savedMode, onDeleteSaved }: {
   reviews: ReviewResult; readerSeeds: number[]
   loading: boolean; onRegen: () => void; onClose: () => void
   onSave?: () => void; savedAlready?: boolean
+  savedMode?: boolean; onDeleteSaved?: () => void
 }) {
   if (loading) return (
     <div style={{ display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>
@@ -364,27 +365,37 @@ function ReviewPage({ reviews, readerSeeds, loading, onRegen, onClose, onSave, s
           )
         })}
       </div>
-      <div style={{ display:'flex', gap:8, marginTop:12, flexWrap:'wrap' }}>
-        <button onClick={onRegen} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#d4881e', border:'1px solid #d4881e', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>🔥 다른 독자 불러오기</button>
-        {onSave && (
-          <button onClick={onSave} disabled={savedAlready} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background: savedAlready ? '#111' : '#000', color: savedAlready ? '#555' : '#f5e6c8', border: savedAlready ? '1px solid #333' : '1px solid #f5e6c8', padding:'7px 12px', cursor: savedAlready ? 'not-allowed' : 'pointer', letterSpacing:'0.06em' }}>
-            {savedAlready ? '✓ 책장에 꽂혔어' : '📚 책장에 꽂기'}
-          </button>
-        )}
-        <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#888', border:'1px solid #444', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>책 덮기</button>
-      </div>
+      {savedMode ? (
+        <div style={{ display:'flex', gap:8, marginTop:12, flexWrap:'wrap' }}>
+          {onDeleteSaved && (
+            <button onClick={onDeleteSaved} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#c0392b', border:'1px solid #c0392b', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>삭제</button>
+          )}
+          <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#888', border:'1px solid #444', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>책 덮기</button>
+        </div>
+      ) : (
+        <div style={{ display:'flex', gap:8, marginTop:12, flexWrap:'wrap' }}>
+          <button onClick={onRegen} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#d4881e', border:'1px solid #d4881e', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>🔥 다른 독자 불러오기</button>
+          {onSave && (
+            <button onClick={onSave} disabled={savedAlready} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background: savedAlready ? '#111' : '#000', color: savedAlready ? '#555' : '#f5e6c8', border: savedAlready ? '1px solid #333' : '1px solid #f5e6c8', padding:'7px 12px', cursor: savedAlready ? 'not-allowed' : 'pointer', letterSpacing:'0.06em' }}>
+              {savedAlready ? '✓ 책장에 꽂혔어' : '📚 책장에 꽂기'}
+            </button>
+          )}
+          <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#888', border:'1px solid #444', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>책 덮기</button>
+        </div>
+      )}
     </div>
   )
 }
 
 // ── Page Component ─────────────────────────────────────────────────────────
 function BookPage({
-  page, side, allPages, diaries, reviews, readerSeeds, reviewLoading, onClose, onRegen, onSave, savedAlready,
+  page, side, allPages, diaries, reviews, readerSeeds, reviewLoading, onClose, onRegen, onSave, savedAlready, savedMode, onDeleteSaved,
 }: {
   page: DiaryPage; side: 'left' | 'right'; allPages: DiaryPage[]
   diaries: NovelDiary[]; reviews: ReviewResult; readerSeeds: number[]
   reviewLoading: boolean; onClose: () => void; onRegen: () => void
   onSave?: () => void; savedAlready?: boolean
+  savedMode?: boolean; onDeleteSaved?: () => void
 }) {
   const pageNum = (() => {
     if (page.type === 'cover-left' || page.type === 'cover-right' || page.type === 'blank' || page.type === 'review') return null
@@ -407,7 +418,7 @@ function BookPage({
       {page.type === 'diary-cont'  && <DiaryContPage page={page} pageNum={pageNum} />}
       {page.type === 'blank'       && <BlankPage />}
       {page.type === 'review'      && (
-        <ReviewPage reviews={reviews} readerSeeds={readerSeeds} loading={reviewLoading} onRegen={onRegen} onClose={onClose} onSave={onSave} savedAlready={savedAlready} />
+        <ReviewPage reviews={reviews} readerSeeds={readerSeeds} loading={reviewLoading} onRegen={onRegen} onClose={onClose} onSave={onSave} savedAlready={savedAlready} savedMode={savedMode} onDeleteSaved={onDeleteSaved} />
       )}
       {pageNum != null && page.type !== 'diary-first' && page.type !== 'diary-cont' && (
         <div style={{ ...numStyle, fontFamily:'var(--font-pixel)', fontSize:9, color:'#666', letterSpacing:'0.1em' }}>{pageNum}</div>
@@ -420,6 +431,7 @@ function BookPage({
 export default function NovelPage() {
   const navigate  = useNavigate()
   const isMobile  = useIsMobile()
+  const [searchParams] = useSearchParams()
 
   const allDiaries = storage.getDiaries()
     .filter((d) => d.content)
@@ -452,6 +464,10 @@ export default function NovelPage() {
   const [savedThisBook,  setSavedThisBook]  = useState(false)
   const [toastMsg,       setToastMsg]       = useState('')
   const [viewingNovel,   setViewingNovel]   = useState<SavedNovel | null>(null)
+
+  // 저장된 소설 열람 모드
+  const [savedMode,          setSavedMode]          = useState(false)
+  const [activeSavedNovelId, setActiveSavedNovelId] = useState<string | null>(null)
 
   function buildNovelTitle(ds: NovelDiary[]): string {
     const from = ds[0]?.date ?? ''
@@ -581,6 +597,78 @@ export default function NovelPage() {
     setBuilding(false)
   }
 
+  // ── 저장된 소설 열람 ────────────────────────────────────────────────────
+  async function openSavedBook(novel: SavedNovel) {
+    setBuilding(true)
+    setShowPicker(false)
+    setSavedMode(true)
+    setActiveSavedNovelId(novel.id)
+    reviewRequested.current = true  // 재생성 방지
+
+    // 저장된 독자 반응 복원
+    const parsedReviews: ReviewResult = novel.readerReactions
+      ? JSON.parse(novel.readerReactions) as ReviewResult
+      : null
+    setReviews(parsedReviews)
+    if ((parsedReviews as { comments?: unknown[] } | null)?.comments) {
+      const seed = novel.id.split('').reduce((s, c) => s + c.charCodeAt(0), 0)
+      setReaderSeeds(
+        (parsedReviews as { comments: unknown[] }).comments.map((_, i) => (seed + i * 7) % 1000)
+      )
+    } else {
+      setReaderSeeds([])
+    }
+
+    // 커버용 fake diary (날짜 범위 표시)
+    const fakeCoverDiaries: NovelDiary[] = [
+      { id: novel.id + '-a', content: '', date: novel.diaryDateFrom, title: novel.title, continuityContext: '', generationOptions: { perspective: '1인칭주인공', processingLevel: 3, styleReferenceIds: [] }, createdAt: novel.createdAt },
+      ...(novel.diaryDateFrom !== novel.diaryDateTo
+        ? [{ id: novel.id + '-b', content: '', date: novel.diaryDateTo, title: '', continuityContext: '', generationOptions: { perspective: '1인칭주인공', processingLevel: 3, styleReferenceIds: [] }, createdAt: novel.createdAt }]
+        : []),
+    ]
+
+    const fakeDiary: NovelDiary = {
+      id: novel.id, content: novel.content, date: novel.diaryDateFrom,
+      title: novel.title, continuityContext: '',
+      generationOptions: { perspective: '1인칭주인공', processingLevel: 3, styleReferenceIds: [] },
+      createdAt: novel.createdAt,
+    }
+    setDiaries(fakeCoverDiaries)
+
+    // 본문 페이지네이션
+    const chunks = await paginateText(novel.content, CONT_BODY_H, CONT_BODY_H)
+    if (chunks.length === 0) chunks.push('')
+    const pages: DiaryPage[] = chunks.map((text, ci) => ({
+      type: ci === 0 ? 'diary-first' : 'diary-cont',
+      diary: fakeDiary, text,
+      hasImage: false, imgUrl: null, hasChars: false, charNames: [],
+    } as DiaryPage))
+
+    const allP: DiaryPage[] = [{ type: 'cover-left' }, { type: 'cover-right' }, ...pages]
+    if (pages.length % 2 === 0) allP.push({ type: 'blank' })
+    allP.push({ type: 'review' })
+    const built: Spread[] = []
+    for (let i = 0; i < allP.length; i += 2) {
+      built.push({ left: allP[i], right: allP[i + 1] ?? { type: 'blank' } })
+    }
+
+    setAllPages(pages)
+    setSpreads(built)
+    setCurSpread(0)
+    setCurPage(0)
+    setSavedThisBook(true)
+    setBuilding(false)
+  }
+
+  // savedId URL param 감지 → 자동 오픈
+  useEffect(() => {
+    const savedId = searchParams.get('savedId')
+    if (!savedId) return
+    const novel = storage.getSavedNovels().find((n) => n.id === savedId)
+    if (novel) void openSavedBook(novel)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   function navSpread(dir: number) {
     const next = curSpread + dir
     if (next < 0 || next >= spreads.length) return
@@ -637,7 +725,7 @@ export default function NovelPage() {
       <header style={{ position:'fixed', top:0, left:0, right:0, zIndex:50, height:52, borderBottom:'2px solid var(--white)', background:'#000', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 20px' }}>
         <button onClick={() => navigate('/timeline')} style={{ fontFamily:'var(--font-pixel)', fontSize:11, color:'var(--gray-4)', background:'none', border:'none', cursor:'pointer', letterSpacing:'0.08em' }}>◀ 타임라인</button>
         <span style={{ fontFamily:'var(--font-pixel)', fontSize:13, color:'var(--white)', letterSpacing:'0.1em' }}>나의 이야기</span>
-        {!showPicker
+        {!showPicker && !savedMode
           ? <button onClick={() => { setShowPicker(true); setSpreads([]) }} style={{ fontFamily:'var(--font-pixel)', fontSize:10, background:'none', border:'1px solid var(--gray-3)', color:'var(--gray-4)', padding:'5px 10px', cursor:'pointer', letterSpacing:'0.06em' }}>[기간 변경]</button>
           : <div style={{ width:80 }} />}
       </header>
@@ -650,25 +738,6 @@ export default function NovelPage() {
               className='modal-close' style={{ position:'absolute', top:12, right:14 }}
               title='닫기'>[ x ]</button>
             <div style={{ fontFamily:'var(--font-pixel)', fontSize: isMobile ? 11 : 13, color:'var(--white)', letterSpacing:'0.1em', marginBottom:22 }}>▸ 소설로 엮을 기간 선택</div>
-            {/* ── 책장 ── */}
-            {savedNovels.length > 0 && (
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontFamily:'var(--font-pixel)', fontSize:8, color:'var(--gray-4)', letterSpacing:'0.08em', marginBottom:10 }}>▸ 책장</div>
-                <div style={{ display:'flex', gap:8, overflowX:'auto', paddingBottom:8, WebkitOverflowScrolling:'touch' as React.CSSProperties['WebkitOverflowScrolling'] }}>
-                  {savedNovels.map((n) => {
-                    const seed = n.id.split('').reduce((s, c) => s + c.charCodeAt(0), 0)
-                    return (
-                      <div key={n.id} style={{ flexShrink:0, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}
-                        onClick={() => setViewingNovel(n)}>
-                        <PixelBookCover seed={seed} w={40} h={60} />
-                        <div style={{ fontFamily:'var(--font-pixel)', fontSize:6, color:'var(--gray-4)', textAlign:'center', maxWidth:44, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{n.title.split(' ~ ')[0]}</div>
-                      </div>
-                    )
-                  })}
-                </div>
-                <div style={{ height:1, background:'var(--gray-2)', marginTop:12, marginBottom:4 }} />
-              </div>
-            )}
             <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:16 }}>
               {(['week', 'month', 'all'] as const).map((t) => (
                 <button key={t} onClick={() => setPreset(t)}
@@ -725,9 +794,12 @@ export default function NovelPage() {
               <BookPage
                 page={flatPage} side={side} allPages={allPages}
                 diaries={diaries} reviews={reviews} readerSeeds={readerSeeds}
-                reviewLoading={reviewLoading} onClose={() => { setShowPicker(true); setSpreads([]); setCurPage(0) }}
-                onRegen={() => { const prev = reviews; setReviews(null); setReaderSeeds([]); loadReviews(prev) }}
-                onSave={handleSaveNovel} savedAlready={savedThisBook} />
+                reviewLoading={reviewLoading}
+                onClose={() => { setSavedMode(false); setActiveSavedNovelId(null); if (savedMode) { setSpreads([]); navigate('/story') } else { setShowPicker(true); setSpreads([]); setCurPage(0) } }}
+                onRegen={() => { if (!savedMode) { const prev = reviews; setReviews(null); setReaderSeeds([]); loadReviews(prev) } }}
+                onSave={savedMode ? undefined : handleSaveNovel} savedAlready={savedThisBook}
+                savedMode={savedMode}
+                onDeleteSaved={savedMode && activeSavedNovelId ? () => { handleDeleteNovel(activeSavedNovelId); setSavedMode(false); setActiveSavedNovelId(null); setSpreads([]); navigate('/story') } : undefined} />
             </div>
             <div style={{ display:'flex', alignItems:'center', gap:24, margin:'18px auto 40px', justifyContent:'center' }}>
               <button disabled={curPage === 0} onClick={() => navPage(-1)} className='nav-btn'
@@ -749,16 +821,22 @@ export default function NovelPage() {
               <BookPage
                 page={spreads[curSpread].left} side='left' allPages={allPages}
                 diaries={diaries} reviews={reviews} readerSeeds={readerSeeds}
-                reviewLoading={reviewLoading} onClose={() => { setShowPicker(true); setSpreads([]) }}
-                onRegen={() => { const prev = reviews; setReviews(null); setReaderSeeds([]); loadReviews(prev) }}
-                onSave={handleSaveNovel} savedAlready={savedThisBook} />
+                reviewLoading={reviewLoading}
+                onClose={() => { setSavedMode(false); setActiveSavedNovelId(null); if (savedMode) { setSpreads([]); navigate('/story') } else { setShowPicker(true); setSpreads([]) } }}
+                onRegen={() => { if (!savedMode) { const prev = reviews; setReviews(null); setReaderSeeds([]); loadReviews(prev) } }}
+                onSave={savedMode ? undefined : handleSaveNovel} savedAlready={savedThisBook}
+                savedMode={savedMode}
+                onDeleteSaved={savedMode && activeSavedNovelId ? () => { handleDeleteNovel(activeSavedNovelId); setSavedMode(false); setActiveSavedNovelId(null); setSpreads([]); navigate('/story') } : undefined} />
               <div style={{ width:8, flexShrink:0, background:'linear-gradient(90deg,#5a3e00 0%,#a06c00 45%,#5a3e00 100%)' }} />
               <BookPage
                 page={spreads[curSpread].right} side='right' allPages={allPages}
                 diaries={diaries} reviews={reviews} readerSeeds={readerSeeds}
-                reviewLoading={reviewLoading} onClose={() => { setShowPicker(true); setSpreads([]) }}
-                onRegen={() => { const prev = reviews; setReviews(null); setReaderSeeds([]); loadReviews(prev) }}
-                onSave={handleSaveNovel} savedAlready={savedThisBook} />
+                reviewLoading={reviewLoading}
+                onClose={() => { setSavedMode(false); setActiveSavedNovelId(null); if (savedMode) { setSpreads([]); navigate('/story') } else { setShowPicker(true); setSpreads([]) } }}
+                onRegen={() => { if (!savedMode) { const prev = reviews; setReviews(null); setReaderSeeds([]); loadReviews(prev) } }}
+                onSave={savedMode ? undefined : handleSaveNovel} savedAlready={savedThisBook}
+                savedMode={savedMode}
+                onDeleteSaved={savedMode && activeSavedNovelId ? () => { handleDeleteNovel(activeSavedNovelId); setSavedMode(false); setActiveSavedNovelId(null); setSpreads([]); navigate('/story') } : undefined} />
             </div>
           </div>
           </div>

@@ -9,6 +9,7 @@ import { isAnonQuotaExceeded } from '@/services/quota/quota-service'
 import { getSession } from '@/services/auth/auth-service'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { AvatarCanvas } from '@/components/ui/AvatarCanvas'
+import { useMobile } from '@/hooks/useMobile'
 
 const LV_LABELS: Record<number, string> = { 1:'SUBTLE', 2:'CALM', 3:'NORMAL', 4:'DRAMATIC', 5:'INTENSE' }
 
@@ -115,6 +116,7 @@ export default function DiaryPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const { showPaywall } = useAppContext()
+  const { isMobile } = useMobile()
 
   // ── 초기 상태 로드 ─────────────────────────────────────────────────────
   const sessionId     = params.get('session') ?? ''
@@ -345,10 +347,10 @@ export default function DiaryPage() {
         </div>
       </header>
 
-      <div className='diary-grid' style={{ minHeight:'100vh', paddingTop:52, display:'grid', gridTemplateColumns:'1fr 300px', height:'100vh', position:'relative', zIndex:1 }}>
+      <div className='diary-grid' style={{ minHeight:'100vh', paddingTop:52, display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 300px', height: isMobile ? 'auto' : '100vh', position:'relative', zIndex:1 }}>
 
         {/* ── RIGHT: Options Panel ── */}
-        <aside className='diary-aside' style={{ order:2, borderLeft:'3px solid var(--white)', height:'calc(100vh - 52px)', position:'sticky', top:52, overflowY:'auto', padding:'16px 14px', display:'flex', flexDirection:'column', gap:18, background:'var(--black)' }}>
+        <aside className='diary-aside' style={{ order: isMobile ? 1 : 2, borderLeft: isMobile ? 'none' : '3px solid var(--white)', borderBottom: isMobile ? '2px solid var(--white)' : 'none', height: isMobile ? 'auto' : 'calc(100vh - 52px)', position: isMobile ? 'static' : 'sticky', top: isMobile ? undefined : 52, overflowY: isMobile ? 'visible' : 'auto', padding:'16px 14px', display:'flex', flexDirection:'column', gap:18, background:'var(--black)' }}>
 
           {/* Weather */}
           <div>
@@ -426,7 +428,7 @@ export default function DiaryPage() {
           </div>
 
           {/* Generate button */}
-          <div style={{ marginTop:'auto' }}>
+          <div style={{ marginTop: isMobile ? 4 : 'auto' }}>
             <button className='gen-btn' disabled={status === 'generating'} onClick={startGeneration}>
               ▶ GENERATE DIARY ◀
             </button>
@@ -434,8 +436,8 @@ export default function DiaryPage() {
         </aside>
 
         {/* ── LEFT: Result Panel ── */}
-        <main className='diary-main' style={{ order:1, padding:'32px 40px', height:'calc(100vh - 52px)', overflowY:'auto', background:'var(--black)' }}>
-          {status === 'idle' && (
+        <main className='diary-main' style={{ order: isMobile ? 2 : 1, padding: isMobile ? '20px 16px' : '32px 40px', height: isMobile ? 'auto' : 'calc(100vh - 52px)', overflowY: isMobile ? 'visible' : 'auto', background:'var(--black)' }}>
+          {status === 'idle' && !isMobile && (
             <div className='diary-empty'>
               <div className='de-ascii'>▒▒▒▒▒<br />░░░░░<br />▒▒▒▒▒</div>
               <div className='de-txt'>SET OPTIONS<br />PRESS GENERATE</div>
