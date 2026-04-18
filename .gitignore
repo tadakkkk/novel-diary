@@ -22,3 +22,10 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+
+# iOS build artifacts
+ios/App/Pods/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/*.xcarchive
+*.ipa
+DerivedData/
