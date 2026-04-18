@@ -62,7 +62,16 @@ jobs:
             -quiet \
             archive
 
-      - name: Export IPA (Apple Developer 계정 필요)
+      - name: Export unsigned IPA (Apple Developer 계정 없이)
+        if: ${{ env.APPLE_TEAM_ID == '' }}
+        run: |
+          APP=$(find ${{ runner.temp }}/App.xcarchive/Products/Applications -name "*.app" | head -1)
+          mkdir -p ${{ runner.temp }}/ipa/Payload
+          cp -r "$APP" ${{ runner.temp }}/ipa/Payload/
+          cd ${{ runner.temp }}/ipa && zip -r App-unsigned.ipa Payload/
+          echo "Unsigned IPA created: ${{ runner.temp }}/ipa/App-unsigned.ipa"
+
+      - name: Export signed IPA (Apple Developer 계정 필요)
         if: ${{ env.APPLE_TEAM_ID != '' }}
         run: |
           cat > /tmp/ExportOptions.plist <<EOF
@@ -84,11 +93,11 @@ jobs:
             -exportPath ${{ runner.temp }}/ipa
 
       - name: Upload build artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ios-build-${{ github.sha }}
           path: |
-            ${{ runner.temp }}/App.xcarchive
             ${{ runner.temp }}/ipa/*.ipa
           if-no-files-found: warn
           retention-days: 7
