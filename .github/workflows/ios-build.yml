@@ -87,6 +87,18 @@ jobs:
             -quiet \
             archive
 
+      # ── 빌드 산출물 위치 진단 ──────────────────────────────────────────────
+      - name: Find build artifacts
+        run: |
+          echo "=== .xcarchive search ==="
+          find $GITHUB_WORKSPACE -name "*.xcarchive" 2>/dev/null || echo "xcarchive not found in GITHUB_WORKSPACE"
+          find /Users/runner -name "*.xcarchive" 2>/dev/null || echo "xcarchive not found in /Users/runner"
+
+          echo "=== .ipa search ==="
+          find $GITHUB_WORKSPACE -name "*.ipa" 2>/dev/null || echo "ipa not found in GITHUB_WORKSPACE"
+          find ~ -name "*.ipa" 2>/dev/null || echo "ipa not found in home"
+          find /Users/runner -name "*.ipa" 2>/dev/null || echo "ipa not found in /Users/runner"
+
       # ── 서명된 IPA export ──────────────────────────────────────────────────
       - name: Export signed IPA
         if: ${{ env.APPLE_TEAM_ID != '' }}
