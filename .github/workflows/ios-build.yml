@@ -134,27 +134,32 @@ jobs:
       - name: Upload to TestFlight
         if: ${{ env.APPLE_TEAM_ID != '' && env.ASC_API_KEY_ID != '' }}
         run: |
-          # API key .p8 파일 생성
-          echo "$ASC_API_KEY_BASE64" | base64 --decode > /tmp/AuthKey_${ASC_API_KEY_ID}.p8
+          echo "=== TestFlight Upload Start ==="
+          echo "IPA: $IPA_PATH"
+          echo "API Key ID: $ASC_API_KEY_ID"
+          echo "Issuer ID: $ASC_API_ISSUER_ID"
 
-          # Fastlane api_key.json 생성
-          cat > /tmp/api_key.json << EOF
-          {
-            "key_id": "${ASC_API_KEY_ID}",
-            "issuer_id": "${ASC_API_ISSUER_ID}",
-            "key_filepath": "/tmp/AuthKey_${ASC_API_KEY_ID}.p8",
-            "duration": 1200,
-            "in_house": false
-          }
-          EOF
+          # .p8 키 파일을 altool 기본 탐색 경로에 배치
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$ASC_API_KEY_BASE64" | base64 --decode \
+            > ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
+          echo "API key file written."
 
-          echo "Uploading $IPA_PATH to TestFlight..."
-          fastlane run upload_to_testflight \
-            api_key_path:"/tmp/api_key.json" \
-            ipa:"$IPA_PATH" \
-            skip_waiting_for_build_processing:true
+          # xcrun altool로 App Store Connect 업로드
+          xcrun altool --upload-app \
+            --type ios \
+            --file "$IPA_PATH" \
+            --apiKey "$ASC_API_KEY_ID" \
+            --apiIssuer "$ASC_API_ISSUER_ID" \
+            --verbose 2>&1
 
-          echo "TestFlight upload complete"
+          UPLOAD_EXIT=$?
+          if [ $UPLOAD_EXIT -eq 0 ]; then
+            echo "=== SUCCESS: TestFlight upload completed ==="
+          else
+            echo "=== FAILED: TestFlight upload failed (exit $UPLOAD_EXIT) ==="
+            exit $UPLOAD_EXIT
+          fi
 
       # ── GitHub Artifacts 업로드 ────────────────────────────────────────────
       - name: Upload IPA to Artifacts
