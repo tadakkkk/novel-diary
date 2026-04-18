@@ -215,51 +215,6 @@ function BlankPage() {
 
 type ReviewResult = Awaited<ReturnType<typeof claude.generateReviews>>
 
-// ── 픽셀 책 커버 (NovelPage 내부 사용 없음 — StoryTab으로 이동됨) ────────
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function PixelBookCover({ seed, w = 40, h = 60 }: { seed: number; w?: number; h?: number }) {
-  const ref = useRef<HTMLCanvasElement>(null)
-  useEffect(() => {
-    const canvas = ref.current
-    if (!canvas) return
-    const SC = 2
-    canvas.width = w * SC; canvas.height = h * SC
-    const ctx = canvas.getContext('2d')!
-    ctx.imageSmoothingEnabled = false
-    const rng = (n: number) => { let s = (seed * 9301 + n * 49297) % 233280; return s / 233280 }
-    const PALETTES = [
-      ['#8B1A1A','#C0392B','#E74C3C'],
-      ['#1A3A8B','#2980B9','#5DADE2'],
-      ['#1A6B3A','#27AE60','#58D68D'],
-      ['#6B3A1A','#D4881E','#F0C050'],
-      ['#4A1A6B','#8E44AD','#C39BD3'],
-      ['#1A5A6B','#17A589','#4ECDC4'],
-    ]
-    const pal = PALETTES[Math.floor(rng(1) * PALETTES.length)]
-    const px = (x: number, y: number, c: string) => {
-      ctx.fillStyle = c; ctx.fillRect(x * SC, y * SC, SC, SC)
-    }
-    // 배경
-    ctx.fillStyle = pal[0]; ctx.fillRect(0, 0, canvas.width, canvas.height)
-    // 제목 영역
-    ctx.fillStyle = pal[1]
-    for (let x = 2; x < w - 2; x++) for (let y = 4; y < 14; y++) px(x, y, pal[1])
-    // 패턴
-    for (let i = 0; i < 6; i++) {
-      const bx = Math.floor(rng(i * 2 + 10) * (w - 6)) + 2
-      const by = Math.floor(rng(i * 2 + 11) * (h - 20)) + 16
-      const bs = Math.floor(rng(i * 3) * 4) + 2
-      ctx.fillStyle = pal[2]; ctx.fillRect(bx * SC, by * SC, bs * SC, bs * SC)
-    }
-    // 세로 선
-    ctx.fillStyle = pal[2]
-    for (let y = 0; y < h; y++) { px(0, y, pal[2]); px(1, y, pal[1]) }
-    // 가로선 장식
-    for (let x = 2; x < w - 2; x++) { px(x, 15, pal[2]); px(x, h - 4, pal[2]) }
-  }, [seed, w, h])
-  return <canvas ref={ref} style={{ width: w, height: h, imageRendering: 'pixelated', display: 'block', cursor: 'pointer' }} />
-}
-
 // ── 저장된 소설 뷰어 ──────────────────────────────────────────────────────
 function SavedNovelView({ novel, onClose, onDelete }: {
   novel: SavedNovel; onClose: () => void; onDelete: (id: string) => void
