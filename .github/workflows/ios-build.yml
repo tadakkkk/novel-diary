@@ -7,6 +7,7 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  OUTPUT_PATH: ${{ github.workspace }}/build/output
 
 jobs:
   build:
@@ -38,7 +39,11 @@ jobs:
       - name: Sync Capacitor iOS
         run: npx cap sync ios
 
-      # ── 서명 설정 (Apple Developer 계정 있을 때만) ──────────────────────────
+      # ── 출력 디렉토리 생성 ──────────────────────────────────────────────────
+      - name: Prepare output directory
+        run: mkdir -p $GITHUB_WORKSPACE/build/output
+
+      # ── 서명 설정 ───────────────────────────────────────────────────────────
       - name: Setup signing
         if: ${{ env.APPLE_CERTIFICATE != '' }}
         run: |
@@ -53,7 +58,7 @@ jobs:
           echo "$APPLE_PROVISIONING_PROFILE" | base64 --decode \
             > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
 
-      # ── 서명 있는 빌드 (TestFlight 업로드용) ───────────────────────────────
+      # ── 서명 있는 빌드 ──────────────────────────────────────────────────────
       - name: Build (signed)
         if: ${{ env.APPLE_CERTIFICATE != '' }}
         run: |
@@ -62,11 +67,11 @@ jobs:
             -scheme App \
             -configuration Release \
             -destination generic/platform=iOS \
-            -archivePath ${{ runner.temp }}/App.xcarchive \
+            -archivePath $GITHUB_WORKSPACE/build/App.xcarchive \
             -quiet \
             archive
 
-      # ── 서명 없는 빌드 (개발/확인용) ───────────────────────────────────────
+      # ── 서명 없는 빌드 ──────────────────────────────────────────────────────
       - name: Build (unsigned)
         if: ${{ env.APPLE_CERTIFICATE == '' }}
         run: |
@@ -75,7 +80,7 @@ jobs:
             -scheme App \
             -configuration Release \
             -destination generic/platform=iOS \
-            -archivePath ${{ runner.temp }}/App.xcarchive \
+            -archivePath $GITHUB_WORKSPACE/build/App.xcarchive \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
@@ -104,64 +109,55 @@ jobs:
           EOF
 
           xcodebuild -exportArchive \
-            -archivePath ${{ runner.temp }}/App.xcarchive \
+            -archivePath $GITHUB_WORKSPACE/build/App.xcarchive \
             -exportOptionsPlist /tmp/ExportOptions.plist \
-            -exportPath ${{ runner.temp }}/ipa
+            -exportPath $GITHUB_WORKSPACE/build/output
 
-      # ── unsigned IPA 패키징 (Apple Developer 계정 없을 때 artifact용) ──────
+      # ── unsigned IPA 패키징 ─────────────────────────────────────────────────
       - name: Package unsigned IPA
         if: ${{ env.APPLE_TEAM_ID == '' }}
         run: |
-          APP=$(find ${{ runner.temp }}/App.xcarchive/Products/Applications -name "*.app" | head -1)
-          mkdir -p ${{ runner.temp }}/ipa/Payload
-          cp -r "$APP" ${{ runner.temp }}/ipa/Payload/
-          cd ${{ runner.temp }}/ipa && zip -r App-unsigned.ipa Payload/
-          echo "Unsigned IPA: ${{ runner.temp }}/ipa/App-unsigned.ipa"
+          APP=$(find $GITHUB_WORKSPACE/build/App.xcarchive/Products/Applications -name "*.app" | head -1)
+          mkdir -p $GITHUB_WORKSPACE/build/output/Payload
+          cp -r "$APP" $GITHUB_WORKSPACE/build/output/Payload/
+          cd $GITHUB_WORKSPACE/build/output && zip -r App-unsigned.ipa Payload/
+          rm -rf $GITHUB_WORKSPACE/build/output/Payload
 
-      # ── .ipa 실제 경로 탐색 ────────────────────────────────────────────────
-      - name: Find IPA
+      # ── .ipa 확인 ──────────────────────────────────────────────────────────
+      - name: Verify IPA
         run: |
-          echo "=== Searching for .ipa files ==="
-          echo "-- runner.temp --"
-          find ${{ runner.temp }} -name "*.ipa" 2>/dev/null || true
-          echo "-- /Users/runner/work --"
-          find /Users/runner/work -name "*.ipa" 2>/dev/null || true
+          echo "=== IPA search in $GITHUB_WORKSPACE/build ==="
+          find $GITHUB_WORKSPACE/build -name "*.ipa" 2>/dev/null
 
-          IPA=$(find ${{ runner.temp }} -name "*.ipa" 2>/dev/null | head -1)
+          IPA=$(find $GITHUB_WORKSPACE/build/output -name "*.ipa" | head -1)
           if [ -z "$IPA" ]; then
-            IPA=$(find /Users/runner/work -name "*.ipa" 2>/dev/null | head -1)
-          fi
-
-          if [ -z "$IPA" ]; then
-            echo "ERROR: .ipa file not found anywhere"
+            echo "ERROR: .ipa not found in $GITHUB_WORKSPACE/build/output"
             exit 1
           fi
-
-          echo "IPA found: $IPA"
+          echo "IPA verified: $IPA"
           ls -lh "$IPA"
-          echo "IPA_PATH=$IPA" >> $GITHUB_ENV
 
       # ── TestFlight 업로드 ──────────────────────────────────────────────────
       - name: Upload to TestFlight
         run: |
+          IPA=$(find $GITHUB_WORKSPACE/build/output -name "*.ipa" | head -1)
           echo "=== TestFlight Upload Start ==="
-          echo "IPA_PATH : $IPA_PATH"
-          echo "API Key ID: $ASC_API_KEY_ID"
-          echo "Issuer ID : $ASC_API_ISSUER_ID"
+          echo "IPA      : $IPA"
+          echo "Key ID   : $ASC_API_KEY_ID"
+          echo "Issuer ID: $ASC_API_ISSUER_ID"
 
-          if [ ! -f "$IPA_PATH" ]; then
-            echo "ERROR: IPA not found at $IPA_PATH"
+          if [ ! -f "$IPA" ]; then
+            echo "ERROR: IPA not found"
             exit 1
           fi
 
           mkdir -p ~/.appstoreconnect/private_keys
           echo "$ASC_API_KEY_BASE64" | base64 --decode \
             > ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
-          echo "API key file written."
 
           xcrun altool --upload-app \
             --type ios \
-            --file "$IPA_PATH" \
+            --file "$IPA" \
             --apiKey "$ASC_API_KEY_ID" \
             --apiIssuer "$ASC_API_ISSUER_ID" \
             --verbose 2>&1
@@ -180,6 +176,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-build-${{ github.sha }}
-          path: ${{ env.IPA_PATH }}
+          path: ${{ github.workspace }}/build/output/*.ipa
           if-no-files-found: warn
           retention-days: 7
