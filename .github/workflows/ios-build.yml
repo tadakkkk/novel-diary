@@ -130,9 +130,8 @@ jobs:
           ls -lh "$IPA"
           echo "IPA verified: $IPA"
 
-      # ── TestFlight 업로드 (API 키 + 서명된 IPA 있을 때만) ──────────────────
+      # ── TestFlight 업로드 ──────────────────────────────────────────────────
       - name: Upload to TestFlight
-        if: ${{ env.APPLE_TEAM_ID != '' && env.ASC_API_KEY_ID != '' }}
         run: |
           echo "=== TestFlight Upload Start ==="
           echo "IPA: $IPA_PATH"
