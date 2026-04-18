@@ -55,7 +55,7 @@ export function StoryTab() {
 
   return (
     <div style={{ padding: '20px 18px 32px' }}>
-      <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--fire-amb)', letterSpacing: '0.1em', marginBottom: 16 }}>► 나의 이야기</div>
+      <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--fire-amb)', letterSpacing: '0.1em', marginBottom: 16 }}>► 주인공의 이야기</div>
 
       {diaries.length === 0 ? (
         <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--text-off)', lineHeight: 1.8, marginBottom: 20 }}>
@@ -87,7 +87,7 @@ export function StoryTab() {
         style={{ fontSize: 10, padding: '10px 18px' }}
         onClick={() => navigate('/novel')}
       >
-        ▸ 나의 이야기 열기
+        ▸ 주인공의 이야기 열기
       </button>
 
       {/* ── 책장 ── */}

@@ -144,7 +144,7 @@ function CoverPage({ diaries, onClose }: { diaries: NovelDiary[]; onClose: () =>
   return (
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', height:'100%' }}>
       <div style={{ fontSize:44, marginBottom:18 }}>🔥</div>
-      <div style={{ fontFamily:"'Noto Serif KR',serif", fontWeight:700, fontSize:20, color:'#d4881e', letterSpacing:'0.06em', marginBottom:10 }}>나의 이야기</div>
+      <div style={{ fontFamily:"'Noto Serif KR',serif", fontWeight:700, fontSize:20, color:'#d4881e', letterSpacing:'0.06em', marginBottom:10 }}>주인공의 이야기</div>
       <div style={{ fontFamily:"'Nanum Myeongjo',serif", fontSize:14, color:'#888', marginBottom:6 }}>{count}편의 일기</div>
       <div style={{ fontFamily:'var(--font-pixel)', fontSize:9, color:'#555', letterSpacing:'0.08em', marginBottom:24 }}>{period}</div>
       <div style={{ width:48, height:1, background:'#d4881e', margin:'0 auto 22px' }} />
@@ -658,8 +658,8 @@ export default function NovelPage() {
     <>
       <PixelStars />
       <header style={{ position:'fixed', top:0, left:0, right:0, zIndex:50, height:52, borderBottom:'2px solid var(--white)', background:'#000', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 20px' }}>
-        <button onClick={() => navigate('/timeline')} style={{ fontFamily:'var(--font-pixel)', fontSize:11, color:'var(--gray-4)', background:'none', border:'none', cursor:'pointer', letterSpacing:'0.08em' }}>◀ 타임라인</button>
-        <span style={{ fontFamily:'var(--font-pixel)', fontSize:13, color:'var(--white)', letterSpacing:'0.1em' }}>나의 이야기</span>
+        <button onClick={() => navigate(-1)} style={{ fontFamily:'var(--font-pixel)', fontSize:11, color:'var(--gray-4)', background:'none', border:'none', cursor:'pointer', letterSpacing:'0.08em' }}>◀ 이전</button>
+        <span style={{ fontFamily:'var(--font-pixel)', fontSize:13, color:'var(--white)', letterSpacing:'0.1em' }}>주인공의 이야기</span>
         <div style={{ width:80 }} />
       </header>
       <div style={{ paddingTop:52, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', minHeight:'100vh', fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', letterSpacing:'0.08em', textAlign:'center', lineHeight:2.8 }}>
@@ -676,8 +676,8 @@ export default function NovelPage() {
 
       {/* ── Header ── */}
       <header style={{ position:'fixed', top:0, left:0, right:0, zIndex:50, height:52, borderBottom:'2px solid var(--white)', background:'#000', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 20px' }}>
-        <button onClick={() => navigate('/timeline')} style={{ fontFamily:'var(--font-pixel)', fontSize:11, color:'var(--gray-4)', background:'none', border:'none', cursor:'pointer', letterSpacing:'0.08em' }}>◀ 타임라인</button>
-        <span style={{ fontFamily:'var(--font-pixel)', fontSize:13, color:'var(--white)', letterSpacing:'0.1em' }}>나의 이야기</span>
+        <button onClick={() => navigate(-1)} style={{ fontFamily:'var(--font-pixel)', fontSize:11, color:'var(--gray-4)', background:'none', border:'none', cursor:'pointer', letterSpacing:'0.08em' }}>◀ 이전</button>
+        <span style={{ fontFamily:'var(--font-pixel)', fontSize:13, color:'var(--white)', letterSpacing:'0.1em' }}>주인공의 이야기</span>
         {!showPicker && !savedMode
           ? <button onClick={() => { setShowPicker(true); setSpreads([]) }} style={{ fontFamily:'var(--font-pixel)', fontSize:10, background:'none', border:'1px solid var(--gray-3)', color:'var(--gray-4)', padding:'5px 10px', cursor:'pointer', letterSpacing:'0.06em' }}>[기간 변경]</button>
           : <div style={{ width:80 }} />}
