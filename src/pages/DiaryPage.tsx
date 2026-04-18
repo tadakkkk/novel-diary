@@ -168,6 +168,7 @@ export default function DiaryPage() {
   const isGenerating  = useRef(false)
   const abortCtrl     = useRef<AbortController | null>(null)
   const editTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const resultRef       = useRef<HTMLDivElement>(null)
 
   // 미저장 상태로 이탈 시 브라우저 경고 (탭 닫기/새로고침)
   useEffect(() => {
@@ -176,6 +177,18 @@ export default function DiaryPage() {
     window.addEventListener('beforeunload', handler)
     return () => window.removeEventListener('beforeunload', handler)
   }, [status, isSaved])
+
+  // 모바일 자동 스크롤: 생성 시작 → 하단, 생성 완료 → 결과 최상단
+  useEffect(() => {
+    if (!isMobile) return
+    if (status === 'generating') {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+    } else if (status === 'done') {
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 50)
+    }
+  }, [status, isMobile])
 
   function safeNavigate(path: string) {
     if (status === 'done' && !isSaved) { setPendingNav(path); return }
@@ -457,7 +470,7 @@ export default function DiaryPage() {
           )}
 
           {(status === 'done') && savedDiary && (
-            <div>
+            <div ref={resultRef}>
               <div className='diary-meta'>
                 <div className='diary-tags'>
                   <span className='px-tag px-tag-fire'>▸ GENERATED</span>
