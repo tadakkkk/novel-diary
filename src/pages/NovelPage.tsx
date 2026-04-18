@@ -215,7 +215,8 @@ function BlankPage() {
 
 type ReviewResult = Awaited<ReturnType<typeof claude.generateReviews>>
 
-// ── 픽셀 책 커버 ───────────────────────────────────────────────────────────
+// ── 픽셀 책 커버 (NovelPage 내부 사용 없음 — StoryTab으로 이동됨) ────────
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function PixelBookCover({ seed, w = 40, h = 60 }: { seed: number; w?: number; h?: number }) {
   const ref = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
@@ -460,7 +461,6 @@ export default function NovelPage() {
   const [reviewLoading, setReviewLoading] = useState(false)
   const reviewRequested = useRef(false)
 
-  const [savedNovels,    setSavedNovels]    = useState<SavedNovel[]>(() => storage.getSavedNovels())
   const [savedThisBook,  setSavedThisBook]  = useState(false)
   const [toastMsg,       setToastMsg]       = useState('')
   const [viewingNovel,   setViewingNovel]   = useState<SavedNovel | null>(null)
@@ -500,14 +500,12 @@ export default function NovelPage() {
       createdAt: new Date().toISOString(),
     }
     storage.saveNovel(novel)
-    setSavedNovels(storage.getSavedNovels())
     setSavedThisBook(true)
     showToast('책장에 꽂혔어')
   }
 
   function handleDeleteNovel(id: string) {
     storage.deleteNovel(id)
-    setSavedNovels(storage.getSavedNovels())
   }
 
   const filteredCount = allDiaries.filter((d) => d.date && d.date >= dateFrom && d.date <= dateTo).length
@@ -621,16 +619,16 @@ export default function NovelPage() {
 
     // 커버용 fake diary (날짜 범위 표시)
     const fakeCoverDiaries: NovelDiary[] = [
-      { id: novel.id + '-a', content: '', date: novel.diaryDateFrom, title: novel.title, continuityContext: '', generationOptions: { perspective: '1인칭주인공', processingLevel: 3, styleReferenceIds: [] }, createdAt: novel.createdAt },
+      { id: novel.id + '-a', content: '', date: novel.diaryDateFrom, title: novel.title, continuityContext: '', generationOptions: { perspective: '1인칭주인공' as const, processingLevel: 3 as const, styleReferenceIds: [] }, createdAt: novel.createdAt },
       ...(novel.diaryDateFrom !== novel.diaryDateTo
-        ? [{ id: novel.id + '-b', content: '', date: novel.diaryDateTo, title: '', continuityContext: '', generationOptions: { perspective: '1인칭주인공', processingLevel: 3, styleReferenceIds: [] }, createdAt: novel.createdAt }]
+        ? [{ id: novel.id + '-b', content: '', date: novel.diaryDateTo, title: '', continuityContext: '', generationOptions: { perspective: '1인칭주인공' as const, processingLevel: 3 as const, styleReferenceIds: [] }, createdAt: novel.createdAt }]
         : []),
     ]
 
     const fakeDiary: NovelDiary = {
       id: novel.id, content: novel.content, date: novel.diaryDateFrom,
       title: novel.title, continuityContext: '',
-      generationOptions: { perspective: '1인칭주인공', processingLevel: 3, styleReferenceIds: [] },
+      generationOptions: { perspective: '1인칭주인공' as const, processingLevel: 3 as const, styleReferenceIds: [] },
       createdAt: novel.createdAt,
     }
     setDiaries(fakeCoverDiaries)
