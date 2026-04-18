@@ -48,17 +48,10 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           echo "$APPLE_PROVISIONING_PROFILE" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
 
-      - name: Resolve Swift Package dependencies
-        run: |
-          xcodebuild \
-            -resolvePackageDependencies \
-            -workspace ios/App/App.xcworkspace \
-            -scheme App
-
       - name: Build (서명 없음)
         run: |
           xcodebuild \
-            -workspace ios/App/App.xcworkspace \
+            -project ios/App/App.xcodeproj \
             -scheme App \
             -configuration Release \
             -destination generic/platform=iOS \
