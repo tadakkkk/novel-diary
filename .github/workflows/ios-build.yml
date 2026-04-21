@@ -7,7 +7,6 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  OUTPUT_PATH: ${{ github.workspace }}/build/output
 
 jobs:
   build:
@@ -88,14 +87,14 @@ jobs:
             archive
 
       # ── 빌드 산출물 위치 진단 ──────────────────────────────────────────────
-      - name: Debug: Find build output
+      - name: "Debug: Find build output"
         run: |
-          echo "=== 전체 파일 검색 ==="
+          echo "=== Search all IPA files ==="
           find /Users/runner/work/novel-diary -type f -name "*.ipa" 2>/dev/null
           find /Users/runner/work/novel-diary -type d -name "*.xcarchive" 2>/dev/null
-          echo "=== DerivedData 확인 ==="
-          ls ~/Library/Developer/Xcode/DerivedData/ 2>/dev/null || echo "DerivedData 없음"
-          echo "=== build 폴더 확인 ==="
+          echo "=== Check DerivedData ==="
+          ls ~/Library/Developer/Xcode/DerivedData/ 2>/dev/null || echo "DerivedData not found"
+          echo "=== Check build folder ==="
           find /Users/runner/work/novel-diary/novel-diary/ios -type f 2>/dev/null | head -50
 
       # ── 서명된 IPA export ──────────────────────────────────────────────────
