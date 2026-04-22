@@ -97,9 +97,9 @@ jobs:
           echo "=== Check build folder ==="
           find /Users/runner/work/novel-diary/novel-diary/ios -type f 2>/dev/null | head -50
 
-      # ── 서명된 IPA export ──────────────────────────────────────────────────
+      # ── 서명된 IPA export (인증서 있을 때만) ──────────────────────────────
       - name: Export signed IPA
-        if: ${{ env.APPLE_TEAM_ID != '' }}
+        if: ${{ env.APPLE_CERTIFICATE != '' && env.APPLE_TEAM_ID != '' }}
         run: |
           cat > /tmp/ExportOptions.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
@@ -123,9 +123,9 @@ jobs:
             -exportOptionsPlist /tmp/ExportOptions.plist \
             -exportPath $GITHUB_WORKSPACE/build/output
 
-      # ── unsigned IPA 패키징 ─────────────────────────────────────────────────
+      # ── unsigned IPA 패키징 (인증서 없을 때 항상) ─────────────────────────
       - name: Package unsigned IPA
-        if: ${{ env.APPLE_TEAM_ID == '' }}
+        if: ${{ env.APPLE_CERTIFICATE == '' }}
         run: |
           APP=$(find $GITHUB_WORKSPACE/build/App.xcarchive/Products/Applications -name "*.app" | head -1)
           mkdir -p $GITHUB_WORKSPACE/build/output/Payload
@@ -147,8 +147,9 @@ jobs:
           echo "IPA verified: $IPA"
           ls -lh "$IPA"
 
-      # ── TestFlight 업로드 ──────────────────────────────────────────────────
+      # ── TestFlight 업로드 (서명된 빌드 + API 키 있을 때만) ────────────────
       - name: Upload to TestFlight
+        if: ${{ env.APPLE_CERTIFICATE != '' && env.ASC_API_KEY_ID != '' }}
         run: |
           IPA=$(find $GITHUB_WORKSPACE/build/output -name "*.ipa" | head -1)
           echo "=== TestFlight Upload Start ==="
