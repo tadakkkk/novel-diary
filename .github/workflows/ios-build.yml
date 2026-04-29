@@ -36,6 +36,12 @@ jobs:
       - name: Sync Capacitor iOS
         run: npx cap sync ios
 
+      - name: Fix Package.swift paths (Windows → POSIX)
+        run: |
+          sed -i '' 's|\\\\|/|g' ios/App/CapApp-SPM/Package.swift
+          echo "Package.swift after fix:"
+          cat ios/App/CapApp-SPM/Package.swift
+
       - name: Setup App Store Connect API key
         run: |
           mkdir -p $HOME/.appstoreconnect/private_keys
