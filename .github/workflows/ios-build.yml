@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: macos-latest
@@ -35,9 +38,11 @@ jobs:
 
       - name: Setup App Store Connect API key
         run: |
-          mkdir -p ~/.appstoreconnect/private_keys
+          mkdir -p $HOME/.appstoreconnect/private_keys
           echo "$ASC_API_KEY_BASE64" | base64 --decode \
-            > ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
+            > $HOME/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
+          chmod 600 $HOME/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
+          echo "Key file: $(ls -lh $HOME/.appstoreconnect/private_keys/)"
 
       - name: Archive (auto signing)
         run: |
@@ -49,11 +54,13 @@ jobs:
             -archivePath $GITHUB_WORKSPACE/build/App.xcarchive \
             CODE_SIGN_STYLE=Automatic \
             DEVELOPMENT_TEAM=$APPLE_TEAM_ID \
+            PROVISIONING_PROFILE_SPECIFIER="" \
             -allowProvisioningUpdates \
-            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8 \
+            -authenticationKeyPath $HOME/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8 \
             -authenticationKeyID $ASC_API_KEY_ID \
             -authenticationKeyIssuerID $ASC_API_ISSUER_ID \
-            archive
+            archive 2>&1 | tee $GITHUB_WORKSPACE/build-archive.log
+          exit ${PIPESTATUS[0]}
 
       - name: Export IPA
         run: |
@@ -79,9 +86,10 @@ jobs:
             -exportOptionsPlist /tmp/ExportOptions.plist \
             -exportPath $GITHUB_WORKSPACE/build/output \
             -allowProvisioningUpdates \
-            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8 \
+            -authenticationKeyPath $HOME/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8 \
             -authenticationKeyID $ASC_API_KEY_ID \
-            -authenticationKeyIssuerID $ASC_API_ISSUER_ID
+            -authenticationKeyIssuerID $ASC_API_ISSUER_ID 2>&1 | tee $GITHUB_WORKSPACE/build-export.log
+          exit ${PIPESTATUS[0]}
 
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v3
@@ -90,6 +98,17 @@ jobs:
           issuer-id: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ github.sha }}
+          path: |
+            ${{ github.workspace }}/build-archive.log
+            ${{ github.workspace }}/build-export.log
+          if-no-files-found: ignore
+          retention-days: 3
 
       - name: Upload IPA to Artifacts
         if: always()
