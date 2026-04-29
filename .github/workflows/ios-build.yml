@@ -1,24 +1,19 @@
-name: iOS Build
+name: iOS Build & TestFlight
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build:
     runs-on: macos-latest
+
     env:
-      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-      APPLE_PROVISIONING_PROFILE: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
-      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       ASC_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
       ASC_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
       ASC_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
     steps:
       - uses: actions/checkout@v4
@@ -38,28 +33,13 @@ jobs:
       - name: Sync Capacitor iOS
         run: npx cap sync ios
 
-      # ── 출력 디렉토리 생성 ──────────────────────────────────────────────────
-      - name: Prepare output directory
-        run: mkdir -p $GITHUB_WORKSPACE/build/output
-
-      # ── 서명 설정 ───────────────────────────────────────────────────────────
-      - name: Setup signing
-        if: ${{ env.APPLE_CERTIFICATE != '' }}
+      - name: Setup App Store Connect API key
         run: |
-          echo "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
-          security create-keychain -p "" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "" build.keychain
-          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$ASC_API_KEY_BASE64" | base64 --decode \
+            > ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
 
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "$APPLE_PROVISIONING_PROFILE" | base64 --decode \
-            > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
-
-      # ── 서명 있는 빌드 ──────────────────────────────────────────────────────
-      - name: Build (signed)
-        if: ${{ env.APPLE_CERTIFICATE != '' }}
+      - name: Archive (auto signing)
         run: |
           xcodebuild \
             -project ios/App/App.xcodeproj \
@@ -67,39 +47,15 @@ jobs:
             -configuration Release \
             -destination generic/platform=iOS \
             -archivePath $GITHUB_WORKSPACE/build/App.xcarchive \
-            -quiet \
+            CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM=$APPLE_TEAM_ID \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8 \
+            -authenticationKeyID $ASC_API_KEY_ID \
+            -authenticationKeyIssuerID $ASC_API_ISSUER_ID \
             archive
 
-      # ── 서명 없는 빌드 ──────────────────────────────────────────────────────
-      - name: Build (unsigned)
-        if: ${{ env.APPLE_CERTIFICATE == '' }}
-        run: |
-          xcodebuild \
-            -project ios/App/App.xcodeproj \
-            -scheme App \
-            -configuration Release \
-            -destination generic/platform=iOS \
-            -archivePath $GITHUB_WORKSPACE/build/App.xcarchive \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            -quiet \
-            archive
-
-      # ── 빌드 산출물 위치 진단 ──────────────────────────────────────────────
-      - name: "Debug: Find build output"
-        run: |
-          echo "=== Search all IPA files ==="
-          find /Users/runner/work/novel-diary -type f -name "*.ipa" 2>/dev/null
-          find /Users/runner/work/novel-diary -type d -name "*.xcarchive" 2>/dev/null
-          echo "=== Check DerivedData ==="
-          ls ~/Library/Developer/Xcode/DerivedData/ 2>/dev/null || echo "DerivedData not found"
-          echo "=== Check build folder ==="
-          find /Users/runner/work/novel-diary/novel-diary/ios -type f 2>/dev/null | head -50
-
-      # ── 서명된 IPA export (인증서 있을 때만) ──────────────────────────────
-      - name: Export signed IPA
-        if: ${{ env.APPLE_CERTIFICATE != '' && env.APPLE_TEAM_ID != '' }}
+      - name: Export IPA
         run: |
           cat > /tmp/ExportOptions.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
@@ -110,8 +66,8 @@ jobs:
             <string>app-store</string>
             <key>teamID</key>
             <string>${APPLE_TEAM_ID}</string>
-            <key>uploadBitcode</key>
-            <false/>
+            <key>signingStyle</key>
+            <string>automatic</string>
             <key>uploadSymbols</key>
             <true/>
           </dict>
@@ -121,67 +77,20 @@ jobs:
           xcodebuild -exportArchive \
             -archivePath $GITHUB_WORKSPACE/build/App.xcarchive \
             -exportOptionsPlist /tmp/ExportOptions.plist \
-            -exportPath $GITHUB_WORKSPACE/build/output
+            -exportPath $GITHUB_WORKSPACE/build/output \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8 \
+            -authenticationKeyID $ASC_API_KEY_ID \
+            -authenticationKeyIssuerID $ASC_API_ISSUER_ID
 
-      # ── unsigned IPA 패키징 (인증서 없을 때 항상) ─────────────────────────
-      - name: Package unsigned IPA
-        if: ${{ env.APPLE_CERTIFICATE == '' }}
-        run: |
-          APP=$(find $GITHUB_WORKSPACE/build/App.xcarchive/Products/Applications -name "*.app" | head -1)
-          mkdir -p $GITHUB_WORKSPACE/build/output/Payload
-          cp -r "$APP" $GITHUB_WORKSPACE/build/output/Payload/
-          cd $GITHUB_WORKSPACE/build/output && zip -r App-unsigned.ipa Payload/
-          rm -rf $GITHUB_WORKSPACE/build/output/Payload
-
-      # ── .ipa 확인 ──────────────────────────────────────────────────────────
-      - name: Verify IPA
-        run: |
-          echo "=== IPA search in $GITHUB_WORKSPACE/build ==="
-          find $GITHUB_WORKSPACE/build -name "*.ipa" 2>/dev/null
-
-          IPA=$(find $GITHUB_WORKSPACE/build/output -name "*.ipa" | head -1)
-          if [ -z "$IPA" ]; then
-            echo "ERROR: .ipa not found in $GITHUB_WORKSPACE/build/output"
-            exit 1
-          fi
-          echo "IPA verified: $IPA"
-          ls -lh "$IPA"
-
-      # ── TestFlight 업로드 (서명된 빌드 + API 키 있을 때만) ────────────────
       - name: Upload to TestFlight
-        if: ${{ env.APPLE_CERTIFICATE != '' && env.ASC_API_KEY_ID != '' }}
-        run: |
-          IPA=$(find $GITHUB_WORKSPACE/build/output -name "*.ipa" | head -1)
-          echo "=== TestFlight Upload Start ==="
-          echo "IPA      : $IPA"
-          echo "Key ID   : $ASC_API_KEY_ID"
-          echo "Issuer ID: $ASC_API_ISSUER_ID"
+        uses: apple-actions/upload-testflight-build@v3
+        with:
+          app-path: ${{ github.workspace }}/build/output/*.ipa
+          issuer-id: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
 
-          if [ ! -f "$IPA" ]; then
-            echo "ERROR: IPA not found"
-            exit 1
-          fi
-
-          mkdir -p ~/.appstoreconnect/private_keys
-          echo "$ASC_API_KEY_BASE64" | base64 --decode \
-            > ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
-
-          xcrun altool --upload-app \
-            --type ios \
-            --file "$IPA" \
-            --apiKey "$ASC_API_KEY_ID" \
-            --apiIssuer "$ASC_API_ISSUER_ID" \
-            --verbose 2>&1
-
-          UPLOAD_EXIT=$?
-          if [ $UPLOAD_EXIT -eq 0 ]; then
-            echo "=== SUCCESS: TestFlight upload completed ==="
-          else
-            echo "=== FAILED: TestFlight upload failed (exit $UPLOAD_EXIT) ==="
-            exit $UPLOAD_EXIT
-          fi
-
-      # ── GitHub Artifacts 업로드 ────────────────────────────────────────────
       - name: Upload IPA to Artifacts
         if: always()
         uses: actions/upload-artifact@v4
