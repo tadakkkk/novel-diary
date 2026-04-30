@@ -42,7 +42,7 @@ jobs:
           echo "Package.swift after fix:"
           cat ios/App/CapApp-SPM/Package.swift
 
-      - name: Setup App Store Connect API key
+      - name: Setup App Store Connect API key file
         run: |
           mkdir -p $HOME/.appstoreconnect/private_keys
           echo "$ASC_API_KEY_BASE64" | base64 --decode \
@@ -50,14 +50,35 @@ jobs:
           chmod 600 $HOME/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
           echo "Key file: $(ls -lh $HOME/.appstoreconnect/private_keys/)"
 
+      - name: Prepare TestFlight API key input
+        id: tf-key
+        env:
+          ASC_API_KEY_RAW: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+        run: |
+          if [ -n "$ASC_API_KEY_RAW" ]; then
+            {
+              echo "api_private_key<<EOF"
+              echo "$ASC_API_KEY_RAW"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "api_private_key<<EOF"
+              cat "$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Archive (auto signing)
         run: |
+          mkdir -p $GITHUB_WORKSPACE/build
           xcodebuild \
             -project ios/App/App.xcodeproj \
             -scheme App \
             -configuration Release \
             -destination generic/platform=iOS \
             -archivePath $GITHUB_WORKSPACE/build/App.xcarchive \
+            -resultBundlePath $GITHUB_WORKSPACE/build/ArchiveResult.xcresult \
             CODE_SIGN_STYLE=Automatic \
             DEVELOPMENT_TEAM=$APPLE_TEAM_ID \
             PROVISIONING_PROFILE_SPECIFIER="" \
@@ -91,6 +112,7 @@ jobs:
             -archivePath $GITHUB_WORKSPACE/build/App.xcarchive \
             -exportOptionsPlist /tmp/ExportOptions.plist \
             -exportPath $GITHUB_WORKSPACE/build/output \
+            -resultBundlePath $GITHUB_WORKSPACE/build/ExportResult.xcresult \
             -allowProvisioningUpdates \
             -authenticationKeyPath $HOME/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8 \
             -authenticationKeyID $ASC_API_KEY_ID \
@@ -103,7 +125,7 @@ jobs:
           app-path: ${{ github.workspace }}/build/output/*.ipa
           issuer-id: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          api-private-key: ${{ steps.tf-key.outputs.api_private_key }}
 
       - name: Upload build logs on failure
         if: failure()
@@ -113,6 +135,8 @@ jobs:
           path: |
             ${{ github.workspace }}/build-archive.log
             ${{ github.workspace }}/build-export.log
+            ${{ github.workspace }}/build/ArchiveResult.xcresult/**
+            ${{ github.workspace }}/build/ExportResult.xcresult/**
           if-no-files-found: ignore
           retention-days: 3
 
