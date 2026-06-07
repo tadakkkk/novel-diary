@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useAppContext } from '@/App'
-import { isQuotaExceeded } from '@/services/quota/quota-service'
+import { isDiaryQuotaExceeded } from '@/services/quota/quota-service'
 
 interface Props {
   visible: boolean
@@ -12,7 +12,7 @@ export function GenerateButton({ visible, sessionId }: Props) {
   const { showPaywall } = useAppContext()
 
   async function handleClick() {
-    if (await isQuotaExceeded()) { showPaywall(); return }
+    if (await isDiaryQuotaExceeded()) { showPaywall(); return }
     navigate(`/diary?session=${encodeURIComponent(sessionId)}`)
   }
 

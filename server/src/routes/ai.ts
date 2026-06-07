@@ -4,7 +4,20 @@ import { requireUser, type AuthRequest } from '../middleware/auth.js'
 import { incrementCallCount, getUsage } from '../services/supabase.js'
 
 const router = Router()
-const MODEL = 'claude-opus-4-6'
+
+const SONNET = 'claude-sonnet-4-6'
+const HAIKU  = 'claude-haiku-4-5-20251001'
+
+const MODEL_BY_ACTION: Record<string, string> = {
+  generate_diary:             SONNET,
+  generate_codex:             SONNET,
+  generate_feedback:          SONNET,
+  generate_letter:            SONNET,
+  extract_characters:         HAIKU,
+  character_chat:             HAIKU,
+  generate_kindling_question: HAIKU,
+}
+const DEFAULT_MODEL = HAIKU
 
 // Lazy Anthropic client — avoids crash if env var missing at module load
 let _anthropic: Anthropic | null = null
@@ -17,28 +30,27 @@ function getAnthropic(): Anthropic {
   return _anthropic
 }
 
-// ── Quota check middleware ────────────────────────────────────────────────
-async function checkQuota(req: AuthRequest, res: any, next: any) {
-  try {
-    const { allowed, remaining } = await incrementCallCount(req.userId!)
-    if (!allowed) return res.status(402).json({ error: 'QUOTA_EXCEEDED', remaining: 0 })
-    res.setHeader('x-calls-remaining', String(remaining))
-    next()
-  } catch (err) {
-    console.error('[checkQuota]', err)
-    // Don't block on quota errors — let the call through
-    next()
-  }
-}
-
 // ── POST /api/ai/chat ─────────────────────────────────────────────────────
-router.post('/chat', requireUser, checkQuota, async (req: AuthRequest, res) => {
+router.post('/chat', requireUser, async (req: AuthRequest, res) => {
   try {
-    const { messages, systemPrompt, maxTokens = 2048, temperature = 0.9 } = req.body as {
+    const { messages, systemPrompt, maxTokens = 2048, temperature = 0.9, action_type } = req.body as {
       messages: Anthropic.MessageParam[]
       systemPrompt?: string
       maxTokens?: number
       temperature?: number
+      action_type?: string
+    }
+
+    // Quota only applies to diary generation
+    if (action_type === 'generate_diary') {
+      try {
+        const { allowed, remaining } = await incrementCallCount(req.userId!, 'generate_diary')
+        if (!allowed) return res.status(402).json({ error: 'QUOTA_EXCEEDED', remaining: 0 })
+        res.setHeader('x-calls-remaining', String(remaining))
+      } catch (quotaErr) {
+        console.error('[checkQuota]', quotaErr)
+        // Don't block on quota errors — let the call through
+      }
     }
 
     if (!messages || !Array.isArray(messages)) {
@@ -46,7 +58,7 @@ router.post('/chat', requireUser, checkQuota, async (req: AuthRequest, res) => {
     }
 
     const params: Anthropic.MessageCreateParams = {
-      model: MODEL,
+      model: MODEL_BY_ACTION[action_type ?? ''] ?? DEFAULT_MODEL,
       max_tokens: maxTokens,
       temperature,
       messages,

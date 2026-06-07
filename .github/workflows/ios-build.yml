@@ -69,7 +69,23 @@ jobs:
             } >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Xcode signing diagnostics
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/build
+          echo "Xcode version:"
+          xcodebuild -version | tee $GITHUB_WORKSPACE/build/xcode-version.log
+          echo "Signing identities on runner:"
+          security find-identity -v -p codesigning | tee $GITHUB_WORKSPACE/build/signing-identities.log || true
+          echo "Resolved build settings (bundle/team/signing):"
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -showBuildSettings | tee $GITHUB_WORKSPACE/build/build-settings.log
+
       - name: Archive (auto signing)
+        id: archive
+        continue-on-error: true
         run: |
           mkdir -p $GITHUB_WORKSPACE/build
           xcodebuild \
@@ -90,6 +106,9 @@ jobs:
           exit ${PIPESTATUS[0]}
 
       - name: Export IPA
+        id: export
+        if: steps.archive.outcome == 'success'
+        continue-on-error: true
         run: |
           cat > /tmp/ExportOptions.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
@@ -120,6 +139,7 @@ jobs:
           exit ${PIPESTATUS[0]}
 
       - name: Upload to TestFlight
+        if: steps.export.outcome == 'success'
         uses: apple-actions/upload-testflight-build@v3
         with:
           app-path: ${{ github.workspace }}/build/output/*.ipa
@@ -127,18 +147,29 @@ jobs:
           api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           api-private-key: ${{ steps.tf-key.outputs.api_private_key }}
 
-      - name: Upload build logs on failure
-        if: failure()
+      - name: Upload build logs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-logs-${{ github.sha }}
           path: |
             ${{ github.workspace }}/build-archive.log
             ${{ github.workspace }}/build-export.log
+            ${{ github.workspace }}/build/xcode-version.log
+            ${{ github.workspace }}/build/signing-identities.log
+            ${{ github.workspace }}/build/build-settings.log
             ${{ github.workspace }}/build/ArchiveResult.xcresult/**
             ${{ github.workspace }}/build/ExportResult.xcresult/**
           if-no-files-found: ignore
           retention-days: 3
+
+      - name: Fail when archive/export failed
+        if: steps.archive.outcome != 'success' || steps.export.outcome != 'success'
+        run: |
+          echo "archive outcome: ${{ steps.archive.outcome }}"
+          echo "export outcome: ${{ steps.export.outcome }}"
+          echo "Check build-logs artifact for detailed diagnostics."
+          exit 1
 
       - name: Upload IPA to Artifacts
         if: always()

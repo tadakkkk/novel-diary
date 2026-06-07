@@ -9,6 +9,12 @@ import {
 
 const router = Router()
 
+const PAYMENT_ENABLED = process.env.PAYMENT_ENABLED === 'true'
+router.use((_req, res, next) => {
+  if (!PAYMENT_ENABLED) return void res.status(503).json({ error: 'Payment not available' })
+  next()
+})
+
 // Lazy Paddle client — avoids crash if env var missing at module load
 let _paddle: Paddle | null = null
 function getPaddle(): Paddle {

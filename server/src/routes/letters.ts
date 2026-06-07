@@ -6,7 +6,7 @@ import {
 } from '../services/supabase.js'
 
 const router = Router()
-const MODEL  = 'claude-opus-4-6'
+const MODEL  = 'claude-sonnet-4-6'
 
 let _anthropic: Anthropic | null = null
 function getAnthropic(): Anthropic {

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAppContext } from '@/App'
 import { signInWithGoogle, signOut } from '@/services/auth/auth-service'
-import { getAnonRemaining } from '@/services/quota/quota-service'
 import * as storage from '@/services/storage'
 
 export function AppHeader() {
@@ -30,11 +29,10 @@ export function AppHeader() {
   }, [])
 
   // ── 상태 계산 ──────────────────────────────────────────────────────────
-  const serverMode   = !!import.meta.env.VITE_API_URL
-  const isSubscribed = usageStatus?.subscriptionStatus === 'active'
-  const remaining    = user && usageStatus
-    ? usageStatus.remaining
-    : serverMode ? getAnonRemaining() : -1
+  const serverMode       = !!import.meta.env.VITE_API_URL
+  const PAYMENT_ENABLED  = import.meta.env.VITE_PAYMENT_ENABLED === 'true'
+  const isSubscribed     = PAYMENT_ENABLED ? usageStatus?.subscriptionStatus === 'active' : true
+  const remaining    = usageStatus?.remaining ?? -1
   const showBadge  = serverMode && !isSubscribed && remaining >= 0
   const badgeAlert = remaining <= 5
 
@@ -142,7 +140,7 @@ export function AppHeader() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 
           {/* 잔여 횟수 배지 */}
-          {showBadge && (
+          {PAYMENT_ENABLED && showBadge && (
             <button
               onClick={() => showPaywall('subscribe')}
               style={{
@@ -198,12 +196,14 @@ export function AppHeader() {
                   }}>
                     {displayName}
                   </div>
+                  {PAYMENT_ENABLED && (
                   <button
                     onClick={() => { setProfileOpen(false); showPaywall('subscribe') }}
                     style={{ ...DROP_ITEM, color: 'var(--fire-org)' }}
                   >
                     {isSubscribed ? '구독 관리' : '구독하기'}
                   </button>
+                  )}
 
                   {/* API Key section */}
                   <div style={{ borderTop: '1px solid var(--gray-1)', padding: '10px 16px 8px' }}>

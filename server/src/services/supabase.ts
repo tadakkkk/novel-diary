@@ -56,8 +56,13 @@ export async function getUsage(userId: string): Promise<UsageRecord> {
 }
 
 export async function incrementCallCount(
-  userId: string
+  userId: string,
+  actionType: string = 'generate_diary'
 ): Promise<{ allowed: boolean; remaining: number }> {
+  if (actionType !== 'generate_diary') {
+    return { allowed: true, remaining: -1 }
+  }
+
   const usage = await getUsage(userId)
 
   if (usage.subscription_status === 'active') {

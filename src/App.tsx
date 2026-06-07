@@ -230,17 +230,79 @@ function OnboardingModal() {
   )
 }
 
+// ── Splash Screen (auth resolving) ─────────────────────────────────────────
+function SplashScreen() {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: '#000',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16,
+    }}>
+      <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 24, color: 'var(--fire-tip)', letterSpacing: '0.06em' }}>
+        타닥타닥
+      </div>
+      <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--fire-amb)', letterSpacing: '0.2em' }}>
+        ···
+      </div>
+    </div>
+  )
+}
+
+// ── Login Gate ─────────────────────────────────────────────────────────────
+function LoginGate() {
+  const [loading, setLoading] = useState(false)
+
+  async function handleLogin() {
+    setLoading(true)
+    try { await signInWithGoogle() } catch { /* OAuth popup handles errors */ } finally { setLoading(false) }
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: '#000',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24,
+    }}>
+      <PixelStars />
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 26, color: 'var(--fire-tip)', letterSpacing: '0.06em', marginBottom: 6 }}>
+            타닥타닥
+          </div>
+          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: 'var(--fire-amb)', letterSpacing: '0.15em' }}>
+            TADAK-TADAK
+          </div>
+        </div>
+        <div className='bonfire-scene' style={{ position: 'relative' }}>
+          <FlameAnimation level={3} />
+          <div className='pixel-ground' />
+        </div>
+        <div style={{ fontFamily: 'var(--font-korean)', fontSize: 14, color: 'var(--gray-4)', textAlign: 'center', lineHeight: 1.8 }}>
+          오늘 있었던 일을<br />불 앞에 앉아 이야기해요
+        </div>
+        <button
+          className='pixel-btn pixel-btn-fire'
+          onClick={handleLogin}
+          disabled={loading}
+          style={{ fontSize: 10, padding: '12px 24px', letterSpacing: '0.08em' }}
+        >
+          {loading ? '로그인 중...' : 'Google로 시작하기'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── IAP Init ──────────────────────────────────────────────────────────────
 import { initIAP } from '@/services/iap/iap-service'
 
 // ── Auth + Paywall + Data Sync ────────────────────────────────────────────
 import { createContext, useCallback, useContext } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { onAuthStateChange } from '@/services/auth/auth-service'
+import { onAuthStateChange, signInWithGoogle } from '@/services/auth/auth-service'
 import { syncUserData, fetchUsageStatus, type UsageStatus } from '@/services/api/api-client'
 import { PaywallModal } from '@/components/ui/PaywallModal'
 import { QuotaExceededError } from '@/services/claude/claude-service'
-import { getAnonCallCount } from '@/services/quota/quota-service'
+import { PixelStars } from '@/components/ui/PixelStars'
+import { FlameAnimation } from '@/features/bonfire/FlameAnimation'
 
 interface AppContextValue {
   user: User | null
@@ -271,6 +333,7 @@ function SyncOverlay() {
 // ── App ────────────────────────────────────────────────────────────────────
 export default function App() {
   const [user, setUser]               = useState<User | null>(null)
+  const [authLoading, setAuthLoading] = useState(true)
   const [paywallOpen, setPaywallOpen] = useState(false)
   const [paywallSource, setPaywallSource] = useState<'quota' | 'subscribe'>('quota')
   const [syncing, setSyncing]         = useState(false)
@@ -288,12 +351,13 @@ export default function App() {
     const unsub = onAuthStateChange(async (newUser) => {
       const prevUser = user
       setUser(newUser)
+      setAuthLoading(false)
 
       if (newUser && import.meta.env.VITE_API_URL) {
         // First login: sync local data to server
         if (!prevUser) {
           setSyncing(true)
-          try { await syncUserData(newUser, getAnonCallCount()) } catch { /* non-fatal */ } finally { setSyncing(false) }
+          try { await syncUserData(newUser) } catch { /* non-fatal */ } finally { setSyncing(false) }
         }
         // Fetch usage for logged-in user
         try { setUsageStatus(await fetchUsageStatus()) } catch { /* ignore */ }
@@ -323,6 +387,9 @@ export default function App() {
     setPaywallOpen(true)
   }
 
+  if (authLoading) return <SplashScreen />
+  if (!user) return <LoginGate />
+
   return (
     <AppContext.Provider value={{ user, showPaywall, usageStatus, refreshUsage, openDrawer: () => setDrawerOpen(true) }}>
     <BrowserRouter basename={import.meta.env.BASE_URL}>
@@ -330,7 +397,7 @@ export default function App() {
       <QuotaToast />
       <InstallBanner />
       {syncing && <SyncOverlay />}
-      {paywallOpen && <PaywallModal user={user} source={paywallSource} onClose={() => setPaywallOpen(false)} />}
+      {import.meta.env.VITE_PAYMENT_ENABLED === 'true' && paywallOpen && <PaywallModal user={user} source={paywallSource} onClose={() => setPaywallOpen(false)} />}
       {drawerOpen && <DrawerPopup onClose={() => setDrawerOpen(false)} />}
       <Routes>
         <Route path='/' element={<BonfirePage />} />

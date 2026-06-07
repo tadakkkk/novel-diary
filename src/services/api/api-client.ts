@@ -7,6 +7,16 @@ import { getSession } from '@/services/auth/auth-service'
 import { getDeviceId } from '@/services/storage'
 
 const API_BASE = import.meta.env.VITE_API_URL as string | undefined
+const PAYMENT_ENABLED = import.meta.env.VITE_PAYMENT_ENABLED === 'true'
+
+export type ActionType =
+  | 'generate_diary'
+  | 'character_chat'
+  | 'extract_characters'
+  | 'generate_codex'
+  | 'generate_feedback'
+  | 'generate_letter'
+  | 'generate_kindling_question'
 
 export interface UsageStatus {
   callCount: number
@@ -41,6 +51,7 @@ export async function serverChat(opts: {
   maxTokens?: number
   temperature?: number
   signal?: AbortSignal
+  action_type: ActionType
 }): Promise<{ text: string; remaining: number }> {
   if (!API_BASE) throw new Error('VITE_API_URL not set')
 
@@ -53,11 +64,12 @@ export async function serverChat(opts: {
       systemPrompt: opts.systemPrompt,
       maxTokens: opts.maxTokens,
       temperature: opts.temperature,
+      action_type: opts.action_type,
     }),
     signal: opts.signal,
   })
 
-  if (res.status === 402) throw new QuotaExceededError()
+  if (res.status === 402 && PAYMENT_ENABLED) throw new QuotaExceededError()
   if (!res.ok) {
     const err = await res.json().catch(() => ({})) as { error?: string }
     throw new Error(err.error ?? `HTTP ${res.status}`)
@@ -82,7 +94,7 @@ export async function fetchUsageStatus(): Promise<UsageStatus> {
 
 // ── Login data sync ───────────────────────────────────────────────────────
 // On first login: upload localStorage dump + anon call count to server
-export async function syncUserData(user: User, anonCallCount: number): Promise<void> {
+export async function syncUserData(user: User): Promise<void> {
   if (!API_BASE || !user) return
 
   // Collect all localStorage entries for this app
@@ -100,7 +112,7 @@ export async function syncUserData(user: User, anonCallCount: number): Promise<v
   await fetch(`${API_BASE}/api/auth/sync`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-    body: JSON.stringify({ anonCallCount, data }),
+    body: JSON.stringify({ data }),
   }).catch(() => { /* non-fatal */ })
 }
 
