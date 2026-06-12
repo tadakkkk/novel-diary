@@ -290,7 +290,8 @@ export default function DiaryPage() {
 
       setProgress('▸ 등장인물 추출 중...')
       const sessionDate = new Date().toISOString().slice(0, 10)
-      const allChars    = await claude.extractCharacters(content, sessionDate).catch(() => [])
+      const existingChars = storage.getCharacters()
+      const allChars    = await claude.extractCharacters(content, sessionDate, existingChars).catch(() => [])
       const blocked     = storage.getBlockedChars()
       const rawChars    = allChars.filter((c) => !blocked.includes(c.name))
 

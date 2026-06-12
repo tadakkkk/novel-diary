@@ -98,6 +98,7 @@ export interface Character {
   name: string
   relationship: string
   role?: string
+  aliases?: string[]   // 동일인의 다른 호칭 (예: "주희"의 별칭 "주희 언니")
   appearances: string[]
   episodes: Array<{ date: string; summary: string }>
   avatarData: AvatarData

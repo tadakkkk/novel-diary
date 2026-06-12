@@ -171,6 +171,8 @@ export function upsertCharacter(char: Character): void {
     const existing = list[idx]
     list[idx] = {
       ...existing, ...char,
+      // 동일인의 다른 호칭(별칭) 누적 — 정식 name과 중복되는 별칭은 제외
+      aliases: [...new Set([...(existing.aliases ?? []), ...(char.aliases ?? [])])].filter((a) => a && a !== existing.name),
       appearances: [...new Set([...(existing.appearances ?? []), ...(char.appearances ?? [])])],
       episodes: (() => {
         const merged = [...(existing.episodes ?? []), ...(char.episodes ?? [])]
@@ -181,7 +183,8 @@ export function upsertCharacter(char: Character): void {
           seen.add(key); return true
         }).slice(-20)
       })(),
-      avatarData: char.avatarData ?? existing.avatarData,
+      // 이미 등록된 인물은 처음 본 아바타를 유지 (동일인이 매번 다르게 보이지 않도록)
+      avatarData: existing.avatarData ?? char.avatarData,
     }
   } else { list.push(char) }
   write(K.CHARACTERS, list)

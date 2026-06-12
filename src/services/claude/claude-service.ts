@@ -247,6 +247,8 @@ export interface ExtractedCharacter {
   name: string
   relationship: string
   role: string
+  aliases: string[]
+  matched_existing: boolean
   hairColor: string
   skinTone: 'light' | 'medium' | 'tan' | 'dark'
   eyeColor: string
@@ -257,22 +259,51 @@ export interface ExtractedCharacter {
   avatarData: { hairColor: string; skinTone: string; eyeColor: string; clothColor: string }
 }
 
+// 동일인 매칭 정확도를 위해 프롬프트에 포함할 기존 인물 요약
+interface ExistingCharacterHint {
+  name: string
+  relationship?: string
+  aliases?: string[]
+  episodes?: Array<{ date: string; summary: string }>
+  appearances?: string[]
+}
+
+// 기존 인물 목록을 프롬프트용 텍스트로 변환 (최근/빈도 상위 20명만)
+function buildExistingCharsBlock(existing: ExistingCharacterHint[]): string {
+  if (!existing || existing.length === 0) return ''
+  const top = [...existing]
+    .sort((a, b) => (b.appearances?.length ?? 0) - (a.appearances?.length ?? 0))
+    .slice(0, 20)
+  const lines = top.map((c) => {
+    const rel = c.relationship ? ` (관계: ${c.relationship})` : ''
+    const alias = c.aliases && c.aliases.length > 0 ? ` [별칭: ${c.aliases.join(', ')}]` : ''
+    const ep = c.episodes && c.episodes.length > 0 ? ` — ${c.episodes[c.episodes.length - 1].summary}` : ''
+    return `- ${c.name}${rel}${alias}${ep}`
+  })
+  return `\n[기존에 등록된 인물 목록]\n${lines.join('\n')}\n\n[동일인 처리 규칙]\n새로 추출한 인물이 위 목록의 인물과 동일인이라고 판단되면(호칭만 다른 경우 포함: '주희'와 '주희 언니', '엄마'와 '어머니' 등) 반드시 기존 인물의 "name"을 그대로 사용하고 "matched_existing"을 true로 설정해. 이때 이번 일기에서 쓰인 호칭이 기존 name과 다르면 그 호칭을 "aliases" 배열에 넣어줘. 동일인 여부가 불확실하면 새 인물로 처리하고 "matched_existing"을 false로 둬.\n`
+}
+
 export async function extractCharacters(
   diaryContent: string,
-  sessionDate: string
+  sessionDate: string,
+  existingCharacters: ExistingCharacterHint[] = []
 ): Promise<ExtractedCharacter[]> {
+  const existingBlock = buildExistingCharsBlock(existingCharacters)
+
   const prompt = `아래 일기에서 등장하는 인물들을 추출해줘.
 주인공(화자) 본인은 제외하고, 언급된 다른 사람만 추출해.
-
+${existingBlock}
 [일기]
 ${diaryContent}
 
 JSON 배열로만 응답해줘 (코드 블록 없이, 다른 텍스트 없이):
 [
   {
-    "name": "이름 또는 호칭 (예: 민준, 카페 직원)",
+    "name": "이름 또는 호칭 (동일인이면 기존 목록의 name을 그대로)",
     "relationship": "주인공과의 관계 (예: 친구, 낯선 사람)",
     "role": "이 일기에서의 역할/에피소드 한 줄 요약",
+    "aliases": ["이번 일기에서 쓰인 다른 호칭이 있으면 (없으면 빈 배열)"],
+    "matched_existing": false,
     "hairColor": "머리카락 색 (예: dark brown, unknown)",
     "skinTone": "light / medium / tan / dark (모르면 medium)",
     "eyeColor": "눈색 (예: brown, unknown)",
@@ -288,6 +319,8 @@ JSON 배열로만 응답해줘 (코드 블록 없이, 다른 텍스트 없이):
     const chars = JSON.parse(json) as ExtractedCharacter[]
     return chars.map((c) => ({
       ...c,
+      aliases: Array.isArray(c.aliases) ? c.aliases.filter((a) => a && a !== c.name) : [],
+      matched_existing: c.matched_existing === true,
       appearances: [sessionDate],
       episodes: [{ date: sessionDate, summary: c.role }],
       avatarData: { hairColor: c.hairColor, skinTone: c.skinTone, eyeColor: c.eyeColor, clothColor: c.clothColor },
