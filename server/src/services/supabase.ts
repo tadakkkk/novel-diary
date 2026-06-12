@@ -21,7 +21,7 @@ export const supabase = new Proxy({} as SupabaseClient, {
 
 // ── Usage tracking ─────────────────────────────────────────────────────────
 
-export const FREE_QUOTA = 30
+export const FREE_QUOTA = Number(process.env.FREE_LIMIT) || 30
 
 export interface UsageRecord {
   user_id:               string
