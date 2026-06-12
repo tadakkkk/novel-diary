@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import Anthropic from '@anthropic-ai/sdk'
 import { requireUser, type AuthRequest } from '../middleware/auth.js'
-import { incrementCallCount, getUsage } from '../services/supabase.js'
+import { checkQuota, recordDiaryGeneration, getUsage } from '../services/supabase.js'
 
 const router = Router()
 
@@ -41,12 +41,13 @@ router.post('/chat', requireUser, async (req: AuthRequest, res) => {
       action_type?: string
     }
 
-    // Quota only applies to diary generation
+    // Quota only applies to diary generation.
+    // 차감(record)은 생성 성공 후로 미루고, 여기서는 읽기 전용 확인만 한다.
+    // (Anthropic 호출 실패 + 클라이언트 재시도로 인한 과다 차감 방지)
     if (action_type === 'generate_diary') {
       try {
-        const { allowed, remaining } = await incrementCallCount(req.userId!, 'generate_diary')
+        const { allowed } = await checkQuota(req.userId!)
         if (!allowed) return res.status(402).json({ error: 'QUOTA_EXCEEDED', remaining: 0 })
-        res.setHeader('x-calls-remaining', String(remaining))
       } catch (quotaErr) {
         console.error('[checkQuota]', quotaErr)
         // Don't block on quota errors — let the call through
@@ -67,6 +68,16 @@ router.post('/chat', requireUser, async (req: AuthRequest, res) => {
 
     const result = await getAnthropic().messages.create(params)
     const text = result.content[0]?.type === 'text' ? result.content[0].text : ''
+
+    // 생성이 성공한 경우에만 차감 — 차감 실패는 로그만 남기고 사용자를 차단하지 않는다.
+    if (action_type === 'generate_diary') {
+      try {
+        const { remaining } = await recordDiaryGeneration(req.userId!)
+        res.setHeader('x-calls-remaining', String(remaining))
+      } catch (recErr) {
+        console.error('[recordDiaryGeneration]', recErr)
+      }
+    }
 
     res.json({ text })
   } catch (err) {

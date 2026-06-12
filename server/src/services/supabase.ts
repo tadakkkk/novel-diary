@@ -55,18 +55,14 @@ export async function getUsage(userId: string): Promise<UsageRecord> {
   return data as UsageRecord
 }
 
-export async function incrementCallCount(
-  userId: string,
-  actionType: string = 'generate_diary'
+// 읽기 전용 한도 확인 — call_count를 차감하지 않는다.
+// 구독자는 항상 허용(remaining: -1). 비구독자는 FREE_QUOTA 도달 시 차단.
+export async function checkQuota(
+  userId: string
 ): Promise<{ allowed: boolean; remaining: number }> {
-  if (actionType !== 'generate_diary') {
-    return { allowed: true, remaining: -1 }
-  }
-
   const usage = await getUsage(userId)
 
   if (usage.subscription_status === 'active') {
-    await supabase.from('usage').update({ call_count: usage.call_count + 1 }).eq('user_id', userId)
     return { allowed: true, remaining: -1 }
   }
 
@@ -74,8 +70,23 @@ export async function incrementCallCount(
     return { allowed: false, remaining: 0 }
   }
 
-  await supabase.from('usage').update({ call_count: usage.call_count + 1 }).eq('user_id', userId)
-  return { allowed: true, remaining: FREE_QUOTA - usage.call_count - 1 }
+  return { allowed: true, remaining: FREE_QUOTA - usage.call_count }
+}
+
+// 일기 생성 "성공" 후에만 호출 — call_count +1 수행.
+// 동시성 메모: checkQuota와 이 함수 사이의 틈으로 한도가 ±1 벗어날 수 있으나,
+// 무료 한도 용도로는 허용한다.
+export async function recordDiaryGeneration(
+  userId: string
+): Promise<{ remaining: number }> {
+  const usage = await getUsage(userId)
+  const nextCount = usage.call_count + 1
+  await supabase.from('usage').update({ call_count: nextCount }).eq('user_id', userId)
+
+  if (usage.subscription_status === 'active') {
+    return { remaining: -1 }
+  }
+  return { remaining: Math.max(0, FREE_QUOTA - nextCount) }
 }
 
 export async function updateSubscription(
