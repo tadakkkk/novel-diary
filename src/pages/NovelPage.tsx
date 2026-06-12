@@ -50,13 +50,24 @@ interface DiaryPage {
 }
 interface Spread { left: DiaryPage; right: DiaryPage }
 
+// 실제 렌더링되는 페이지 본문 폭 계산.
+// 모바일에서는 페이지가 min(화면폭, 480) - 좌우 패딩 으로 좁아지므로
+// 측정 폭을 실제 폭에 맞춰야 텍스트가 잘리지 않는다.
+function currentBodyWidth(): number {
+  if (typeof window === 'undefined') return BODY_W
+  const isMobile = window.matchMedia('(max-width: 768px)').matches
+  if (!isMobile) return BODY_W
+  const pageW = Math.min(window.innerWidth, 480)
+  return Math.max(pageW - PAGE_PAD_X * 2, 200)
+}
+
 // ── Text Pagination ───────────────────────────────────────────────────────
-async function paginateText(text: string, firstH: number, contH: number): Promise<string[]> {
+async function paginateText(text: string, firstH: number, contH: number, bodyW: number = BODY_W): Promise<string[]> {
   await document.fonts.ready
   const el = document.createElement('div')
   el.style.cssText = [
     'position:fixed', 'left:-9999px', 'top:0',
-    `width:${BODY_W}px`,
+    `width:${bodyW}px`,
     "font-family:'Nanum Myeongjo',serif",
     'font-size:14px', 'line-height:1.95',
     'word-break:keep-all', 'white-space:pre-wrap',
@@ -516,6 +527,7 @@ export default function NovelPage() {
     setSavedThisBook(false)
     reviewRequested.current = false
 
+    const bodyW = currentBodyWidth()
     const pages: DiaryPage[] = []
     for (const diary of filtered) {
       const imgUrl = typeof diary.keyImage === 'string' ? diary.keyImage
@@ -528,7 +540,7 @@ export default function NovelPage() {
       const bodyEnd   = CONTENT_H - H_PAGENUM - (hasChars ? H_CHARS : 0)
       const firstH    = Math.max(bodyEnd - bodyStart, 50)
 
-      const chunks = await paginateText(diary.content ?? '', firstH, CONT_BODY_H)
+      const chunks = await paginateText(diary.content ?? '', firstH, CONT_BODY_H, bodyW)
       if (chunks.length === 0) chunks.push('')
       chunks.forEach((text, ci) => {
         pages.push({ type: ci === 0 ? 'diary-first' : 'diary-cont', diary, text, hasImage: ci === 0 && hasImage, imgUrl: ci === 0 ? imgUrl : null, hasChars: ci === 0 && hasChars, charNames: ci === 0 ? charNames : [] })
@@ -589,7 +601,7 @@ export default function NovelPage() {
     setDiaries(fakeCoverDiaries)
 
     // 본문 페이지네이션
-    const chunks = await paginateText(novel.content, CONT_BODY_H, CONT_BODY_H)
+    const chunks = await paginateText(novel.content, CONT_BODY_H, CONT_BODY_H, currentBodyWidth())
     if (chunks.length === 0) chunks.push('')
     const pages: DiaryPage[] = chunks.map((text, ci) => ({
       type: ci === 0 ? 'diary-first' : 'diary-cont',
