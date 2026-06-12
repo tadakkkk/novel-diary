@@ -145,14 +145,15 @@ export async function fetchAllLetters(): Promise<ServerLetter[]> {
 }
 
 export async function requestLetterGeneration(
-  diaries: Array<{ date?: string; content?: string }>
+  diaries: Array<{ date?: string; content?: string }>,
+  lastDiaryAt?: string,
 ): Promise<ServerLetter> {
   if (!API_BASE) throw new Error('VITE_API_URL not set')
   const headers = await getAuthHeaders()
   const res = await fetch(`${API_BASE}/api/letters/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...headers },
-    body: JSON.stringify({ diaries }),
+    body: JSON.stringify({ diaries, lastDiaryAt }),
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({})) as { error?: string }

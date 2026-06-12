@@ -18,18 +18,13 @@ function getAnthropic(): Anthropic {
   return _anthropic
 }
 
-// 다음 날 자정~오전 6시 랜덤 시각 (UTC)
-function nextDeliveryTime(): string {
-  const now = new Date()
-  // 내일 날짜 00:00 KST = 전날 15:00 UTC
-  const tomorrowKST = new Date(now)
-  tomorrowKST.setDate(tomorrowKST.getDate() + 1)
-  tomorrowKST.setHours(0, 0, 0, 0)
-  // KST+9 → UTC-9h
-  const tomorrowUTC = new Date(tomorrowKST.getTime() - 9 * 60 * 60 * 1000)
-  // +0~6h 랜덤
-  const offsetMs = Math.floor(Math.random() * 6 * 60 * 60 * 1000)
-  return new Date(tomorrowUTC.getTime() + offsetMs).toISOString()
+// 편지 도착 시각 = 마지막 일기 생성 시각 + 10분
+// lastDiaryAt 미전달/파싱 실패 시 현재 시각 + 10분으로 폴백
+const DELIVERY_DELAY_MS = 10 * 60 * 1000
+function deliveryTimeFrom(lastDiaryAt?: string): string {
+  const parsed = lastDiaryAt ? Date.parse(lastDiaryAt) : NaN
+  const base = Number.isFinite(parsed) ? parsed : Date.now()
+  return new Date(base + DELIVERY_DELAY_MS).toISOString()
 }
 
 const SYSTEM_PROMPT = `너는 '타닥타닥' 앱의 신비로운 존재 '-???'야.
@@ -110,7 +105,11 @@ router.post('/generate', requireUser, async (req: AuthRequest, res) => {
     const existing = await getTodayLetter(req.userId!, today)
     if (existing) return res.json(existing)
 
-    const diaries = (req.body as { diaries?: Array<{ date?: string; content?: string }> }).diaries ?? []
+    const body = req.body as {
+      diaries?: Array<{ date?: string; content?: string }>
+      lastDiaryAt?: string
+    }
+    const diaries = body.diaries ?? []
     if (diaries.length === 0) return res.status(400).json({ error: 'No diaries provided' })
 
     const diaryBlock = diaries.slice(-5).map((d) =>
@@ -132,7 +131,7 @@ router.post('/generate', requireUser, async (req: AuthRequest, res) => {
       user_id:      req.userId!,
       date:         today,
       content,
-      scheduled_at: nextDeliveryTime(),
+      scheduled_at: deliveryTimeFrom(body.lastDiaryAt),
     })
 
     res.json(letter)

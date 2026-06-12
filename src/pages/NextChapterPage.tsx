@@ -34,13 +34,24 @@ function formatArrivedAt(iso: string): string {
   return `${y}년 ${mo}월 ${day}일 ${ampm} ${h12}:${m} 도착`
 }
 
-// ── 자정~오전 6시 랜덤 도착 시각 (로컬 fallback용) ──────────────────────
-function randomArrivalTime(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00')
-  d.setHours(Math.floor(Math.random() * 6))
-  d.setMinutes(Math.floor(Math.random() * 60))
-  d.setSeconds(Math.floor(Math.random() * 60))
-  return d.toISOString()
+// ── 편지 도착 시각 = 마지막 일기 생성 시각 + 10분 ─────────────────────────
+const DELIVERY_DELAY_MS = 10 * 60 * 1000
+
+// 일기 목록에서 가장 최근 생성 시각(ISO)을 추출. createdAt 우선, 없으면 date 기준.
+function lastDiaryTimestamp(ds: Array<{ createdAt?: string; date?: string }>): string | undefined {
+  let max: string | undefined
+  for (const d of ds) {
+    const t = d.createdAt ?? (d.date ? `${d.date}T00:00:00` : undefined)
+    if (t && (!max || t > max)) max = t
+  }
+  return max
+}
+
+// 마지막 일기 생성 시각 + 10분 (로컬 fallback용)
+function arrivalFromLastDiary(lastDiaryAt?: string): string {
+  const parsed = lastDiaryAt ? Date.parse(lastDiaryAt) : NaN
+  const base = Number.isFinite(parsed) ? parsed : Date.now()
+  return new Date(base + DELIVERY_DELAY_MS).toISOString()
 }
 
 // ── 편지가 도착 가능한지 ──────────────────────────────────────────────────
@@ -486,7 +497,7 @@ export default function NextChapterPage() {
 
         if (diaries.length === 0) return
 
-        const letter = await requestLetterGeneration(diaries)
+        const letter = await requestLetterGeneration(diaries, lastDiaryTimestamp(diaries))
         if (!isDelivered({ scheduled_at: letter.scheduled_at })) {
           setPending(true)
           setPendingTime(formatScheduledAt(letter.scheduled_at))
@@ -534,7 +545,7 @@ export default function NextChapterPage() {
     setLoading(true)
     try {
       const content = await claude.generateNextChapterLetter(diaries)
-      const arrivedAt = randomArrivalTime(today)
+      const arrivedAt = arrivalFromLastDiary(lastDiaryTimestamp(diaries))
       const letter: Letter = {
         id: uuid(), date: today, content, arrivedAt, read: false,
         createdAt: new Date().toISOString(),
