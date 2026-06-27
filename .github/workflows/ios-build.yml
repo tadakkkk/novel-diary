@@ -175,11 +175,28 @@ jobs:
             -resultBundlePath $GITHUB_WORKSPACE/build/ExportResult.xcresult 2>&1 | tee $GITHUB_WORKSPACE/build-export.log
           exit ${PIPESTATUS[0]}
 
+      - name: Locate exported IPA
+        if: steps.export.outcome == 'success'
+        run: |
+          echo "build/output 디렉토리 내용:"
+          ls -la $GITHUB_WORKSPACE/build/output/ || true
+          IPA_PATH=$(ls $GITHUB_WORKSPACE/build/output/*.ipa 2>/dev/null | head -1)
+          if [ -z "$IPA_PATH" ]; then
+            echo "build/output에 IPA 없음 — build 전체에서 검색:"
+            IPA_PATH=$(find $GITHUB_WORKSPACE/build -name "*.ipa" | head -1)
+          fi
+          if [ -z "$IPA_PATH" ]; then
+            echo "IPA를 찾지 못했습니다."
+            exit 1
+          fi
+          echo "찾은 IPA: $IPA_PATH"
+          echo "IPA_PATH=$IPA_PATH" >> "$GITHUB_ENV"
+
       - name: Upload to TestFlight
         if: steps.export.outcome == 'success'
         uses: apple-actions/upload-testflight-build@v3
         with:
-          app-path: ${{ github.workspace }}/build/output/*.ipa
+          app-path: ${{ env.IPA_PATH }}
           issuer-id: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           api-private-key: ${{ steps.tf-key.outputs.api_private_key }}
