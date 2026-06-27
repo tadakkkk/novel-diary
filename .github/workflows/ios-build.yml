@@ -32,6 +32,12 @@ jobs:
 
       - name: Build web assets
         run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          # iOS 앱은 루트 경로에서 자산을 로드해야 함 (GitHub Pages의 /novel-diary/ 아님)
+          VITE_BASE: /
 
       - name: Sync Capacitor iOS
         run: npx cap sync ios
@@ -136,6 +142,7 @@ jobs:
             -resultBundlePath $GITHUB_WORKSPACE/build/ArchiveResult.xcresult \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} \
             archive 2>&1 | tee $GITHUB_WORKSPACE/build-archive.log
           exit ${PIPESTATUS[0]}
 
