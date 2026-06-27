@@ -95,9 +95,9 @@ jobs:
             -destination generic/platform=iOS \
             -archivePath $GITHUB_WORKSPACE/build/App.xcarchive \
             -resultBundlePath $GITHUB_WORKSPACE/build/ArchiveResult.xcresult \
-            CODE_SIGN_STYLE=Automatic \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
             DEVELOPMENT_TEAM=$APPLE_TEAM_ID \
-            PROVISIONING_PROFILE_SPECIFIER="" \
             -allowProvisioningUpdates \
             -authenticationKeyPath $HOME/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8 \
             -authenticationKeyID $ASC_API_KEY_ID \
@@ -116,7 +116,7 @@ jobs:
           <plist version="1.0">
           <dict>
             <key>method</key>
-            <string>app-store</string>
+            <string>app-store-connect</string>
             <key>teamID</key>
             <string>${APPLE_TEAM_ID}</string>
             <key>signingStyle</key>
