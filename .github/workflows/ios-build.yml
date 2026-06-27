@@ -134,9 +134,8 @@ jobs:
             -destination generic/platform=iOS \
             -archivePath $GITHUB_WORKSPACE/build/App.xcarchive \
             -resultBundlePath $GITHUB_WORKSPACE/build/ArchiveResult.xcresult \
-            CODE_SIGN_STYLE=Manual \
-            DEVELOPMENT_TEAM=$APPLE_TEAM_ID \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
             archive 2>&1 | tee $GITHUB_WORKSPACE/build-archive.log
           exit ${PIPESTATUS[0]}
 
