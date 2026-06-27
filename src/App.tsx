@@ -297,7 +297,9 @@ import { initIAP } from '@/services/iap/iap-service'
 // ── Auth + Paywall + Data Sync ────────────────────────────────────────────
 import { createContext, useCallback, useContext } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { onAuthStateChange, signInWithGoogle } from '@/services/auth/auth-service'
+import { onAuthStateChange, signInWithGoogle, handleOAuthDeepLink } from '@/services/auth/auth-service'
+import { Capacitor } from '@capacitor/core'
+import { App as CapApp } from '@capacitor/app'
 import { syncUserData, fetchUsageStatus, type UsageStatus } from '@/services/api/api-client'
 import { PaywallModal } from '@/components/ui/PaywallModal'
 import { QuotaExceededError } from '@/services/claude/claude-service'
@@ -341,6 +343,15 @@ export default function App() {
   const [drawerOpen, setDrawerOpen]   = useState(false)
 
   useEffect(() => { initIAP().catch(console.error) }, [])
+
+  // 네이티브 OAuth 딥링크 수신 (com.tadaktadak.app://login-callback)
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return
+    const subPromise = CapApp.addListener('appUrlOpen', ({ url }) => {
+      handleOAuthDeepLink(url).catch(console.error)
+    })
+    return () => { subPromise.then((s) => s.remove()) }
+  }, [])
 
   const refreshUsage = useCallback(async () => {
     if (!import.meta.env.VITE_API_URL) return

@@ -51,5 +51,16 @@
 	<string>프로필 사진 촬영에 사용됩니다</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>대표 이미지 선택에 사용됩니다</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.tadaktadak.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.tadaktadak.app</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
