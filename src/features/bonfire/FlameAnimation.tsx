@@ -66,16 +66,15 @@ function renderFrame(ctx: CanvasRenderingContext2D, idx: number) {
   }
 }
 
-// ── FlameLevel → CSS scale (bonfire.js 동일: 0.55 → 1.00) ────────────────
-function levelToScale(level: FlameLevel): number {
-  return 0.55 + level * 0.09
-}
+// 불꽃 크기는 땔감 수와 무관하게 항상 초기값(level 0 = 0.55)으로 고정.
+// (깜빡임 애니메이션은 유지, 크기 변화만 제거)
+const FLAME_SCALE = 0.55
 
 interface Props {
   level: FlameLevel
 }
 
-export function FlameAnimation({ level }: Props) {
+export function FlameAnimation({ level: _level }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const frameRef  = useRef(0)
 
@@ -96,12 +95,10 @@ export function FlameAnimation({ level }: Props) {
     return () => clearInterval(id)
   }, [])
 
-  const scale = levelToScale(level)
-
   return (
     <div
       className='fire-canvas-wrap'
-      style={{ transform: `scale(${scale})` }}
+      style={{ transform: `scale(${FLAME_SCALE})` }}
     >
       <canvas ref={canvasRef} className='fire-canvas' />
     </div>
