@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { useAppContext } from '@/App'
 import { v4 as uuid } from 'uuid'
 import { type Letter } from '@/types'
 import * as storage from '@/services/storage'
@@ -448,7 +449,19 @@ function ArchiveView({
 // ── 메인 페이지 ───────────────────────────────────────────────────────────
 export default function NextChapterPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { openDrawer } = useAppContext()
   const { isMobile } = useMobile()
+
+  // 서랍에서 왔으면 메인으로 가서 서랍 팝업을 다시 연다. 아니면 일반 뒤로가기.
+  function handleBackToDrawer() {
+    if ((location.state as { fromDrawer?: boolean } | null)?.fromDrawer) {
+      navigate('/')
+      openDrawer()
+    } else {
+      navigate(-1)
+    }
+  }
 
   const [todayLetter, setTodayLetter] = useState<Letter | ServerLetter | null>(null)
   const [allLetters, setAllLetters]   = useState<(Letter | ServerLetter)[]>([])
@@ -626,14 +639,15 @@ export default function NextChapterPage() {
 
       <header className='app-header'>
         <button
-          onClick={() => view === 'archive' ? setView('main') : navigate(-1)}
+          onClick={() => view === 'archive' ? setView('main') : handleBackToDrawer()}
           style={{
             fontFamily: 'var(--font-pixel)', fontSize: 12,
             color: 'var(--fire-org)', background: 'none', border: 'none',
-            cursor: 'pointer', letterSpacing: '0.06em',
+            cursor: 'pointer', letterSpacing: '0.04em',
+            flexShrink: 0, whiteSpace: 'nowrap',
           }}
         >
-          {view === 'archive' ? '← 다음 챕터' : '← 주인공의 서랍'}
+          {view === 'archive' ? '← 다음 챕터' : '← 서랍'}
         </button>
         <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
           <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)', letterSpacing: '0.1em' }}>

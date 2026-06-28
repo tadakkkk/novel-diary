@@ -173,7 +173,8 @@ export function DrawerPopup({ onClose }: Props) {
   }, [onClose])
 
   function handleNavigate(path: string) {
-    navigate(path)
+    // 서랍에서 진입했음을 표시 → 기능 페이지 뒤로가기 시 서랍으로 복귀
+    navigate(path, { state: { fromDrawer: true } })
     // onClose는 useEffect에서 location 변경 감지 후 처리
   }
 
