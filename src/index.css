@@ -55,6 +55,11 @@ html, body {
   image-rendering: crisp-edges;
 }
 
+/* iOS safe area: 본문 전체를 상단 inset만큼 내려 고정 헤더(키운 높이)와 정합 */
+body {
+  padding-top: env(safe-area-inset-top);
+}
+
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--black); }
 ::-webkit-scrollbar-thumb { background: var(--gray-3); }
@@ -135,7 +140,7 @@ html, body {
 
 /* ── Floating Generate Button ────────────────────────────────────────────── */
 .generate-btn-wrap {
-  position: fixed; bottom: 28px; left: 50%;
+  position: fixed; bottom: calc(28px + env(safe-area-inset-bottom)); left: 50%;
   transform: translateX(-50%) translateY(80px);
   opacity: 0; transition: transform 0.3s steps(4), opacity 0.2s;
   pointer-events: none; z-index: 50;
@@ -168,8 +173,10 @@ html, body {
 
 /* ── App Header ──────────────────────────────────────────────────────────── */
 .app-header {
-  position: fixed; top: 0; left: 0; right: 0; height: 56px;
-  display: flex; align-items: center; padding: 0 16px;
+  position: fixed; top: 0; left: 0; right: 0;
+  height: calc(56px + env(safe-area-inset-top));
+  display: flex; align-items: center;
+  padding: env(safe-area-inset-top) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
   background: var(--black); border-bottom: 2px solid var(--gray-2); z-index: 100;
 }
 .logo-korean { font-family: var(--font-korean); font-size: 20px; font-weight: 700; color: var(--fire-amb); letter-spacing: 0.05em; line-height: 1; }
@@ -485,7 +492,7 @@ input[type='range']::-webkit-slider-thumb {
     flex-shrink: 0;
     position: sticky; bottom: 0;
     border-top: 2px solid var(--white); background: var(--black);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
   .bf-m-bottom-hd {
     display: flex; align-items: center; justify-content: space-between;
@@ -556,7 +563,7 @@ input[type='range']::-webkit-slider-thumb {
   .modal-box { max-width: 100% !important; margin: 0 8px; }
 
   /* ── AppHeader ── */
-  .app-header { padding: 0 12px; }
+  .app-header { padding: env(safe-area-inset-top) max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left)); }
   .logo-korean { font-size: 17px; }
   .logo-en { font-size: 9px; }
 
@@ -590,7 +597,7 @@ input[type='range']::-webkit-slider-thumb {
   .gauge-label { display: none; }
 
   /* ── 헤더 ── */
-  .app-header { padding: 0 8px; }
+  .app-header { padding: env(safe-area-inset-top) max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left)); }
   .logo-korean { font-size: 14px; }
   .logo-en { display: none; }
 

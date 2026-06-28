@@ -70,7 +70,13 @@ export function AppHeader() {
   return (
     <>
       {/* ── 헤더 ── */}
-      <header className='app-header' style={{ justifyContent: 'space-between', padding: '0 16px' }}>
+      <header className='app-header' style={{
+        justifyContent: 'space-between',
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingRight: 'max(16px, env(safe-area-inset-right))',
+        paddingBottom: 0,
+        paddingLeft: 'max(16px, env(safe-area-inset-left))',
+      }}>
 
         {/* ── 좌측: 햄버거 ── */}
         <div ref={navRef} style={{ position: 'relative' }}>

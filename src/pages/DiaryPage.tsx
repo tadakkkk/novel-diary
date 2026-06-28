@@ -347,7 +347,7 @@ export default function DiaryPage() {
   return (
     <>
       <PixelStars />
-      <header className='app-header' style={{ height: 52 }}>
+      <header className='app-header' style={{ height: 'calc(52px + env(safe-area-inset-top))' }}>
         <button className='app-logo' onClick={() => safeNavigate('/')} style={{ background:'none', border:'none', cursor:'pointer' }}>
           <span className='logo-korean'>타닥타닥</span>
           <span className='logo-en'>◀ 모닥불로</span>
