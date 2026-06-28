@@ -85,9 +85,9 @@ export function PastSelfChat() {
 
   return (
     <>
-      {/* 채팅 영역 — 상단 헤더(56px) ~ 하단 입력창(62px) */}
+      {/* 채팅 영역 — 상단 헤더(56px + safe area) ~ 하단 입력창(62px) */}
       <div style={{
-        position: 'fixed', top: 56, left: 0, right: 0, bottom: 62,
+        position: 'fixed', top: 'calc(56px + env(safe-area-inset-top))', left: 0, right: 0, bottom: 62,
         overflowY: 'auto',
         padding: '12px 14px',
         display: 'flex', flexDirection: 'column', gap: 10,
