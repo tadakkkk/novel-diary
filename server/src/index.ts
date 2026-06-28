@@ -22,6 +22,10 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:4173',
   'http://localhost:3000',
+  // Capacitor iOS/Android WebView origins
+  'capacitor://localhost',
+  'ionic://localhost',
+  'http://localhost',
   ...(process.env.CLIENT_ORIGIN ? [process.env.CLIENT_ORIGIN] : []),
 ]
 
