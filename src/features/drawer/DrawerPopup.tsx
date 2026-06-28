@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useMobile } from '@/hooks/useMobile'
 import { hasUnreadDeliveredLetter } from '@/services/storage'
 
@@ -150,21 +150,12 @@ function DrawerSlot({ slot, onNavigate, showUnreadDot }: { slot: SlotDef; onNavi
 
 export function DrawerPopup({ onClose }: Props) {
   const navigate = useNavigate()
-  const location = useLocation()
   const { isMobile, isSmall } = useMobile()
-  const initialPath = useRef(location.pathname)
   const [hasUnread, setHasUnread] = useState(false)
 
   useEffect(() => {
     setHasUnread(hasUnreadDeliveredLetter())
   }, [])
-
-  // location이 바뀐 뒤에 닫기 — route 전환 render가 먼저, drawer 해제는 그 다음
-  useEffect(() => {
-    if (location.pathname !== initialPath.current) {
-      onClose()
-    }
-  }, [location.pathname, onClose])
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -173,9 +164,10 @@ export function DrawerPopup({ onClose }: Props) {
   }, [onClose])
 
   function handleNavigate(path: string) {
-    // 서랍에서 진입했음을 표시 → 기능 페이지 뒤로가기 시 서랍으로 복귀
+    // 명시적으로 서랍을 닫고 이동. (라우트 변경 자동감지로 닫지 않음 →
+    // 뒤로가기로 '/'에 돌아오며 서랍을 다시 열 때 즉시 닫히는 레이스 방지)
+    onClose()
     navigate(path, { state: { fromDrawer: true } })
-    // onClose는 useEffect에서 location 변경 감지 후 처리
   }
 
   return (
