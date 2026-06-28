@@ -319,6 +319,8 @@ export default function DiaryPage() {
         // 사용자가 취소함 — 조용히 처리
         return
       }
+      // ── [임시 진단] 실제 실패 단계/메시지를 그대로 노출 ──────────────────
+      alert('진단(일기 생성): ' + msg)
       if (msg === 'QUOTA_EXCEEDED') {
         setStatus('idle')
         showPaywall()

@@ -88,8 +88,14 @@ export async function getUser(): Promise<User | null> {
 
 export async function getSession() {
   if (!supabase) return null
-  const { data: { session } } = await supabase.auth.getSession()
-  return session
+  // ── [임시 진단] 원래는 에러를 삼키지만, 진단 위해 노출 ──────────────────
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession()
+    if (error) throw new Error('GET_SESSION_ERR: ' + error.message)
+    return session
+  } catch (e) {
+    throw new Error('GET_SESSION_THROW: ' + (e as Error).message)
+  }
 }
 
 export function onAuthStateChange(callback: (user: User | null) => void) {

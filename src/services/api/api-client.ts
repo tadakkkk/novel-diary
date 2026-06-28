@@ -53,26 +53,47 @@ export async function serverChat(opts: {
   signal?: AbortSignal
   action_type: ActionType
 }): Promise<{ text: string; remaining: number }> {
-  if (!API_BASE) throw new Error('VITE_API_URL not set')
+  // ── [임시 진단] 단계별 실패 지점을 명확한 메시지로 노출 ──────────────────
+  console.error('[serverChat] API_BASE =', API_BASE)
+  if (!API_BASE) throw new Error('NO_API_BASE (VITE_API_URL not set)')
 
-  const headers = await getAuthHeaders()
-  const res = await fetch(`${API_BASE}/api/ai/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...headers },
-    body: JSON.stringify({
-      messages: opts.messages,
-      systemPrompt: opts.systemPrompt,
-      maxTokens: opts.maxTokens,
-      temperature: opts.temperature,
-      action_type: opts.action_type,
-    }),
-    signal: opts.signal,
-  })
+  // 단계 A: 인증 헤더 획득
+  let headers: Record<string, string>
+  try {
+    headers = await getAuthHeaders()
+  } catch (e) {
+    throw new Error('AUTH_HEADER_FAIL: ' + (e as Error).message)
+  }
+  const authLen = headers['Authorization']?.length ?? 0
+  const hasAuth = authLen > 0
+
+  // 단계 B: fetch 호출
+  let res: Response
+  try {
+    res = await fetch(`${API_BASE}/api/ai/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({
+        messages: opts.messages,
+        systemPrompt: opts.systemPrompt,
+        maxTokens: opts.maxTokens,
+        temperature: opts.temperature,
+        action_type: opts.action_type,
+      }),
+      signal: opts.signal,
+    })
+  } catch (e) {
+    throw new Error(
+      `FETCH_FAIL: ${API_BASE}/api/ai/chat | auth=${hasAuth}(${authLen}) | ${(e as Error).message}`,
+    )
+  }
 
   if (res.status === 402 && PAYMENT_ENABLED) throw new QuotaExceededError()
+
+  // 단계 C: 응답 상태
   if (!res.ok) {
-    const err = await res.json().catch(() => ({})) as { error?: string }
-    throw new Error(err.error ?? `HTTP ${res.status}`)
+    const body = await res.text().catch(() => '')
+    throw new Error(`HTTP_${res.status}: ${body.slice(0, 300)} | auth=${hasAuth}(${authLen})`)
   }
 
   const data = await res.json() as { text: string }
