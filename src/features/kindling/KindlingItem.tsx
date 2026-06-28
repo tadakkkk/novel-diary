@@ -51,10 +51,7 @@ export function KindlingItem({
         setQuestion(q)
         setQuestionVisible(true)
       }
-    }).catch((e) => {
-      // ── [임시 진단] 평소엔 무시하지만, 원인 파악 위해 노출 ──────────────
-      alert('진단(땔감 반문): ' + ((e as Error).message ?? String(e)))
-    })
+    }).catch(() => { /* ignore */ })
   }, [isNew, kindling.text])
 
   function handleQuestionClick() {

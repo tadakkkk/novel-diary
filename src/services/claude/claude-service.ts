@@ -497,9 +497,12 @@ export async function generateKindlingQuestion(text: string): Promise<string> {
 질문은 20자 이내, 따뜻하고 자연스럽게.
 질문만 출력 (다른 텍스트 없이).`
 
-  // ── [임시 진단] 평소엔 '' 반환하지만, 원인 파악 위해 에러 전파 ──────────
-  const raw = await callApiWithRetry({ messages: [{ role: 'user', content: prompt }], maxTokens: 60, temperature: 0.9, action_type: 'generate_kindling_question' })
-  return raw.trim().replace(/^["']|["']$/g, '')
+  try {
+    const raw = await callApiWithRetry({ messages: [{ role: 'user', content: prompt }], maxTokens: 60, temperature: 0.9, action_type: 'generate_kindling_question' })
+    return raw.trim().replace(/^["']|["']$/g, '')
+  } catch {
+    return ''
+  }
 }
 
 // ── 다음 챕터: -??? 편지 생성 ─────────────────────────────────────────────
