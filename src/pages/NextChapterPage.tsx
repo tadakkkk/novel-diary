@@ -210,7 +210,7 @@ function LetterArrivalPopup({ onConfirm, onLater }: { onConfirm: () => void; onL
           편지가 도착했어.
         </div>
         <div style={{
-          fontFamily: 'var(--font-pixel)', fontSize: 9,
+          fontFamily: 'var(--font-pixel)', fontSize: 12,
           color: '#4a3520', letterSpacing: '0.1em',
         }}>
           FROM. ???
@@ -223,7 +223,7 @@ function LetterArrivalPopup({ onConfirm, onLater }: { onConfirm: () => void; onL
           className='pixel-btn'
           style={{
             borderColor: ACCENT, color: ACCENT,
-            fontFamily: 'var(--font-pixel)', fontSize: 11,
+            fontFamily: 'var(--font-pixel)', fontSize: 12,
             letterSpacing: '0.08em', padding: '12px 0', width: '100%',
           }}
         >
@@ -233,7 +233,7 @@ function LetterArrivalPopup({ onConfirm, onLater }: { onConfirm: () => void; onL
           onClick={onLater}
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            fontFamily: 'var(--font-pixel)', fontSize: 10,
+            fontFamily: 'var(--font-pixel)', fontSize: 12,
             color: '#4a3520', letterSpacing: '0.08em', padding: '8px 0',
           }}
         >
@@ -330,14 +330,14 @@ function ArchiveView({
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         paddingBottom: 12, borderBottom: `1px solid #1a1208`, marginBottom: 12,
       }}>
-        <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 10, color: TEXT_BASE, letterSpacing: '0.08em' }}>
+        <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: TEXT_BASE, letterSpacing: '0.08em' }}>
           지금까지 {totalCount}통의 편지를 받았어
         </div>
         <button
           onClick={onBack}
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            fontFamily: 'var(--font-pixel)', fontSize: 9,
+            fontFamily: 'var(--font-pixel)', fontSize: 12,
             color: '#4a3520', letterSpacing: '0.06em',
           }}
         >← 돌아가기</button>
@@ -354,7 +354,7 @@ function ArchiveView({
             width: '100%', boxSizing: 'border-box',
             background: '#1a1208', border: `1px solid #3a2a18`,
             color: TEXT_BASE,
-            fontFamily: 'var(--font-pixel)', fontSize: 10,
+            fontFamily: 'var(--font-pixel)', fontSize: 12,
             letterSpacing: '0.06em',
             padding: '8px 12px',
             outline: 'none',
@@ -365,7 +365,7 @@ function ArchiveView({
       {/* 결과 */}
       {filtered.length === 0 ? (
         <div style={{
-          fontFamily: 'var(--font-pixel)', fontSize: 10,
+          fontFamily: 'var(--font-pixel)', fontSize: 12,
           color: '#4a3520', letterSpacing: '0.06em',
           textAlign: 'center', paddingTop: 24,
         }}>
@@ -395,7 +395,7 @@ function ArchiveView({
                   background: isRead(letter) ? 'transparent' : ACCENT,
                   border: isRead(letter) ? `1px solid #2a1e10` : 'none',
                 }} />
-                <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: '#4a3520', flexShrink: 0 }}>
+                <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: '#4a3520', flexShrink: 0 }}>
                   {letter.date}
                 </span>
                 <span style={{
@@ -405,7 +405,7 @@ function ArchiveView({
                   {letter.content.split('\n')[0]}
                 </span>
                 <span style={{
-                  fontFamily: 'var(--font-pixel)', fontSize: 10,
+                  fontFamily: 'var(--font-pixel)', fontSize: 12,
                   color: expandedId === letter.id ? ACCENT : '#3a2a18',
                   transition: 'color 0.12s', flexShrink: 0,
                 }}>
@@ -420,7 +420,7 @@ function ArchiveView({
                   animation: 'letterUnfold 0.2s ease-out',
                 }}>
                   <div style={{
-                    fontFamily: 'var(--font-pixel)', fontSize: 8,
+                    fontFamily: 'var(--font-pixel)', fontSize: 12,
                     color: '#4a3520', letterSpacing: '0.08em', marginBottom: 14,
                   }}>
                     {formatArrivedAt(getArrivedAt(letter))}
@@ -430,7 +430,7 @@ function ArchiveView({
                     <button
                       onClick={() => setExpandedId(null)}
                       className='pixel-btn pixel-btn-sm'
-                      style={{ fontSize: 10, letterSpacing: '0.06em' }}
+                      style={{ fontSize: 12, letterSpacing: '0.06em' }}
                     >
                       닫기
                     </button>
@@ -628,7 +628,7 @@ export default function NextChapterPage() {
         <button
           onClick={() => view === 'archive' ? setView('main') : navigate(-1)}
           style={{
-            fontFamily: 'var(--font-pixel)', fontSize: 10,
+            fontFamily: 'var(--font-pixel)', fontSize: 12,
             color: 'var(--fire-org)', background: 'none', border: 'none',
             cursor: 'pointer', letterSpacing: '0.06em',
           }}
@@ -639,7 +639,7 @@ export default function NextChapterPage() {
           <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)', letterSpacing: '0.1em' }}>
             {view === 'archive' ? '편지 보관함' : '다음 챕터'}
           </div>
-          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: '#4a3520', letterSpacing: '0.08em', marginTop: 2 }}>
+          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: '#4a3520', letterSpacing: '0.08em', marginTop: 2 }}>
             FROM. ???
           </div>
         </div>
@@ -673,7 +673,7 @@ export default function NextChapterPage() {
                   아직 편지가 오지 않았어
                 </div>
                 <div style={{
-                  fontFamily: 'var(--font-pixel)', fontSize: 9,
+                  fontFamily: 'var(--font-pixel)', fontSize: 12,
                   color: '#4a3520', letterSpacing: '0.06em', textAlign: 'center', lineHeight: 2,
                 }}>
                   오늘 일기를 쓰면<br />???가 읽고 편지를 보내줄 거야
@@ -685,7 +685,7 @@ export default function NextChapterPage() {
             {loading && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 64, gap: 24 }}>
                 <Envelope open={false} pulse />
-                <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 11, color: '#4a3520', letterSpacing: '0.08em' }}>
+                <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: '#4a3520', letterSpacing: '0.08em' }}>
                   편지를 기다리는 중<span style={{ animation: 'blink 1s step-end infinite' }}>...</span>
                 </div>
               </div>
@@ -696,7 +696,7 @@ export default function NextChapterPage() {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 64, gap: 24 }}>
                 <Envelope open={false} />
                 <div style={{
-                  fontFamily: 'var(--font-pixel)', fontSize: 10,
+                  fontFamily: 'var(--font-pixel)', fontSize: 12,
                   color: '#4a3520', letterSpacing: '0.06em', textAlign: 'center', lineHeight: 2,
                 }}>
                   편지가 배송되고 있어<br />
@@ -710,7 +710,7 @@ export default function NextChapterPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 {/* 도착 시각 */}
                 <div style={{
-                  fontFamily: 'var(--font-pixel)', fontSize: 9,
+                  fontFamily: 'var(--font-pixel)', fontSize: 12,
                   color: '#4a3520', letterSpacing: '0.08em', textAlign: 'center', paddingTop: 24,
                 }}>
                   {formatArrivedAt(getArrivedAt(todayLetter))}
@@ -740,7 +740,7 @@ export default function NextChapterPage() {
                       className='pixel-btn'
                       style={{
                         borderColor: ACCENT, color: ACCENT,
-                        fontFamily: 'var(--font-pixel)', fontSize: 11,
+                        fontFamily: 'var(--font-pixel)', fontSize: 12,
                         letterSpacing: '0.08em', padding: '10px 24px',
                       }}
                     >
@@ -759,7 +759,7 @@ export default function NextChapterPage() {
                     transformOrigin: 'top center',
                   }}>
                     <div style={{
-                      fontFamily: 'var(--font-pixel)', fontSize: 8,
+                      fontFamily: 'var(--font-pixel)', fontSize: 12,
                       color: '#4a3520', letterSpacing: '0.1em', marginBottom: 20,
                     }}>
                       ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─
@@ -771,7 +771,7 @@ export default function NextChapterPage() {
                     }
 
                     <div style={{
-                      fontFamily: 'var(--font-pixel)', fontSize: 8,
+                      fontFamily: 'var(--font-pixel)', fontSize: 12,
                       color: '#4a3520', letterSpacing: '0.1em', marginTop: 20,
                     }}>
                       ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─
@@ -783,7 +783,7 @@ export default function NextChapterPage() {
                         <button
                           onClick={handleClose}
                           className='pixel-btn pixel-btn-sm'
-                          style={{ fontSize: 10, letterSpacing: '0.06em' }}
+                          style={{ fontSize: 12, letterSpacing: '0.06em' }}
                         >
                           닫기
                         </button>
@@ -800,7 +800,7 @@ export default function NextChapterPage() {
                 <button
                   onClick={() => setView('archive')}
                   className='pixel-btn pixel-btn-sm'
-                  style={{ fontSize: 10, letterSpacing: '0.06em' }}
+                  style={{ fontSize: 12, letterSpacing: '0.06em' }}
                 >
                   지난 편지 보기
                 </button>

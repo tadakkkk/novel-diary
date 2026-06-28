@@ -49,7 +49,7 @@ function InstallBanner() {
     }}>
       <span style={{ fontSize: 22, flexShrink: 0 }}>🔥</span>
       <div style={{ flex: 1 }}>
-        <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--fire-tip)', letterSpacing: '0.08em', marginBottom: 3 }}>
+        <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-tip)', letterSpacing: '0.08em', marginBottom: 3 }}>
           홈 화면에 추가하기
         </div>
         <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-4)', lineHeight: 1.5 }}>
@@ -60,14 +60,14 @@ function InstallBanner() {
         <button
           onClick={handleInstall}
           className='pixel-btn pixel-btn-fire'
-          style={{ fontSize: 9, padding: '8px 12px' }}
+          style={{ fontSize: 12, padding: '8px 12px' }}
         >
           설치
         </button>
         <button
           onClick={handleDismiss}
           className='pixel-btn'
-          style={{ fontSize: 9, padding: '8px 10px' }}
+          style={{ fontSize: 12, padding: '8px 10px' }}
         >
           ✕
         </button>
@@ -109,7 +109,7 @@ function QuotaToast() {
       boxShadow: 'inset 0 0 0 1px var(--fire-org)',
       padding: '12px 20px', maxWidth: 400, textAlign: 'center',
     }}>
-      <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 10, color: 'var(--fire-tip)', letterSpacing: '0.1em', marginBottom: 6 }}>
+      <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-tip)', letterSpacing: '0.1em', marginBottom: 6 }}>
         ⚠ 저장 공간 부족
       </div>
       <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: '#ccc', lineHeight: 1.6 }}>
@@ -117,7 +117,7 @@ function QuotaToast() {
         오래된 일기나 문체 참고를 삭제하면 공간이 확보됩니다.
       </div>
       <button onClick={() => setVisible(false)}
-        style={{ marginTop: 10, fontFamily: 'var(--font-pixel)', fontSize: 9, background: 'transparent', border: '1px solid #555', color: '#888', padding: '4px 10px', cursor: 'pointer' }}>
+        style={{ marginTop: 10, fontFamily: 'var(--font-pixel)', fontSize: 12, background: 'transparent', border: '1px solid #555', color: '#888', padding: '4px 10px', cursor: 'pointer' }}>
         닫기
       </button>
     </div>
@@ -186,16 +186,16 @@ function OnboardingModal() {
             </div>
             <div style={{ display:'flex', gap:8 }}>
               <button className='pixel-btn pixel-btn-fire' style={{ flex:1 }} onClick={() => setStep(2)}>▸ API 키 설정하기</button>
-              <button className='pixel-btn' onClick={dismiss} style={{ fontSize:9, padding:'10px 14px' }}>나중에</button>
+              <button className='pixel-btn' onClick={dismiss} style={{ fontSize:12, padding:'10px 14px' }}>나중에</button>
             </div>
-            <div style={{ fontFamily:'var(--font-pixel)', fontSize:7, color:'var(--text-off)', marginTop:10, textAlign:'center', letterSpacing:'0.06em' }}>
+            <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)', marginTop:10, textAlign:'center', letterSpacing:'0.06em' }}>
               Claude API 키가 있어야 일기를 생성할 수 있어요
             </div>
           </div>
         ) : (
           /* Step 2: API 키 입력 */
           <div style={{ padding:'24px' }}>
-            <div style={{ fontFamily:'var(--font-pixel)', fontSize:9, color:'var(--fire-amb)', letterSpacing:'0.1em', marginBottom:16 }}>► ANTHROPIC API KEY</div>
+            <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-amb)', letterSpacing:'0.1em', marginBottom:16 }}>► ANTHROPIC API KEY</div>
             <div style={{ fontFamily:'var(--font-korean)', fontSize:13, color:'var(--gray-4)', lineHeight:1.7, marginBottom:16 }}>
               <a href='https://console.anthropic.com/' target='_blank' rel='noreferrer'
                 style={{ color:'var(--fire-org)', textDecoration:'underline' }}>console.anthropic.com</a>에서
@@ -212,14 +212,14 @@ function OnboardingModal() {
               onKeyDown={(e) => e.key === 'Enter' && saveKey()}
               style={{ marginBottom:6 }}
             />
-            <div style={{ fontFamily:'var(--font-pixel)', fontSize:7, color:'#ff4444', minHeight:14, marginBottom:14 }}>{err}</div>
+            <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#ff4444', minHeight:14, marginBottom:14 }}>{err}</div>
             <div style={{ display:'flex', gap:8 }}>
-              <button className='pixel-btn' onClick={() => setStep(1)} style={{ fontSize:9, padding:'10px 14px' }}>◀ 뒤로</button>
+              <button className='pixel-btn' onClick={() => setStep(1)} style={{ fontSize:12, padding:'10px 14px' }}>◀ 뒤로</button>
               <button className='pixel-btn pixel-btn-fire' style={{ flex:1 }} onClick={saveKey}>▸ 저장하고 시작하기</button>
             </div>
             <div style={{ marginTop:10, textAlign:'center' }}>
               <button onClick={dismiss}
-                style={{ fontFamily:'var(--font-pixel)', fontSize:7, color:'var(--text-off)', background:'none', border:'none', cursor:'pointer', letterSpacing:'0.06em', textDecoration:'underline' }}>
+                style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)', background:'none', border:'none', cursor:'pointer', letterSpacing:'0.06em', textDecoration:'underline' }}>
                 키 없이 둘러보기
               </button>
             </div>
@@ -240,7 +240,7 @@ function SplashScreen() {
       <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 24, color: 'var(--fire-tip)', letterSpacing: '0.06em' }}>
         타닥타닥
       </div>
-      <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--fire-amb)', letterSpacing: '0.2em' }}>
+      <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)', letterSpacing: '0.2em' }}>
         ···
       </div>
     </div>
@@ -267,7 +267,7 @@ function LoginGate() {
           <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 26, color: 'var(--fire-tip)', letterSpacing: '0.06em', marginBottom: 6 }}>
             타닥타닥
           </div>
-          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: 'var(--fire-amb)', letterSpacing: '0.15em' }}>
+          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)', letterSpacing: '0.15em' }}>
             TADAK-TADAK
           </div>
         </div>
@@ -282,7 +282,7 @@ function LoginGate() {
           className='pixel-btn pixel-btn-fire'
           onClick={handleLogin}
           disabled={loading}
-          style={{ fontSize: 10, padding: '12px 24px', letterSpacing: '0.08em' }}
+          style={{ fontSize: 12, padding: '12px 24px', letterSpacing: '0.08em' }}
         >
           {loading ? '로그인 중...' : 'Google로 시작하기'}
         </button>

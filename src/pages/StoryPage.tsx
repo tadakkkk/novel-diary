@@ -11,7 +11,7 @@ export default function StoryPage() {
         <button
           onClick={() => navigate(-1)}
           style={{
-            fontFamily: 'var(--font-pixel)', fontSize: 10,
+            fontFamily: 'var(--font-pixel)', fontSize: 12,
             color: 'var(--fire-org)', background: 'none', border: 'none',
             cursor: 'pointer', letterSpacing: '0.06em',
           }}

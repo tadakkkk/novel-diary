@@ -93,12 +93,12 @@ export function PastSelfChat() {
         display: 'flex', flexDirection: 'column', gap: 10,
       }}>
         {diaryCount === 0 ? (
-          <div style={{ textAlign: 'center', padding: '32px 0', fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--text-off)', letterSpacing: '0.08em', lineHeight: 2.2 }}>
+          <div style={{ textAlign: 'center', padding: '32px 0', fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--text-off)', letterSpacing: '0.08em', lineHeight: 2.2 }}>
             아직 쌓인 이야기가 없어.<br />
             일기를 먼저 써봐.
           </div>
         ) : messages.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '32px 0', fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--text-off)', letterSpacing: '0.08em', lineHeight: 2.2 }}>
+          <div style={{ textAlign: 'center', padding: '32px 0', fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--text-off)', letterSpacing: '0.08em', lineHeight: 2.2 }}>
             과거의 주인공이 기다리고 있어.<br />
             지금의 고민을 말해봐.
           </div>
@@ -124,7 +124,7 @@ export function PastSelfChat() {
                 {msg.content}
               </div>
               {msg.role === 'assistant' && msg.sourceDate && (
-                <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--fire-amb)', marginTop: 4, letterSpacing: '0.06em', cursor: 'default' }}>
+                <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)', marginTop: 4, letterSpacing: '0.06em', cursor: 'default' }}>
                   {msg.sourceDate}의 나
                 </div>
               )}
@@ -159,7 +159,7 @@ export function PastSelfChat() {
         />
         <button
           className='pixel-btn pixel-btn-fire'
-          style={{ fontSize: 10, padding: '0 14px', flexShrink: 0, alignSelf: 'flex-end' }}
+          style={{ fontSize: 12, padding: '0 14px', flexShrink: 0, alignSelf: 'flex-end' }}
           onClick={sendMessage}
           disabled={loading || !input.trim()}
         >▸</button>

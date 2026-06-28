@@ -55,7 +55,7 @@ export function StoryTab() {
 
   return (
     <div style={{ padding: '20px 18px 32px' }}>
-      <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--fire-amb)', letterSpacing: '0.1em', marginBottom: 16 }}>► 주인공의 이야기</div>
+      <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)', letterSpacing: '0.1em', marginBottom: 16 }}>► 주인공의 이야기</div>
 
       {diaries.length === 0 ? (
         <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--text-off)', lineHeight: 1.8, marginBottom: 20 }}>
@@ -66,10 +66,10 @@ export function StoryTab() {
           <div style={{ display: 'flex', gap: 18, marginBottom: 14 }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 22, color: 'var(--fire-tip)' }}>{diaries.length}</div>
-              <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: 'var(--gray-4)', marginTop: 3, letterSpacing: '0.06em' }}>DIARIES</div>
+              <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-4)', marginTop: 3, letterSpacing: '0.06em' }}>DIARIES</div>
             </div>
             {dates.length > 0 && (
-              <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: 'var(--gray-4)', lineHeight: 2.2, letterSpacing: '0.06em' }}>
+              <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-4)', lineHeight: 2.2, letterSpacing: '0.06em' }}>
                 <div>FROM {dates[0]}</div>
                 <div>TO   {dates[dates.length - 1]}</div>
               </div>
@@ -84,7 +84,7 @@ export function StoryTab() {
 
       <button
         className='pixel-btn pixel-btn-fire'
-        style={{ fontSize: 10, padding: '10px 18px' }}
+        style={{ fontSize: 12, padding: '10px 18px' }}
         onClick={() => navigate('/novel')}
       >
         ▸ 주인공의 이야기 열기
@@ -93,7 +93,7 @@ export function StoryTab() {
       {/* ── 책장 ── */}
       {savedNovels.length > 0 && (
         <div style={{ marginTop: 28 }}>
-          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: 'var(--gray-4)', letterSpacing: '0.08em', marginBottom: 12 }}>▸ 책장</div>
+          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-4)', letterSpacing: '0.08em', marginBottom: 12 }}>▸ 책장</div>
           <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 8, WebkitOverflowScrolling: 'touch' as React.CSSProperties['WebkitOverflowScrolling'] }}>
             {savedNovels.map((n) => {
               const seed = n.id.split('').reduce((s, c) => s + c.charCodeAt(0), 0)
@@ -104,7 +104,7 @@ export function StoryTab() {
                   onClick={() => navigate(`/novel?savedId=${n.id}`)}
                 >
                   <PixelBookCover seed={seed} w={44} h={66} />
-                  <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 6, color: 'var(--gray-4)', textAlign: 'center', maxWidth: 48, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-4)', textAlign: 'center', maxWidth: 48, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {n.title.split(' ~ ')[0]}
                   </div>
                 </div>

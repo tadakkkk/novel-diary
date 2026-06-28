@@ -157,10 +157,10 @@ function CoverPage({ diaries, onClose }: { diaries: NovelDiary[]; onClose: () =>
       <div style={{ fontSize:44, marginBottom:18 }}>🔥</div>
       <div style={{ fontFamily:"'Noto Serif KR',serif", fontWeight:700, fontSize:20, color:'#d4881e', letterSpacing:'0.06em', marginBottom:10 }}>주인공의 이야기</div>
       <div style={{ fontFamily:"'Nanum Myeongjo',serif", fontSize:14, color:'#888', marginBottom:6 }}>{count}편의 일기</div>
-      <div style={{ fontFamily:'var(--font-pixel)', fontSize:9, color:'#555', letterSpacing:'0.08em', marginBottom:24 }}>{period}</div>
+      <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#555', letterSpacing:'0.08em', marginBottom:24 }}>{period}</div>
       <div style={{ width:48, height:1, background:'#d4881e', margin:'0 auto 22px' }} />
-      <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:10, background:'#000', color:'#888', border:'1px solid #444', padding:'8px 14px', cursor:'pointer', letterSpacing:'0.06em' }}>책 덮기</button>
-      <div style={{ position:'absolute', bottom:18, left:32, fontFamily:'var(--font-pixel)', fontSize:9, color:'#666', letterSpacing:'0.1em' }}>i</div>
+      <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:12, background:'#000', color:'#888', border:'1px solid #444', padding:'8px 14px', cursor:'pointer', letterSpacing:'0.06em' }}>책 덮기</button>
+      <div style={{ position:'absolute', bottom:18, left:32, fontFamily:'var(--font-pixel)', fontSize:12, color:'#666', letterSpacing:'0.1em' }}>i</div>
     </div>
   )
 }
@@ -172,7 +172,7 @@ function DiaryFirstPage({ page, pageNum, chars }: { page: DiaryPage; pageNum: nu
     <div style={{ height:'100%', display:'flex', flexDirection:'column' }}>
       {/* 헤더: 날짜 + 제목 */}
       <div style={{ flexShrink:0 }}>
-        <div style={{ fontFamily:"'Noto Serif KR',serif", fontWeight:700, fontSize:9, color:'#d4881e', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{diary.date}</div>
+        <div style={{ fontFamily:"'Noto Serif KR',serif", fontWeight:700, fontSize:12, color:'#d4881e', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{diary.date}</div>
         <div style={{ fontFamily:"'Noto Serif KR',serif", fontWeight:700, fontSize:15, color:'#d4881e', lineHeight:1.4, marginBottom:10, paddingBottom:10, borderBottom:'1px solid #333' }}>{title}</div>
         {page.hasImage && page.imgUrl && (
           <img src={page.imgUrl} alt='' style={{ display:'block', width:'100%', maxHeight:200, objectFit:'cover', marginBottom:14, border:'1px solid #333' }} />
@@ -183,14 +183,14 @@ function DiaryFirstPage({ page, pageNum, chars }: { page: DiaryPage; pageNum: nu
       {/* 등장인물: 본문 아래 별도 영역, 절대 위치 없음 */}
       {page.hasChars && chars.length > 0 && (
         <div style={{ flexShrink:0, borderTop:'1px solid #333', paddingTop:10, marginTop:8 }}>
-          <div style={{ fontFamily:'var(--font-pixel)', fontSize:8, color:'#555', letterSpacing:'0.1em', marginBottom:8 }}>▸ 등장인물</div>
+          <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#555', letterSpacing:'0.1em', marginBottom:8 }}>▸ 등장인물</div>
           <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'flex-start' }}>
             {chars.slice(0, 6).map((char) => (
               <div key={char.name} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
                 <div style={{ width:28, height:42, border:'1px solid #333', overflow:'hidden' }}>
                   <AvatarCanvas character={char} w={28} h={42} />
                 </div>
-                <div style={{ fontFamily:'var(--font-pixel)', fontSize:7, color:'#666', textAlign:'center', maxWidth:36, wordBreak:'break-all', lineHeight:1.3 }}>{char.name}</div>
+                <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#666', textAlign:'center', maxWidth:36, wordBreak:'break-all', lineHeight:1.3 }}>{char.name}</div>
               </div>
             ))}
           </div>
@@ -198,7 +198,7 @@ function DiaryFirstPage({ page, pageNum, chars }: { page: DiaryPage; pageNum: nu
       )}
       {/* 페이지 번호 */}
       {pageNum != null && (
-        <div style={{ flexShrink:0, fontFamily:'var(--font-pixel)', fontSize:9, color:'#666', letterSpacing:'0.1em', marginTop:6 }}>{pageNum}</div>
+        <div style={{ flexShrink:0, fontFamily:'var(--font-pixel)', fontSize:12, color:'#666', letterSpacing:'0.1em', marginTop:6 }}>{pageNum}</div>
       )}
     </div>
   )
@@ -207,10 +207,10 @@ function DiaryFirstPage({ page, pageNum, chars }: { page: DiaryPage; pageNum: nu
 function DiaryContPage({ page, pageNum }: { page: DiaryPage; pageNum: number | null }) {
   return (
     <div style={{ height:'100%', position:'relative' }}>
-      <div style={{ fontFamily:'var(--font-pixel)', fontSize:8, color:'#555', letterSpacing:'0.1em', marginBottom:12 }}>— 계속</div>
+      <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#555', letterSpacing:'0.1em', marginBottom:12 }}>— 계속</div>
       <div style={{ fontFamily:"'Nanum Myeongjo',serif", fontSize:14, color:'#f5e6c8', lineHeight:1.95, wordBreak:'keep-all', whiteSpace:'pre-wrap' }}>{page.text}</div>
       {pageNum != null && (
-        <div style={{ position:'absolute', bottom:18, fontFamily:'var(--font-pixel)', fontSize:9, color:'#666', letterSpacing:'0.1em' }}>{pageNum}</div>
+        <div style={{ position:'absolute', bottom:18, fontFamily:'var(--font-pixel)', fontSize:12, color:'#666', letterSpacing:'0.1em' }}>{pageNum}</div>
       )}
     </div>
   )
@@ -236,22 +236,22 @@ function SavedNovelView({ novel, onClose, onDelete }: {
       <div style={{ width: '100%', maxWidth: 600 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
-            <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: '#d4881e', letterSpacing: '0.1em', marginBottom: 4 }}>▸ 책장</div>
+            <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: '#d4881e', letterSpacing: '0.1em', marginBottom: 4 }}>▸ 책장</div>
             <div style={{ fontFamily: "'Noto Serif KR',serif", fontWeight: 700, fontSize: 16, color: '#f5e6c8' }}>{novel.title}</div>
           </div>
-          <button onClick={onClose} style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, background: '#000', color: '#888', border: '1px solid #444', padding: '6px 10px', cursor: 'pointer', letterSpacing: '0.06em', flexShrink: 0 }}>[ 닫기 ]</button>
+          <button onClick={onClose} style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, background: '#000', color: '#888', border: '1px solid #444', padding: '6px 10px', cursor: 'pointer', letterSpacing: '0.06em', flexShrink: 0 }}>[ 닫기 ]</button>
         </div>
         <div style={{ fontFamily: "'Nanum Myeongjo',serif", fontSize: 15, color: '#f5e6c8', lineHeight: 2.1, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', marginBottom: 28, borderLeft: '3px solid #d4881e', paddingLeft: 16 }}>
           {novel.content}
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {!confirmDelete ? (
-            <button onClick={() => setConfirmDelete(true)} style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, background: '#000', color: '#c0392b', border: '1px solid #c0392b', padding: '7px 12px', cursor: 'pointer', letterSpacing: '0.06em' }}>삭제</button>
+            <button onClick={() => setConfirmDelete(true)} style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, background: '#000', color: '#c0392b', border: '1px solid #c0392b', padding: '7px 12px', cursor: 'pointer', letterSpacing: '0.06em' }}>삭제</button>
           ) : (
             <>
-              <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: '#c0392b', alignSelf: 'center' }}>정말 삭제할까요?</span>
-              <button onClick={() => { onDelete(novel.id); onClose() }} style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, background: '#c0392b', color: '#fff', border: '1px solid #c0392b', padding: '7px 12px', cursor: 'pointer', letterSpacing: '0.06em' }}>삭제</button>
-              <button onClick={() => setConfirmDelete(false)} style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, background: '#000', color: '#888', border: '1px solid #444', padding: '7px 12px', cursor: 'pointer', letterSpacing: '0.06em' }}>취소</button>
+              <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: '#c0392b', alignSelf: 'center' }}>정말 삭제할까요?</span>
+              <button onClick={() => { onDelete(novel.id); onClose() }} style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, background: '#c0392b', color: '#fff', border: '1px solid #c0392b', padding: '7px 12px', cursor: 'pointer', letterSpacing: '0.06em' }}>삭제</button>
+              <button onClick={() => setConfirmDelete(false)} style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, background: '#000', color: '#888', border: '1px solid #444', padding: '7px 12px', cursor: 'pointer', letterSpacing: '0.06em' }}>취소</button>
             </>
           )}
         </div>
@@ -270,12 +270,12 @@ function ReviewPage({ reviews, readerSeeds, loading, onRegen, onClose, onSave, s
     <div style={{ display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>
       <div style={{ display:'flex', alignItems:'center', gap:10, borderBottom:'1px solid #333', paddingBottom:12, marginBottom:14 }}>
         <span style={{ fontSize:52, flexShrink:0, lineHeight:1 }}>🔥</span>
-        <span style={{ fontFamily:'var(--font-pixel)', fontSize:11, color:'#d4881e', letterSpacing:'0.1em' }}>불멍 독자석</span>
+        <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#d4881e', letterSpacing:'0.1em' }}>불멍 독자석</span>
       </div>
-      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', flex:1, fontFamily:'var(--font-pixel)', fontSize:9, color:'#555', letterSpacing:'0.08em', textAlign:'center', lineHeight:2 }}>
+      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', flex:1, fontFamily:'var(--font-pixel)', fontSize:12, color:'#555', letterSpacing:'0.08em', textAlign:'center', lineHeight:2 }}>
         독자들이 읽는 중...
       </div>
-      <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#888', border:'1px solid #444', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em', marginTop:12, alignSelf:'flex-start' }}>책 덮기</button>
+      <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:12, background:'#000', color:'#888', border:'1px solid #444', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em', marginTop:12, alignSelf:'flex-start' }}>책 덮기</button>
     </div>
   )
 
@@ -283,13 +283,13 @@ function ReviewPage({ reviews, readerSeeds, loading, onRegen, onClose, onSave, s
     <div style={{ display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>
       <div style={{ display:'flex', alignItems:'center', gap:10, borderBottom:'1px solid #333', paddingBottom:12, marginBottom:14 }}>
         <span style={{ fontSize:52, flexShrink:0, lineHeight:1 }}>🔥</span>
-        <span style={{ fontFamily:'var(--font-pixel)', fontSize:11, color:'#d4881e', letterSpacing:'0.1em' }}>불멍 독자석</span>
+        <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#d4881e', letterSpacing:'0.1em' }}>불멍 독자석</span>
       </div>
-      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', flex:1, gap:14, fontFamily:'var(--font-pixel)', fontSize:9, color:'#555', letterSpacing:'0.08em', textAlign:'center', lineHeight:2 }}>
+      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', flex:1, gap:14, fontFamily:'var(--font-pixel)', fontSize:12, color:'#555', letterSpacing:'0.08em', textAlign:'center', lineHeight:2 }}>
         <div>독자 반응을 불러오지 못했어요.<br />다시 시도해줘요.</div>
         <div style={{ display:'flex', gap:8, marginTop:12 }}>
-          <button onClick={onRegen} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#d4881e', border:'1px solid #d4881e', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>🔥 독자 불러오기</button>
-          <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#888', border:'1px solid #444', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>책 덮기</button>
+          <button onClick={onRegen} style={{ fontFamily:'var(--font-pixel)', fontSize:12, background:'#000', color:'#d4881e', border:'1px solid #d4881e', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>🔥 독자 불러오기</button>
+          <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:12, background:'#000', color:'#888', border:'1px solid #444', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>책 덮기</button>
         </div>
       </div>
     </div>
@@ -303,17 +303,17 @@ function ReviewPage({ reviews, readerSeeds, loading, onRegen, onClose, onSave, s
     <div style={{ display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>
       <div style={{ display:'flex', alignItems:'center', gap:10, borderBottom:'1px solid #333', paddingBottom:12, marginBottom:14 }}>
         <span style={{ fontSize:52, flexShrink:0, lineHeight:1 }}>🔥</span>
-        <span style={{ fontFamily:'var(--font-pixel)', fontSize:11, color:'#d4881e', letterSpacing:'0.1em' }}>불멍 독자석</span>
+        <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#d4881e', letterSpacing:'0.1em' }}>불멍 독자석</span>
       </div>
       <div style={{ display:'flex', alignItems:'center', gap:3, marginBottom:12 }}>
         {Array(5).fill(0).map((_, i) => (
           <span key={i} style={{ fontSize:14, color: i < stars ? '#d4881e' : '#333' }}>★</span>
         ))}
-        <span style={{ fontFamily:'var(--font-pixel)', fontSize:9, color:'#555', marginLeft:6 }}>{stars}.0</span>
+        <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#555', marginLeft:6 }}>{stars}.0</span>
       </div>
       <div style={{ border:'1px solid #333', boxShadow:'inset 0 0 0 1px #222', padding:'10px 12px', marginBottom:14, background:'#111' }}>
         <div style={{ fontFamily:"'Nanum Myeongjo',serif", fontSize:13, color:'#f5e6c8', fontStyle:'italic', lineHeight:1.75 }}>{criticReview}</div>
-        <div style={{ fontFamily:'var(--font-pixel)', fontSize:8, color:'#555', marginTop:8, display:'flex', alignItems:'center', justifyContent:'flex-end', gap:5 }}>
+        <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#555', marginTop:8, display:'flex', alignItems:'center', justifyContent:'flex-end', gap:5 }}>
           — <GlassesCanvas />
         </div>
       </div>
@@ -325,7 +325,7 @@ function ReviewPage({ reviews, readerSeeds, loading, onRegen, onClose, onSave, s
             <div key={i} style={{ display:'flex', gap:8, alignItems:'flex-start' }}>
               {seed != null && <div style={{ width:32, height:48, border:'1px solid #333', flexShrink:0 }}><SeedCanvas seed={seed} w={32} h={48} /></div>}
               <div style={{ flex:1, border:'1px solid #333', padding:'6px 10px', background:'#111' }}>
-                <div style={{ fontFamily:'var(--font-pixel)', fontSize:8, color:'#d4881e', marginBottom:3 }}>{nick}</div>
+                <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#d4881e', marginBottom:3 }}>{nick}</div>
                 <div style={{ fontFamily:"'Nanum Myeongjo',serif", fontSize:13, color:'#f5e6c8', lineHeight:1.5 }}>{c.text}</div>
               </div>
             </div>
@@ -335,19 +335,19 @@ function ReviewPage({ reviews, readerSeeds, loading, onRegen, onClose, onSave, s
       {savedMode ? (
         <div style={{ display:'flex', gap:8, marginTop:12, flexWrap:'wrap' }}>
           {onDeleteSaved && (
-            <button onClick={onDeleteSaved} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#c0392b', border:'1px solid #c0392b', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>삭제</button>
+            <button onClick={onDeleteSaved} style={{ fontFamily:'var(--font-pixel)', fontSize:12, background:'#000', color:'#c0392b', border:'1px solid #c0392b', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>삭제</button>
           )}
-          <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#888', border:'1px solid #444', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>책 덮기</button>
+          <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:12, background:'#000', color:'#888', border:'1px solid #444', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>책 덮기</button>
         </div>
       ) : (
         <div style={{ display:'flex', gap:8, marginTop:12, flexWrap:'wrap' }}>
-          <button onClick={onRegen} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#d4881e', border:'1px solid #d4881e', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>🔥 다른 독자 불러오기</button>
+          <button onClick={onRegen} style={{ fontFamily:'var(--font-pixel)', fontSize:12, background:'#000', color:'#d4881e', border:'1px solid #d4881e', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>🔥 다른 독자 불러오기</button>
           {onSave && (
-            <button onClick={onSave} disabled={savedAlready} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background: savedAlready ? '#111' : '#000', color: savedAlready ? '#555' : '#f5e6c8', border: savedAlready ? '1px solid #333' : '1px solid #f5e6c8', padding:'7px 12px', cursor: savedAlready ? 'not-allowed' : 'pointer', letterSpacing:'0.06em' }}>
+            <button onClick={onSave} disabled={savedAlready} style={{ fontFamily:'var(--font-pixel)', fontSize:12, background: savedAlready ? '#111' : '#000', color: savedAlready ? '#555' : '#f5e6c8', border: savedAlready ? '1px solid #333' : '1px solid #f5e6c8', padding:'7px 12px', cursor: savedAlready ? 'not-allowed' : 'pointer', letterSpacing:'0.06em' }}>
               {savedAlready ? '✓ 책장에 꽂혔어' : '📚 책장에 꽂기'}
             </button>
           )}
-          <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:9, background:'#000', color:'#888', border:'1px solid #444', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>책 덮기</button>
+          <button onClick={onClose} style={{ fontFamily:'var(--font-pixel)', fontSize:12, background:'#000', color:'#888', border:'1px solid #444', padding:'7px 12px', cursor:'pointer', letterSpacing:'0.06em' }}>책 덮기</button>
         </div>
       )}
     </div>
@@ -388,7 +388,7 @@ function BookPage({
         <ReviewPage reviews={reviews} readerSeeds={readerSeeds} loading={reviewLoading} onRegen={onRegen} onClose={onClose} onSave={onSave} savedAlready={savedAlready} savedMode={savedMode} onDeleteSaved={onDeleteSaved} />
       )}
       {pageNum != null && page.type !== 'diary-first' && page.type !== 'diary-cont' && (
-        <div style={{ ...numStyle, fontFamily:'var(--font-pixel)', fontSize:9, color:'#666', letterSpacing:'0.1em' }}>{pageNum}</div>
+        <div style={{ ...numStyle, fontFamily:'var(--font-pixel)', fontSize:12, color:'#666', letterSpacing:'0.1em' }}>{pageNum}</div>
       )}
     </div>
   )
@@ -670,7 +670,7 @@ export default function NovelPage() {
     <>
       <PixelStars />
       <header style={{ position:'fixed', top:0, left:0, right:0, zIndex:50, height:52, borderBottom:'2px solid var(--white)', background:'#000', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 20px' }}>
-        <button onClick={() => navigate(-1)} style={{ fontFamily:'var(--font-pixel)', fontSize:11, color:'var(--gray-4)', background:'none', border:'none', cursor:'pointer', letterSpacing:'0.08em' }}>◀ 이전</button>
+        <button onClick={() => navigate(-1)} style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', background:'none', border:'none', cursor:'pointer', letterSpacing:'0.08em' }}>◀ 이전</button>
         <span style={{ fontFamily:'var(--font-pixel)', fontSize:13, color:'var(--white)', letterSpacing:'0.1em' }}>주인공의 이야기</span>
         <div style={{ width:80 }} />
       </header>
@@ -688,10 +688,10 @@ export default function NovelPage() {
 
       {/* ── Header ── */}
       <header style={{ position:'fixed', top:0, left:0, right:0, zIndex:50, height:52, borderBottom:'2px solid var(--white)', background:'#000', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 20px' }}>
-        <button onClick={() => navigate(-1)} style={{ fontFamily:'var(--font-pixel)', fontSize:11, color:'var(--gray-4)', background:'none', border:'none', cursor:'pointer', letterSpacing:'0.08em' }}>◀ 이전</button>
+        <button onClick={() => navigate(-1)} style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', background:'none', border:'none', cursor:'pointer', letterSpacing:'0.08em' }}>◀ 이전</button>
         <span style={{ fontFamily:'var(--font-pixel)', fontSize:13, color:'var(--white)', letterSpacing:'0.1em' }}>주인공의 이야기</span>
         {!showPicker && !savedMode
-          ? <button onClick={() => { setShowPicker(true); setSpreads([]) }} style={{ fontFamily:'var(--font-pixel)', fontSize:10, background:'none', border:'1px solid var(--gray-3)', color:'var(--gray-4)', padding:'5px 10px', cursor:'pointer', letterSpacing:'0.06em' }}>[기간 변경]</button>
+          ? <button onClick={() => { setShowPicker(true); setSpreads([]) }} style={{ fontFamily:'var(--font-pixel)', fontSize:12, background:'none', border:'1px solid var(--gray-3)', color:'var(--gray-4)', padding:'5px 10px', cursor:'pointer', letterSpacing:'0.06em' }}>[기간 변경]</button>
           : <div style={{ width:80 }} />}
       </header>
 
@@ -702,11 +702,11 @@ export default function NovelPage() {
             <button onClick={() => spreads.length > 0 ? setShowPicker(false) : navigate(-1)}
               className='modal-close' style={{ position:'absolute', top:12, right:14 }}
               title='닫기'>[ x ]</button>
-            <div style={{ fontFamily:'var(--font-pixel)', fontSize: isMobile ? 11 : 13, color:'var(--white)', letterSpacing:'0.1em', marginBottom:22 }}>▸ 소설로 엮을 기간 선택</div>
+            <div style={{ fontFamily:'var(--font-korean)', fontSize: isMobile ? 13 : 14, color:'var(--white)', letterSpacing:'0.05em', marginBottom:22 }}>▸ 소설로 엮을 기간 선택</div>
             <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:16 }}>
               {(['week', 'month', 'all'] as const).map((t) => (
                 <button key={t} onClick={() => setPreset(t)}
-                  style={{ fontFamily:'var(--font-pixel)', fontSize:10, background:'#000', color: activePreset === t ? 'var(--fire-org)' : 'var(--gray-4)', border: activePreset === t ? '1px solid var(--fire-org)' : '1px solid var(--gray-3)', padding:'6px 10px', cursor:'pointer', letterSpacing:'0.05em' }}>
+                  style={{ fontFamily:'var(--font-pixel)', fontSize:12, background:'#000', color: activePreset === t ? 'var(--fire-org)' : 'var(--gray-4)', border: activePreset === t ? '1px solid var(--fire-org)' : '1px solid var(--gray-3)', padding:'6px 10px', cursor:'pointer', letterSpacing:'0.05em' }}>
                   {t === 'week' ? '최근 1주일' : t === 'month' ? '최근 1 달' : '전체 일기'}
                 </button>
               ))}
@@ -714,14 +714,14 @@ export default function NovelPage() {
             <div style={{ display:'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 8 : 12, marginBottom:16 }}>
               {[['FROM', dateFrom, setDateFrom], ['TO', dateTo, setDateTo]].map(([label, val, setter]) => (
                 <div key={label as string} style={{ flex:1, minWidth:0 }}>
-                  <label style={{ fontFamily:'var(--font-pixel)', fontSize:10, color:'var(--gray-4)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>{label as string}</label>
+                  <label style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>{label as string}</label>
                   <input type='date' value={val as string}
                     onChange={(e) => { (setter as (v: string) => void)(e.target.value); setActivePreset(null) }}
-                    style={{ width:'100%', maxWidth:'100%', fontFamily:'var(--font-pixel)', fontSize:10, background:'#000', color:'var(--white)', border:'2px solid var(--gray-3)', padding:'8px 10px', outline:'none', colorScheme:'dark' }} />
+                    style={{ width:'100%', maxWidth:'100%', fontFamily:'var(--font-pixel)', fontSize:12, background:'#000', color:'var(--white)', border:'2px solid var(--gray-3)', padding:'8px 10px', outline:'none', colorScheme:'dark' }} />
                 </div>
               ))}
             </div>
-            <div style={{ fontFamily:'var(--font-pixel)', fontSize:10, color:'var(--text-off)', marginBottom:16, letterSpacing:'0.05em' }}>
+            <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)', marginBottom:16, letterSpacing:'0.05em' }}>
               {filteredCount === 0 ? '이 기간에 일기가 없어요'
                 : <><span style={{ color:'var(--fire-tip)' }}>{filteredCount}편</span>의 일기가 발견됐어요</>}
             </div>
@@ -768,10 +768,10 @@ export default function NovelPage() {
             </div>
             <div style={{ display:'flex', alignItems:'center', gap:24, margin:'18px auto 40px', justifyContent:'center' }}>
               <button disabled={curPage === 0} onClick={() => navPage(-1)} className='nav-btn'
-                style={{ fontFamily:'var(--font-pixel)', fontSize:11, background:'#000', color: curPage === 0 ? '#444' : 'var(--white)', border: curPage === 0 ? '2px solid #333' : '2px solid var(--white)', padding:'10px 18px', cursor: curPage === 0 ? 'not-allowed' : 'pointer', letterSpacing:'0.08em' }}>◀</button>
-              <span style={{ fontFamily:'var(--font-pixel)', fontSize:10, color:'#444', letterSpacing:'0.1em' }}>{curPage + 1} / {flatLen}</span>
+                style={{ fontFamily:'var(--font-pixel)', fontSize:12, background:'#000', color: curPage === 0 ? '#444' : 'var(--white)', border: curPage === 0 ? '2px solid #333' : '2px solid var(--white)', padding:'10px 18px', cursor: curPage === 0 ? 'not-allowed' : 'pointer', letterSpacing:'0.08em' }}>◀</button>
+              <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#444', letterSpacing:'0.1em' }}>{curPage + 1} / {flatLen}</span>
               <button disabled={curPage === flatLen - 1} onClick={() => navPage(1)} className='nav-btn'
-                style={{ fontFamily:'var(--font-pixel)', fontSize:11, background:'#000', color: curPage === flatLen - 1 ? '#444' : 'var(--white)', border: curPage === flatLen - 1 ? '2px solid #333' : '2px solid var(--white)', padding:'10px 18px', cursor: curPage === flatLen - 1 ? 'not-allowed' : 'pointer', letterSpacing:'0.08em' }}>▶</button>
+                style={{ fontFamily:'var(--font-pixel)', fontSize:12, background:'#000', color: curPage === flatLen - 1 ? '#444' : 'var(--white)', border: curPage === flatLen - 1 ? '2px solid #333' : '2px solid var(--white)', padding:'10px 18px', cursor: curPage === flatLen - 1 ? 'not-allowed' : 'pointer', letterSpacing:'0.08em' }}>▶</button>
             </div>
           </div>
         )
@@ -807,10 +807,10 @@ export default function NovelPage() {
           </div>
           <div className='book-nav' style={{ display:'flex', alignItems:'center', gap:28, margin:'22px auto 48px', width:900, justifyContent:'center' }}>
             <button disabled={curSpread === 0} onClick={() => navSpread(-1)} className='nav-btn'
-              style={{ fontFamily:'var(--font-pixel)', fontSize:11, background:'#000', color: curSpread === 0 ? '#444' : 'var(--white)', border: curSpread === 0 ? '2px solid #333' : '2px solid var(--white)', padding:'10px 20px', cursor: curSpread === 0 ? 'not-allowed' : 'pointer', letterSpacing:'0.08em' }}>◀ 이전</button>
-            <span style={{ fontFamily:'var(--font-pixel)', fontSize:10, color:'#444', letterSpacing:'0.1em' }}>{curSpread + 1} / {spreads.length}</span>
+              style={{ fontFamily:'var(--font-pixel)', fontSize:12, background:'#000', color: curSpread === 0 ? '#444' : 'var(--white)', border: curSpread === 0 ? '2px solid #333' : '2px solid var(--white)', padding:'10px 20px', cursor: curSpread === 0 ? 'not-allowed' : 'pointer', letterSpacing:'0.08em' }}>◀ 이전</button>
+            <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#444', letterSpacing:'0.1em' }}>{curSpread + 1} / {spreads.length}</span>
             <button disabled={curSpread === spreads.length - 1} onClick={() => navSpread(1)} className='nav-btn'
-              style={{ fontFamily:'var(--font-pixel)', fontSize:11, background:'#000', color: curSpread === spreads.length - 1 ? '#444' : 'var(--white)', border: curSpread === spreads.length - 1 ? '2px solid #333' : '2px solid var(--white)', padding:'10px 20px', cursor: curSpread === spreads.length - 1 ? 'not-allowed' : 'pointer', letterSpacing:'0.08em' }}>다음 ▶</button>
+              style={{ fontFamily:'var(--font-pixel)', fontSize:12, background:'#000', color: curSpread === spreads.length - 1 ? '#444' : 'var(--white)', border: curSpread === spreads.length - 1 ? '2px solid #333' : '2px solid var(--white)', padding:'10px 20px', cursor: curSpread === spreads.length - 1 ? 'not-allowed' : 'pointer', letterSpacing:'0.08em' }}>다음 ▶</button>
           </div>
         </div>
       )}

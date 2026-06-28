@@ -71,7 +71,7 @@ export function KindlingItem({
     >
       {/* 땔감 행 */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '8px 10px' }}>
-        <span className='k-num' style={{ cursor: 'grab', opacity: 0.5, fontSize: 10 }}>⠿</span>
+        <span className='k-num' style={{ cursor: 'grab', opacity: 0.5, fontSize: 12 }}>⠿</span>
         <span className='k-text' style={{ flex: 1 }}>{kindling.text}</span>
         <button
           className='k-del pixel-btn'
@@ -96,7 +96,7 @@ export function KindlingItem({
         >
           <span style={{
             fontFamily: 'var(--font-korean)',
-            fontSize: 11,
+            fontSize: 12,
             color: '#4a3520',
             lineHeight: 1.5,
           }}>

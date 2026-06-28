@@ -60,7 +60,7 @@ function DrawerSlot({ slot, onNavigate, showUnreadDot }: { slot: SlotDef; onNavi
       {/* 번호 */}
       <div style={{
         fontFamily: 'var(--font-pixel)',
-        fontSize: 9,
+        fontSize: 12,
         color: hovered ? TEXT_BASE : TEXT_NUM,
         letterSpacing: '0.06em',
         flexShrink: 0,
@@ -74,8 +74,8 @@ function DrawerSlot({ slot, onNavigate, showUnreadDot }: { slot: SlotDef; onNavi
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{
-            fontFamily: 'var(--font-pixel)',
-            fontSize: isSmall ? 9 : 10,
+            fontFamily: 'var(--font-korean)',
+            fontSize: isSmall ? 13 : 14,
             color: hovered ? TEXT_BASE : '#8a7060',
             letterSpacing: '0.06em',
             transition: 'color 0.12s',
@@ -89,7 +89,7 @@ function DrawerSlot({ slot, onNavigate, showUnreadDot }: { slot: SlotDef; onNavi
             <span style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
               <span style={{
                 fontFamily: 'var(--font-pixel)',
-                fontSize: 7,
+                fontSize: 12,
                 color: ACCENT,
                 border: `1px solid ${ACCENT}`,
                 padding: '1px 4px',
@@ -103,8 +103,8 @@ function DrawerSlot({ slot, onNavigate, showUnreadDot }: { slot: SlotDef; onNavi
           )}
         </div>
         <div style={{
-          fontFamily: 'var(--font-pixel)',
-          fontSize: 8,
+          fontFamily: 'var(--font-korean)',
+          fontSize: 12,
           color: hovered ? TEXT_DESC : '#2a1e10',
           letterSpacing: '0.05em',
           marginTop: 3,
@@ -211,7 +211,7 @@ export function DrawerPopup({ onClose }: Props) {
               ▸ 주인공의 서랍
             </div>
             <div style={{
-              fontFamily: 'var(--font-pixel)', fontSize: 7,
+              fontFamily: 'var(--font-pixel)', fontSize: 12,
               color: TEXT_NUM, letterSpacing: '0.08em', marginTop: 3,
             }}>
               THE PROTAGONIST'S DRAWER
@@ -220,7 +220,7 @@ export function DrawerPopup({ onClose }: Props) {
           <button
             onClick={onClose}
             style={{
-              fontFamily: 'var(--font-pixel)', fontSize: 10,
+              fontFamily: 'var(--font-pixel)', fontSize: 12,
               color: TEXT_DESC, background: 'transparent', border: 'none',
               cursor: 'pointer', letterSpacing: '0.06em', padding: '4px 6px',
             }}

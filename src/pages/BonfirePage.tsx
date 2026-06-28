@@ -193,7 +193,7 @@ export default function BonfirePage() {
           <div style={{ display:'flex', gap:8, marginTop:16, flexWrap:'wrap', justifyContent:'center' }}>
             <button
               className='pixel-btn pixel-btn-sm'
-              style={{ fontSize:9 }}
+              style={{ fontSize:12 }}
               onClick={handleNewSession}
             >
               🔥 새 일기 시작

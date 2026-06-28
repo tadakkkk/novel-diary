@@ -56,13 +56,13 @@ function ApiKeyModal({ onSaved, onClose }: { onSaved: () => void; onClose: () =>
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.9)', zIndex:300, display:'flex', alignItems:'center', justifyContent:'center' }}>
       <div style={{ background:'var(--black)', border:'3px solid var(--fire-org)', boxShadow:'inset 0 0 0 2px var(--fire-org),inset 0 0 0 5px var(--black)', padding:28, maxWidth:420, width:'90%' }}>
-        <h2 style={{ fontFamily:'var(--font-pixel)', fontSize:10, color:'var(--fire-amb)', marginBottom:12, letterSpacing:'.1em' }}>API KEY REQUIRED</h2>
+        <h2 style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-amb)', marginBottom:12, letterSpacing:'.1em' }}>API KEY REQUIRED</h2>
         <p style={{ fontFamily:'var(--font-korean)', fontSize:13, color:'var(--gray-4)', marginBottom:14, lineHeight:1.7 }}>
           Claude API 키를 입력하세요.<br />키는 localStorage에만 저장되며 외부로 전송되지 않습니다.
         </p>
         <input type='password' className='pixel-input' placeholder='sk-ant-api...' value={val} onChange={(e) => setVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && save()} />
-        <small style={{ fontFamily:'var(--font-pixel)', fontSize:6, color:'var(--text-off)', letterSpacing:'.06em', display:'block', marginTop:6 }}>⚠ NEVER EXPOSE YOUR KEY IN PRODUCTION. MVP ONLY.</small>
-        <div style={{ fontFamily:'var(--font-pixel)', fontSize:7, color:'#ff4444', marginTop:8, minHeight:14 }}>{err}</div>
+        <small style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)', letterSpacing:'.06em', display:'block', marginTop:6 }}>⚠ NEVER EXPOSE YOUR KEY IN PRODUCTION. MVP ONLY.</small>
+        <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#ff4444', marginTop:8, minHeight:14 }}>{err}</div>
         <div style={{ marginTop:14, display:'flex', gap:8 }}>
           <button className='pixel-btn pixel-btn-fire' onClick={save}>▸ 저장하기</button>
           <button className='pixel-btn' onClick={onClose}>취소</button>
@@ -365,7 +365,7 @@ export default function DiaryPage() {
 
           {/* Weather */}
           <div>
-            <div className='opt-title'>► 날씨 <span style={{ color:'var(--text-off)', fontSize:7 }}>(선택)</span></div>
+            <div className='opt-title'>► 날씨 <span style={{ color:'var(--text-off)', fontSize:12 }}>(선택)</span></div>
             <div className='weather-grid'>
               {WEATHER_OPTIONS.map((w) => (
                 <div key={w.val} className={`weather-opt${weather === w.val ? ' sel' : ''}`}
@@ -393,7 +393,7 @@ export default function DiaryPage() {
                 <input className='pixel-input' placeholder='예: 지유, 그녀, 청년'
                   style={{ fontSize:12, padding:'7px 10px' }} value={nickname}
                   onChange={(e) => { setNickname(e.target.value); storage.savePrefs({ nickname: e.target.value }) }} />
-                <div style={{ fontFamily:'var(--font-pixel)', fontSize:6, color:'var(--text-off)', marginTop:3 }}>저장됨 · 다음에 자동 입력</div>
+                <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)', marginTop:3 }}>저장됨 · 다음에 자동 입력</div>
               </div>
             )}
           </div>
@@ -411,7 +411,7 @@ export default function DiaryPage() {
 
           {/* Style Refs */}
           <div>
-            <div className='opt-title'>► 참고 문체 <span style={{ color:'var(--gray-4)', fontSize:6 }}>(복수 선택 가능)</span></div>
+            <div className='opt-title'>► 참고 문체 <span style={{ color:'var(--gray-4)', fontSize:12 }}>(복수 선택 가능)</span></div>
             <div className='sr-list'>
               <div className={`sr-none${selectedSrIds.size === 0 ? ' sel' : ''}`}
                 onClick={() => setSelectedSrIds(new Set())}>
@@ -433,7 +433,7 @@ export default function DiaryPage() {
               <div style={{ display:'flex', flexDirection:'column', gap:5, marginTop:6 }}>
                 <input ref={newSrTitleRef} className='pixel-input' placeholder='문체 이름' style={{ fontSize:12, padding:'6px 8px' }} />
                 <textarea ref={newSrContentRef} className='pixel-input' placeholder='문체 샘플 텍스트 (최대 10,000자)' maxLength={10000} style={{ fontSize:12, minHeight:70 }} />
-                <button className='pixel-btn pixel-btn-fire' style={{ fontSize:7, padding:'7px 10px' }} onClick={saveNewStyleRef}>▸ 저장 + 선택</button>
+                <button className='pixel-btn pixel-btn-fire' style={{ fontSize:12, padding:'7px 10px' }} onClick={saveNewStyleRef}>▸ 저장 + 선택</button>
               </div>
             )}
           </div>
@@ -461,7 +461,7 @@ export default function DiaryPage() {
               <div className='gen-label'>WRITING YOUR STORY</div>
               <div className='gen-sub'>타닥타닥, 이야기가 피어오르는 중</div>
               <div className='gen-progress'>{progress}</div>
-              <button className='pixel-btn pixel-btn-sm' style={{ marginTop:16, fontSize:9, borderColor:'#555', color:'#888' }} onClick={cancelGeneration}>
+              <button className='pixel-btn pixel-btn-sm' style={{ marginTop:16, fontSize:12, borderColor:'#555', color:'#888' }} onClick={cancelGeneration}>
                 ✕ 취소
               </button>
             </div>
@@ -573,7 +573,7 @@ export default function DiaryPage() {
                 <div className='char-section'>
                   <div className='char-section-title'>► 등장인물</div>
                   {!isSaved && (
-                    <div style={{ fontFamily:'var(--font-pixel)', fontSize:7, color:'var(--fire-amb)', marginBottom:8, letterSpacing:'0.06em' }}>
+                    <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-amb)', marginBottom:8, letterSpacing:'0.06em' }}>
                       ⚠ 일기를 저장해야 등장인물이 등록돼요
                     </div>
                   )}
@@ -603,7 +603,7 @@ export default function DiaryPage() {
       {pendingNav && (
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.92)', zIndex:500, display:'flex', alignItems:'center', justifyContent:'center' }}>
           <div style={{ background:'var(--black)', border:'3px solid var(--fire-org)', boxShadow:'inset 0 0 0 2px var(--fire-org),inset 0 0 0 5px var(--black)', padding:'28px 32px', maxWidth:380, width:'90%', textAlign:'center' }}>
-            <div style={{ fontFamily:'var(--font-pixel)', fontSize:9, color:'var(--fire-amb)', letterSpacing:'0.1em', marginBottom:14 }}>⚠ UNSAVED DIARY</div>
+            <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-amb)', letterSpacing:'0.1em', marginBottom:14 }}>⚠ UNSAVED DIARY</div>
             <p style={{ fontFamily:'var(--font-korean)', fontSize:14, color:'var(--gray-5)', lineHeight:1.8, marginBottom:22 }}>
               저장되지 않은 일기가 있어.<br />나가면 사라져.
             </p>

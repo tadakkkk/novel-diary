@@ -10,7 +10,7 @@ function StatBars({ stats }: { stats: Array<{ label: string; value: number }> })
     <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
       {stats.map(({ label, value }) => (
         <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: 'var(--gray-4)', width: 28, flexShrink: 0, letterSpacing: '0.04em' }}>{label}</div>
+          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-4)', width: 28, flexShrink: 0, letterSpacing: '0.04em' }}>{label}</div>
           <div style={{ flex: 1, height: 10, background: '#1a1a1a', border: '1px solid var(--gray-2)', position: 'relative', overflow: 'hidden' }}>
             <div style={{
               position: 'absolute', top: 0, left: 0, height: '100%',
@@ -23,7 +23,7 @@ function StatBars({ stats }: { stats: Array<{ label: string; value: number }> })
               <div key={tick} style={{ position: 'absolute', top: 0, left: `${tick}%`, width: 1, height: '100%', background: '#2a2a2a' }} />
             ))}
           </div>
-          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: 'var(--fire-org)', width: 24, textAlign: 'right', flexShrink: 0 }}>{value}</div>
+          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-org)', width: 24, textAlign: 'right', flexShrink: 0 }}>{value}</div>
         </div>
       ))}
     </div>
@@ -70,7 +70,7 @@ function RadarChart({ stats, size = 220 }: { stats: Array<{ label: string; value
         return (
           <text key={i} x={p.x.toFixed(1)} y={p.y.toFixed(1)}
             textAnchor='middle' dominantBaseline='middle'
-            style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, fill: 'var(--gray-4)' }}>
+            style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, fill: 'var(--gray-4)' }}>
             {label}
           </text>
         )
@@ -97,14 +97,14 @@ function BadgeGrid({ badges, cols = 3 }: { badges: Badge[]; cols?: number }) {
           {badge ? (
             <>
               <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 16, color: 'var(--fire-tip)', marginBottom: 4 }}>★</div>
-              <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--fire-org)', letterSpacing: '0.04em', marginBottom: 3 }}>{badge.title}</div>
-              <div style={{ fontFamily: 'var(--font-korean)', fontSize: 10, color: 'var(--gray-4)', lineHeight: 1.4, marginBottom: 4 }}>{badge.desc}</div>
-              <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--fire-amb)', border: '1px solid #3a1a00', padding: '1px 4px', display: 'inline-block' }}>{badge.tag}</div>
+              <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-org)', letterSpacing: '0.04em', marginBottom: 3 }}>{badge.title}</div>
+              <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-4)', lineHeight: 1.4, marginBottom: 4 }}>{badge.desc}</div>
+              <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)', border: '1px solid #3a1a00', padding: '1px 4px', display: 'inline-block' }}>{badge.tag}</div>
             </>
           ) : (
             <>
               <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 16, color: '#222', marginBottom: 4 }}>★</div>
-              <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 10, color: '#222', letterSpacing: '0.1em' }}>???</div>
+              <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: '#222', letterSpacing: '0.1em' }}>???</div>
             </>
           )}
         </div>
@@ -171,7 +171,7 @@ export function CharacterDex() {
         {TAB_BTNS.map(({ key, label }) => (
           <button key={key} onClick={() => setView(key)}
             style={{
-              fontFamily: 'var(--font-pixel)', fontSize: 9, letterSpacing: '0.06em',
+              fontFamily: 'var(--font-pixel)', fontSize: 12, letterSpacing: '0.06em',
               background: view === key ? 'var(--fire-org)' : 'transparent',
               color: view === key ? '#000' : 'var(--gray-4)',
               border: `1px solid ${view === key ? 'var(--fire-org)' : 'var(--gray-3)'}`,
@@ -183,7 +183,7 @@ export function CharacterDex() {
       {/* ── 스토리 ── */}
       {view === 'story' && (
         <div>
-          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--fire-amb)', letterSpacing: '0.1em', marginBottom: 10 }}>► CHARACTER PROFILE</div>
+          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)', letterSpacing: '0.1em', marginBottom: 10 }}>► CHARACTER PROFILE</div>
           {profile?.story ? (
             <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--gray-5)', lineHeight: 1.9, wordBreak: 'keep-all', whiteSpace: 'pre-wrap', borderLeft: '3px solid var(--fire-org)', paddingLeft: 12, marginBottom: 14 }}>
               {profile.story}
@@ -195,13 +195,13 @@ export function CharacterDex() {
           )}
           <button
             className='pixel-btn pixel-btn-fire'
-            style={{ fontSize: 9, padding: '8px 14px' }}
+            style={{ fontSize: 12, padding: '8px 14px' }}
             disabled={loadingStory || noApiAccess || diaries.length === 0}
             onClick={handleGenerateStory}>
             {loadingStory ? '▸ 생성 중...' : profile?.story ? '↺ 스토리 업데이트' : '▸ 캐릭터 스토리 보기'}
           </button>
           {profile?.generatedAt && (
-            <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--text-off)', marginTop: 6 }}>
+            <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--text-off)', marginTop: 6 }}>
               {new Date(profile.generatedAt).toLocaleDateString('ko')} 생성
             </div>
           )}
@@ -211,13 +211,13 @@ export function CharacterDex() {
       {/* ── 성향 스탯 ── */}
       {view === 'stats' && (
         <div>
-          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--fire-amb)', letterSpacing: '0.1em', marginBottom: 12 }}>► ABILITY STATS</div>
+          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)', letterSpacing: '0.1em', marginBottom: 12 }}>► ABILITY STATS</div>
           {loadingStats ? (
-            <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--gray-4)', textAlign: 'center', padding: '24px 0' }}>분석 중...</div>
+            <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-4)', textAlign: 'center', padding: '24px 0' }}>분석 중...</div>
           ) : !canAnalyze ? (
             <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--text-off)', textAlign: 'center', padding: '24px 0', lineHeight: 1.9 }}>
               일기가 조금 더 쌓이면 분석할 수 있어<br />
-              <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: 'var(--gray-4)', letterSpacing: '0.06em' }}>
+              <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-4)', letterSpacing: '0.06em' }}>
                 (현재 {diaries.length}개 / {MIN_DIARIES}개 필요)
               </span>
             </div>
@@ -239,7 +239,7 @@ export function CharacterDex() {
       {/* ── 배지 ── */}
       {view === 'badges' && (
         <div>
-          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, color: 'var(--fire-amb)', letterSpacing: '0.1em', marginBottom: 12 }}>► ACHIEVEMENT BADGES</div>
+          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)', letterSpacing: '0.1em', marginBottom: 12 }}>► ACHIEVEMENT BADGES</div>
           {badges.length === 0 && (
             <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--text-off)', marginBottom: 12, lineHeight: 1.7 }}>
               일기를 저장할 때 의미 있는 순간이 있으면 자동으로 배지가 생성돼요.

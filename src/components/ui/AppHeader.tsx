@@ -183,7 +183,7 @@ export function AppHeader() {
                     width: 28, height: 28,
                     background: 'var(--fire-org)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: 'var(--font-pixel)', fontSize: 11, color: '#000',
+                    fontFamily: 'var(--font-pixel)', fontSize: 12, color: '#000',
                   }}>
                     {displayName?.[0]?.toUpperCase() ?? '?'}
                   </div>
