@@ -467,8 +467,8 @@ input[type='range']::-webkit-slider-thumb {
   }
 
   /* 날짜 */
-  .bf-m-date { font-size: 11px !important; margin-bottom: 0 !important; letter-spacing: 0.08em; text-align: center; }
-  .bf-m-date .date-main { font-size: 15px !important; margin-bottom: 2px !important; display: block; }
+  .bf-m-date { font-size: 12px !important; margin-bottom: 0 !important; letter-spacing: 0.08em; text-align: center; }
+  .bf-m-date .date-main { font-size: 16px !important; margin-bottom: 2px !important; display: block; }
 
   /* 불꽃: max-height 180px */
   .bf-m-flame { margin-top: 4px; margin-bottom: 0 !important; max-height: 180px; overflow: hidden; display: block; }
@@ -476,8 +476,8 @@ input[type='range']::-webkit-slider-thumb {
   .bf-m-flame canvas { display: block; max-height: 180px; width: auto; }
   .bf-m-flame .pixel-ground { width: 84px; }
 
-  /* 힌트 */
-  .bf-m-hint { height: auto !important; margin-top: 0 !important; font-size: 11px !important; }
+  /* 힌트 (한글 → 시스템 폰트, 가독성) */
+  .bf-m-hint { height: auto !important; margin-top: 0 !important; font-size: 13px !important; font-family: var(--font-korean); letter-spacing: 0; }
 
   /* 대표 이미지 compact (bf-m-root 기준으로 타겟) */
   .bf-m-root .key-image-section { margin-top: 0; width: 100%; max-width: 280px; }
@@ -486,6 +486,11 @@ input[type='range']::-webkit-slider-thumb {
 
   /* 4. empty-state 완전 숨김 */
   .bf-m-root .empty-state { display: none !important; }
+
+  /* 땔감 삭제(x) 버튼 터치 영역 44px 확보 (모바일 한정) */
+  .bf-m-root .k-del { min-width: 44px; min-height: 44px; font-size: 16px !important; }
+  /* 입력 라벨 한글 → 시스템 폰트 */
+  .bf-m-root .input-label { font-family: var(--font-korean); }
 
   /* 5. 하단 입력창: flex-shrink:0, 키보드 safe-area 대응 */
   .bf-m-bottom {
@@ -499,17 +504,18 @@ input[type='range']::-webkit-slider-thumb {
     padding: 6px 12px 0;
   }
   .bf-m-kcount {
-    font-family: var(--font-pixel); font-size: 9px; color: var(--gray-4);
+    font-family: var(--font-pixel); font-size: 13px; color: var(--gray-4);
     letter-spacing: 0.08em; text-transform: uppercase;
   }
   .bf-m-kcount b { color: var(--fire-tip); font-style: normal; }
 
-  /* 일기 쓰기 버튼 */
+  /* 일기 쓰기 버튼 (한글 → 시스템 폰트, 터치 영역 확보) */
   .bf-m-genbtn {
-    font-family: var(--font-pixel); font-size: 8px; padding: 5px 10px;
+    font-family: var(--font-korean); font-size: 13px; font-weight: 700;
+    min-height: 40px; padding: 9px 14px;
     background: var(--black); color: var(--fire-tip);
     border: 2px solid var(--fire-amb); cursor: pointer;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     animation: fire-btn-pulse 1.2s steps(2) infinite alternate;
   }
 

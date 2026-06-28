@@ -87,6 +87,8 @@ export function AppHeader() {
               background: 'none', border: '2px solid var(--gray-2)',
               cursor: 'pointer', padding: '6px 9px',
               display: 'flex', flexDirection: 'column', gap: 4,
+              alignItems: 'center', justifyContent: 'center',
+              minWidth: 44, minHeight: 44,
             }}
           >
             {[0,1,2].map(i => (
@@ -170,7 +172,8 @@ export function AppHeader() {
                   background: 'none',
                   border: '2px solid var(--fire-org)',
                   cursor: 'pointer', padding: 2,
-                  display: 'flex', alignItems: 'center',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  minWidth: 44, minHeight: 44,
                 }}
               >
                 {avatarUrl ? (

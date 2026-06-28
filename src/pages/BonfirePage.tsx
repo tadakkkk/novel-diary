@@ -99,7 +99,11 @@ export default function BonfirePage() {
             <KeyImageUploader keyImage={keyImage} onUpload={uploadKeyImage} onRemove={removeKeyImage} />
 
             {/* 새 일기 시작 버튼 */}
-            <button className='pixel-btn pixel-btn-sm' style={{ fontSize: 9 }} onClick={handleNewSession}>
+            <button
+              className='pixel-btn pixel-btn-sm'
+              style={{ fontSize: 14, fontFamily: 'var(--font-korean)', minHeight: 44, padding: '10px 18px' }}
+              onClick={handleNewSession}
+            >
               🔥 새 일기 시작
             </button>
           </div>
