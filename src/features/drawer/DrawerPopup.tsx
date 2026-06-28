@@ -203,19 +203,23 @@ export function DrawerPopup({ onClose }: Props) {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           background: HEADER_BG,
         }}>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <div style={{
-              fontFamily: 'var(--font-pixel)', fontSize: 12,
-              color: ACCENT, letterSpacing: '0.1em',
+              fontFamily: 'var(--font-pixel)', fontSize: 14,
+              color: ACCENT, letterSpacing: '0.06em', whiteSpace: 'nowrap',
             }}>
               ▸ 주인공의 서랍
             </div>
-            <div style={{
-              fontFamily: 'var(--font-pixel)', fontSize: 12,
-              color: TEXT_NUM, letterSpacing: '0.08em', marginTop: 3,
-            }}>
-              THE PROTAGONIST'S DRAWER
-            </div>
+            {/* 영문 부제는 장식 — 좁은 모바일에서 줄바꿈 깨짐 방지 위해 데스크탑만 노출 */}
+            {!isMobile && (
+              <div style={{
+                fontFamily: 'var(--font-pixel)', fontSize: 12,
+                color: TEXT_NUM, letterSpacing: '0.08em', marginTop: 3,
+                whiteSpace: 'nowrap',
+              }}>
+                THE PROTAGONIST'S DRAWER
+              </div>
+            )}
           </div>
           <button
             onClick={onClose}
