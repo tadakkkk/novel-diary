@@ -473,8 +473,11 @@ input[type='range']::-webkit-slider-thumb {
   .bf-m-date { font-size: 12px !important; margin-bottom: 0 !important; letter-spacing: 0.08em; text-align: center; }
   .bf-m-date .date-main { font-size: 16px !important; margin-bottom: 2px !important; display: block; }
 
-  /* 불꽃: max-height 180px (날짜와의 갭 축소 — margin-top 제거, gap으로 제어) */
-  .bf-m-flame { margin-top: 0; margin-bottom: 0 !important; max-height: 180px; overflow: hidden; display: block; }
+  /* 불꽃: 크기(scale 0.55·표시 180px)는 유지하되, transform이 줄이지 못하는
+     레이아웃 박스의 빈 윗공간을 제거 — 불꽃을 박스 상단에 정렬(top center) 후
+     박스 높이를 시각 높이(~110px)로 줄여 빈 아래공간을 클립 → 날짜와의 갭 축소 */
+  .bf-m-flame { margin-top: 0; margin-bottom: 0 !important; max-height: 110px; overflow: hidden; display: block; }
+  .bf-m-flame .fire-canvas-wrap { transform-origin: top center; }
   .bf-m-flame svg,
   .bf-m-flame canvas { display: block; max-height: 180px; width: auto; }
   .bf-m-flame .pixel-ground { width: 84px; }
@@ -483,8 +486,9 @@ input[type='range']::-webkit-slider-thumb {
   .bf-m-hint { height: auto !important; margin-top: 0 !important; font-size: 13px !important; font-family: var(--font-korean); letter-spacing: 0; }
 
   /* 대표 이미지 compact (bf-m-root 기준으로 타겟) */
-  .bf-m-root .key-image-section { margin-top: 0; width: 100%; max-width: 280px; }
-  .bf-m-root .key-image-upload { height: 100px; }
+  /* 대표 이미지: 남는 하단 공간을 채워 더 두껍게 (신축 — 짧은 기기 오버플로 방지) */
+  .bf-m-root .key-image-section { margin-top: 0; width: 100%; max-width: 280px; flex: 1 1 auto; min-height: 110px; max-height: 220px; display: flex; flex-direction: column; }
+  .bf-m-root .key-image-upload { flex: 1; min-height: 110px; height: auto; }
   .bf-m-root .key-image-placeholder { font-size: 12px; line-height: 1.8; }
 
   /* 4. empty-state 완전 숨김 */

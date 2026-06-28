@@ -68,9 +68,9 @@ export default function BonfirePage() {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             gap: 8,
-            padding: '4px 12px 2px',
+            padding: '6px 12px 2px',
             overflow: 'hidden',
           }}>
             {/* 날짜 */}
