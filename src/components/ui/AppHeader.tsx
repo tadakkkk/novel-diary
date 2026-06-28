@@ -214,7 +214,8 @@ export function AppHeader() {
                   </button>
                   )}
 
-                  {/* API Key section */}
+                  {/* API Key section — 서버 모드에서는 서버가 키를 관리하므로 숨김 */}
+                  {!serverMode && (
                   <div style={{ borderTop: '1px solid var(--gray-1)', padding: '10px 16px 8px' }}>
                     <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-3)', letterSpacing: '0.06em', marginBottom: 6 }}>
                       ANTHROPIC API KEY
@@ -265,6 +266,7 @@ export function AppHeader() {
                       </div>
                     )}
                   </div>
+                  )}
 
                   <button
                     onClick={() => { setProfileOpen(false); signOut() }}
