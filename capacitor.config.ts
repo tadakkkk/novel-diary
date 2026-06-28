@@ -11,6 +11,10 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 0,
     },
+    // 네이티브 HTTP로 fetch를 패치 → WebView CORS 제약 우회
+    CapacitorHttp: {
+      enabled: true,
+    },
   },
 }
 
