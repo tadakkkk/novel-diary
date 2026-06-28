@@ -61,7 +61,7 @@ export function AppHeader() {
   // ── 공통 스타일 변수 ────────────────────────────────────────────────────
   const DROP_ITEM: React.CSSProperties = {
     width: '100%', padding: '11px 16px',
-    fontFamily: 'var(--font-pixel)', fontSize: 9,
+    fontFamily: 'var(--font-korean)', fontSize: 14,
     background: 'none', border: 'none', cursor: 'pointer',
     textAlign: 'left', letterSpacing: '0.08em',
     display: 'block',
@@ -152,7 +152,7 @@ export function AppHeader() {
             <button
               onClick={() => showPaywall('subscribe')}
               style={{
-                fontFamily: 'var(--font-pixel)', fontSize: 8,
+                fontFamily: 'var(--font-pixel)', fontSize: 12,
                 letterSpacing: '0.06em',
                 color: badgeAlert ? '#ff4444' : 'var(--fire-amb)',
                 border: `1px solid ${badgeAlert ? '#ff4444' : 'var(--fire-amb)'}`,
@@ -216,16 +216,16 @@ export function AppHeader() {
 
                   {/* API Key section */}
                   <div style={{ borderTop: '1px solid var(--gray-1)', padding: '10px 16px 8px' }}>
-                    <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: 'var(--gray-3)', letterSpacing: '0.06em', marginBottom: 6 }}>
+                    <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-3)', letterSpacing: '0.06em', marginBottom: 6 }}>
                       ANTHROPIC API KEY
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: apiKeyExpanded ? 8 : 0 }}>
-                      <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: apiKeySaved ? 'var(--fire-org)' : 'var(--gray-3)', letterSpacing: '0.04em' }}>
+                      <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: apiKeySaved ? 'var(--fire-org)' : 'var(--gray-3)', letterSpacing: '0.04em' }}>
                         {apiKeySaved ? '설정됨' : '미설정'}
                       </span>
                       <button
                         onClick={() => { setApiKeyExpanded(v => !v); setApiKeyInput('') }}
-                        style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--gray-3)', background: 'transparent', border: '1px solid var(--gray-2)', padding: '2px 6px', cursor: 'pointer', letterSpacing: '0.04em' }}
+                        style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-3)', background: 'transparent', border: '1px solid var(--gray-2)', padding: '2px 6px', cursor: 'pointer', letterSpacing: '0.04em' }}
                       >
                         {apiKeyExpanded ? '닫기' : (apiKeySaved ? '변경' : '입력')}
                       </button>
@@ -237,7 +237,7 @@ export function AppHeader() {
                           placeholder='sk-ant-api...'
                           value={apiKeyInput}
                           onChange={(e) => setApiKeyInput(e.target.value)}
-                          style={{ fontFamily: 'var(--font-pixel)', fontSize: 9, padding: '6px 8px', background: '#111', border: '1px solid var(--gray-2)', color: 'var(--gray-4)', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+                          style={{ fontFamily: 'var(--font-pixel)', fontSize: 14, padding: '6px 8px', background: '#111', border: '1px solid var(--gray-2)', color: 'var(--gray-4)', outline: 'none', width: '100%', boxSizing: 'border-box' }}
                         />
                         <div style={{ display: 'flex', gap: 4 }}>
                           <button
@@ -249,14 +249,14 @@ export function AppHeader() {
                               setApiKeyExpanded(false)
                               setApiKeyInput('')
                             }}
-                            style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: '#000', background: 'var(--fire-org)', border: 'none', padding: '4px 10px', cursor: 'pointer', letterSpacing: '0.04em', flex: 1 }}
+                            style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: '#000', background: 'var(--fire-org)', border: 'none', padding: '4px 10px', cursor: 'pointer', letterSpacing: '0.04em', flex: 1 }}
                           >
                             저장
                           </button>
                           {apiKeySaved && (
                             <button
                               onClick={() => { storage.saveApiKey(''); setApiKeySaved(false); setApiKeyExpanded(false) }}
-                              style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--gray-3)', background: 'transparent', border: '1px solid var(--gray-2)', padding: '4px 8px', cursor: 'pointer', letterSpacing: '0.04em' }}
+                              style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-3)', background: 'transparent', border: '1px solid var(--gray-2)', padding: '4px 8px', cursor: 'pointer', letterSpacing: '0.04em' }}
                             >
                               삭제
                             </button>

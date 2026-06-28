@@ -125,27 +125,27 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
 
                 {/* 월간 — 추천 */}
                 <div style={{ border: '2px solid var(--fire-org)', background: 'rgba(255,90,0,0.06)', padding: '16px 14px', position: 'relative' }}>
-                  <div style={{ position: 'absolute', top: -11, left: 10, background: 'var(--fire-org)', color: '#000', fontFamily: 'var(--font-pixel)', fontSize: 7, padding: '2px 7px', letterSpacing: '0.08em' }}>
+                  <div style={{ position: 'absolute', top: -11, left: 10, background: 'var(--fire-org)', color: '#000', fontFamily: 'var(--font-pixel)', fontSize: 12, padding: '2px 7px', letterSpacing: '0.08em' }}>
                     추천
                   </div>
-                  <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 10, color: 'var(--fire-tip)', letterSpacing: '0.06em', marginBottom: 6 }}>
+                  <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-tip)', letterSpacing: '0.06em', marginBottom: 6 }}>
                     월간 구독
                   </div>
                   <div style={{ fontFamily: 'var(--font-korean)', fontSize: 20, fontWeight: 700, color: 'var(--white)', marginBottom: 2 }}>
                     {isNative ? '₩3,800' : '₩3,800'}
                   </div>
-                  <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--gray-4)', marginBottom: 4 }}>
+                  <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-4)', marginBottom: 4 }}>
                     / 월
                   </div>
-                  <div style={{ fontFamily: 'var(--font-korean)', fontSize: 10, color: '#a0e080', marginBottom: 12 }}>
+                  <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: '#a0e080', marginBottom: 12 }}>
                     주간 대비 약 21% 절약
                   </div>
-                  <div style={{ fontFamily: 'var(--font-korean)', fontSize: 10, color: 'var(--gray-4)', marginBottom: 14 }}>
+                  <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-4)', marginBottom: 14 }}>
                     매월 자동 결제<br />언제든 취소 가능
                   </div>
                   <button
                     className='pixel-btn pixel-btn-fire'
-                    style={{ width: '100%', fontSize: 9, opacity: isLoading ? 0.6 : 1 }}
+                    style={{ width: '100%', fontSize: 14, opacity: isLoading ? 0.6 : 1 }}
                     disabled={isLoading}
                     onClick={() => handleSubscribe('monthly')}
                   >
@@ -155,24 +155,24 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
 
                 {/* 주간 */}
                 <div style={{ border: '2px solid var(--gray-2)', padding: '16px 14px' }}>
-                  <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 10, color: 'var(--white)', letterSpacing: '0.06em', marginBottom: 6 }}>
+                  <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--white)', letterSpacing: '0.06em', marginBottom: 6 }}>
                     주간 구독
                   </div>
                   <div style={{ fontFamily: 'var(--font-korean)', fontSize: 20, fontWeight: 700, color: 'var(--white)', marginBottom: 2 }}>
                     ₩1,200
                   </div>
-                  <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 7, color: 'var(--gray-4)', marginBottom: 4 }}>
+                  <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-4)', marginBottom: 4 }}>
                     / 주
                   </div>
-                  <div style={{ fontFamily: 'var(--font-korean)', fontSize: 10, color: 'var(--gray-4)', marginBottom: 12 }}>
+                  <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-4)', marginBottom: 12 }}>
                     &nbsp;
                   </div>
-                  <div style={{ fontFamily: 'var(--font-korean)', fontSize: 10, color: 'var(--gray-4)', marginBottom: 14 }}>
+                  <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-4)', marginBottom: 14 }}>
                     매주 자동 결제<br />언제든 취소 가능
                   </div>
                   <button
                     className='pixel-btn'
-                    style={{ width: '100%', fontSize: 9, opacity: isLoading ? 0.6 : 1 }}
+                    style={{ width: '100%', fontSize: 14, opacity: isLoading ? 0.6 : 1 }}
                     disabled={isLoading}
                     onClick={() => handleSubscribe('weekly')}
                   >
@@ -187,7 +187,7 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
                   onClick={handleRestore}
                   disabled={isLoading}
                   style={{
-                    width: '100%', fontFamily: 'var(--font-pixel)', fontSize: 8,
+                    width: '100%', fontFamily: 'var(--font-pixel)', fontSize: 12,
                     color: 'var(--gray-4)', background: 'none', border: '1px solid var(--gray-2)',
                     padding: '8px', cursor: 'pointer', opacity: isLoading ? 0.6 : 1,
                     marginBottom: 4,
@@ -200,7 +200,7 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
           )}
 
           {error && (
-            <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: '#ff4444', marginTop: 12, textAlign: 'center', lineHeight: 1.6 }}>
+            <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: '#ff4444', marginTop: 12, textAlign: 'center', lineHeight: 1.6 }}>
               {error}
             </div>
           )}
@@ -210,7 +210,7 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
         <div style={{ padding: '0 24px 20px', textAlign: 'center' }}>
           <button
             onClick={onClose}
-            style={{ fontFamily: 'var(--font-pixel)', fontSize: 8, color: 'var(--text-off)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.06em', textDecoration: 'underline' }}
+            style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: '#8e8e8e', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.06em', textDecoration: 'underline' }}
           >
             나중에 하기
           </button>
