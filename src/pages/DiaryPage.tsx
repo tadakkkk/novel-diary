@@ -391,7 +391,7 @@ export default function DiaryPage() {
               <div style={{ marginTop:6, display:'flex', flexDirection:'column', gap:4 }}>
                 <div className='nickname-label'>▸ 소설 속 내 이름/호칭</div>
                 <input className='pixel-input' placeholder='예: 지유, 그녀, 청년'
-                  style={{ fontSize:12, padding:'7px 10px' }} value={nickname}
+                  style={{ fontSize:16, padding:'7px 10px' }} value={nickname}
                   onChange={(e) => { setNickname(e.target.value); storage.savePrefs({ nickname: e.target.value }) }} />
                 <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)', marginTop:3 }}>저장됨 · 다음에 자동 입력</div>
               </div>
@@ -431,8 +431,8 @@ export default function DiaryPage() {
             </div>
             {showAddSr && (
               <div style={{ display:'flex', flexDirection:'column', gap:5, marginTop:6 }}>
-                <input ref={newSrTitleRef} className='pixel-input' placeholder='문체 이름' style={{ fontSize:12, padding:'6px 8px' }} />
-                <textarea ref={newSrContentRef} className='pixel-input' placeholder='문체 샘플 텍스트 (최대 10,000자)' maxLength={10000} style={{ fontSize:12, minHeight:70 }} />
+                <input ref={newSrTitleRef} className='pixel-input' placeholder='문체 이름' style={{ fontSize:16, padding:'6px 8px' }} />
+                <textarea ref={newSrContentRef} className='pixel-input' placeholder='문체 샘플 텍스트 (최대 10,000자)' maxLength={10000} style={{ fontSize:16, minHeight:70 }} />
                 <button className='pixel-btn pixel-btn-fire' style={{ fontSize:12, padding:'7px 10px' }} onClick={saveNewStyleRef}>▸ 저장 + 선택</button>
               </div>
             )}
@@ -490,7 +490,7 @@ export default function DiaryPage() {
                   ref={editTextareaRef}
                   autoFocus
                   className='diary-content'
-                  style={{ width:'100%', resize:'vertical', minHeight:240, background:'var(--black)', color:'var(--gray-5)', border:'none', borderLeft:'3px solid var(--fire-org)', outline:'none', fontFamily:'var(--font-korean)', fontSize:15, lineHeight:2.1, padding:'0 0 0 16px', marginBottom:20, whiteSpace:'pre-wrap', wordBreak:'keep-all', boxSizing:'border-box' }}
+                  style={{ width:'100%', resize:'vertical', minHeight:240, background:'var(--black)', color:'var(--gray-5)', border:'none', borderLeft:'3px solid var(--fire-org)', outline:'none', fontFamily:'var(--font-korean)', fontSize:16, lineHeight:2.1, padding:'0 0 0 16px', marginBottom:20, whiteSpace:'pre-wrap', wordBreak:'keep-all', boxSizing:'border-box' }}
                   value={diaryContent}
                   onChange={(e) => {
                     setDiaryContent(e.target.value)

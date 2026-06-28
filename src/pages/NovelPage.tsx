@@ -717,7 +717,7 @@ export default function NovelPage() {
                   <label style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', textTransform:'uppercase', letterSpacing:'0.08em', display:'block', marginBottom:6 }}>{label as string}</label>
                   <input type='date' value={val as string}
                     onChange={(e) => { (setter as (v: string) => void)(e.target.value); setActivePreset(null) }}
-                    style={{ width:'100%', maxWidth:'100%', fontFamily:'var(--font-pixel)', fontSize:12, background:'#000', color:'var(--white)', border:'2px solid var(--gray-3)', padding:'8px 10px', outline:'none', colorScheme:'dark' }} />
+                    style={{ width:'100%', maxWidth:'100%', fontFamily:'var(--font-pixel)', fontSize:16, background:'#000', color:'var(--white)', border:'2px solid var(--gray-3)', padding:'8px 10px', outline:'none', colorScheme:'dark' }} />
                 </div>
               ))}
             </div>

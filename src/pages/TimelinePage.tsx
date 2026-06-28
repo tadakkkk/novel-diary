@@ -79,7 +79,7 @@ function CharModal({ name, onClose }: { name: string; onClose: () => void }) {
                   onChange={(e) => setRelVal(e.target.value)}
                   onBlur={saveRel}
                   onKeyDown={(e) => { if (e.key === 'Enter') saveRel(); if (e.key === 'Escape') setEditingRel(false) }}
-                  style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--white)', background:'#1a1a1a', border:'1px solid var(--fire-org)', outline:'none', padding:'2px 6px', letterSpacing:'0.06em', flex:1, minWidth:0 }}
+                  style={{ fontFamily:'var(--font-pixel)', fontSize:16, color:'var(--white)', background:'#1a1a1a', border:'1px solid var(--fire-org)', outline:'none', padding:'2px 6px', letterSpacing:'0.06em', flex:1, minWidth:0 }}
                 />
               ) : (
                 <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-org)', letterSpacing:'0.08em', textTransform:'uppercase' }}>
@@ -394,7 +394,7 @@ export default function TimelinePage() {
           <div style={{ marginBottom:14, display:'flex', gap:8, alignItems:'center' }}>
             <input
               className='pixel-input'
-              style={{ flex:1, fontSize:12, padding:'7px 10px' }}
+              style={{ flex:1, fontSize:16, padding:'7px 10px' }}
               placeholder='일기 내용, 날짜로 검색...'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

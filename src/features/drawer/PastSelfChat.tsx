@@ -147,19 +147,19 @@ export function PastSelfChat() {
       </div>
 
       {/* 입력창 하단 고정 */}
-      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 10, borderTop: '2px solid var(--gray-2)', padding: '10px 12px', display: 'flex', gap: 8, background: '#0d0d0d' }}>
+      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 10, borderTop: '2px solid var(--gray-2)', padding: '10px 12px', paddingBottom: 'max(12px, env(safe-area-inset-bottom))', display: 'flex', gap: 8, background: '#0d0d0d' }}>
         <textarea
           className='pixel-input'
           placeholder='지금의 고민을 말해봐...'
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
-          style={{ flex: 1, fontSize: 12, minHeight: 38, resize: 'none', padding: '8px 10px' }}
+          style={{ flex: 1, fontSize: 16, minHeight: 48, resize: 'none', padding: '12px 14px' }}
           rows={1}
         />
         <button
           className='pixel-btn pixel-btn-fire'
-          style={{ fontSize: 12, padding: '0 14px', flexShrink: 0, alignSelf: 'flex-end' }}
+          style={{ fontSize: 14, padding: '0 18px', minHeight: 48, flexShrink: 0, alignSelf: 'flex-end' }}
           onClick={sendMessage}
           disabled={loading || !input.trim()}
         >▸</button>
