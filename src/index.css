@@ -450,10 +450,13 @@ input[type='range']::-webkit-slider-thumb {
     overflow: hidden; z-index: 1; background: var(--black);
   }
 
-  /* 2. 헤더: bf-m-root 안에서 flow 참여 (fixed 해제, 48px 고정) */
+  /* 2. 헤더: bf-m-root 안에서 flow 참여 (fixed 해제). bf-m-root가 fixed라
+     body padding이 무효이므로 safe-area-inset-top을 헤더 높이에 직접 반영 →
+     헤더가 상태바까지 덮고 콘텐츠는 그 아래 52px, 구분선은 헤더 진짜 하단에 위치 */
   .bf-m-root .app-header {
     position: relative !important;
-    height: 52px !important;
+    height: calc(52px + env(safe-area-inset-top)) !important;
+    padding-top: env(safe-area-inset-top);
     flex-shrink: 0;
     z-index: auto;
   }
