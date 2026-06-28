@@ -68,7 +68,8 @@ export default function BonfirePage() {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'space-evenly',
+            justifyContent: 'center',
+            gap: 8,
             padding: '4px 12px 2px',
             overflow: 'hidden',
           }}>
