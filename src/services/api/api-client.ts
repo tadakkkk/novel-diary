@@ -5,6 +5,7 @@
 import type { User } from '@supabase/supabase-js'
 import { getSession } from '@/services/auth/auth-service'
 import { getDeviceId } from '@/services/storage'
+import { isGuest, GuestBlockedError } from '@/services/guest/guest-mode'
 
 const API_BASE = import.meta.env.VITE_API_URL as string | undefined
 const PAYMENT_ENABLED = import.meta.env.VITE_PAYMENT_ENABLED === 'true'
@@ -53,6 +54,7 @@ export async function serverChat(opts: {
   signal?: AbortSignal
   action_type: ActionType
 }): Promise<{ text: string; remaining: number }> {
+  if (isGuest()) throw new GuestBlockedError()
   if (!API_BASE) throw new Error('VITE_API_URL not set')
 
   const headers = await getAuthHeaders()
@@ -82,7 +84,7 @@ export async function serverChat(opts: {
 
 // ── Usage status ──────────────────────────────────────────────────────────
 export async function fetchUsageStatus(): Promise<UsageStatus> {
-  if (!API_BASE) {
+  if (isGuest() || !API_BASE) {
     return { callCount: 0, subscriptionStatus: 'free', subscriptionPlan: null, freeQuota: 30, remaining: -1 }
   }
 
@@ -95,7 +97,7 @@ export async function fetchUsageStatus(): Promise<UsageStatus> {
 // ── Login data sync ───────────────────────────────────────────────────────
 // On first login: upload localStorage dump + anon call count to server
 export async function syncUserData(user: User): Promise<void> {
-  if (!API_BASE || !user) return
+  if (isGuest() || !API_BASE || !user) return
 
   // Collect all localStorage entries for this app
   const data: Record<string, unknown> = {}
@@ -129,7 +131,7 @@ export interface ServerLetter {
 }
 
 export async function fetchTodayLetter(): Promise<ServerLetter | null> {
-  if (!API_BASE) return null
+  if (isGuest() || !API_BASE) return null
   const headers = await getAuthHeaders()
   const res = await fetch(`${API_BASE}/api/letters/today`, { headers })
   if (!res.ok) return null
@@ -137,7 +139,7 @@ export async function fetchTodayLetter(): Promise<ServerLetter | null> {
 }
 
 export async function fetchAllLetters(): Promise<ServerLetter[]> {
-  if (!API_BASE) return []
+  if (isGuest() || !API_BASE) return []
   const headers = await getAuthHeaders()
   const res = await fetch(`${API_BASE}/api/letters`, { headers })
   if (!res.ok) return []
@@ -148,6 +150,7 @@ export async function requestLetterGeneration(
   diaries: Array<{ date?: string; content?: string }>,
   lastDiaryAt?: string,
 ): Promise<ServerLetter> {
+  if (isGuest()) throw new GuestBlockedError()
   if (!API_BASE) throw new Error('VITE_API_URL not set')
   const headers = await getAuthHeaders()
   const res = await fetch(`${API_BASE}/api/letters/generate`, {
@@ -163,13 +166,14 @@ export async function requestLetterGeneration(
 }
 
 export async function markServerLetterRead(): Promise<void> {
-  if (!API_BASE) return
+  if (isGuest() || !API_BASE) return
   const headers = await getAuthHeaders()
   await fetch(`${API_BASE}/api/letters/read`, { method: 'PATCH', headers })
 }
 
 // ── Paddle Checkout ───────────────────────────────────────────────────────
 export async function createCheckoutSession(plan: 'weekly' | 'monthly'): Promise<string> {
+  if (isGuest()) throw new GuestBlockedError()
   if (!API_BASE) throw new Error('VITE_API_URL not set')
 
   const headers = await getAuthHeaders()

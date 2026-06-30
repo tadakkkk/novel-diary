@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid'
 import { type Character, type NovelDiary, type Perspective, type ProcessingLevel, type StyleReference } from '@/types'
 import * as storage from '@/services/storage'
 import * as claude from '@/services/claude/claude-service'
+import { guardGuestAction } from '@/services/guest/guest-mode'
 import { useAppContext } from '@/App'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { AvatarCanvas } from '@/components/ui/AvatarCanvas'
@@ -246,6 +247,7 @@ export default function DiaryPage() {
 
   // ── Generation ─────────────────────────────────────────────────────────
   const startGeneration = useCallback(async () => {
+    if (guardGuestAction()) return   // 게스트는 생성 불가 — 안내 토스트
     if (!import.meta.env.VITE_API_URL && !storage.getApiKey()) {
       setShowApiModal(true)
       setPendingGen(true)

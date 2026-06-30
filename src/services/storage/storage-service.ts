@@ -4,6 +4,8 @@ import {
   type DiarySession, type KeyImage, type Kindling, type Letter,
   type MediaAttachment, type NovelDiary, type SavedNovel, type StyleReference, type UserPrefs,
 } from '@/types'
+import { isGuest } from '@/services/guest/guest-mode'
+import * as demo from '@/data/guestDemoData'
 
 // ── 키 상수 ──────────────────────────────────────────────────────────────
 const P = 'novel-diary:'
@@ -60,19 +62,25 @@ export function getApiKey(): string | null {
   return localStorage.getItem(K.API_KEY) || null
 }
 export function saveApiKey(key: string): void {
+  if (isGuest()) return
   localStorage.setItem(K.API_KEY, key)
 }
 
 // ── User Prefs ─────────────────────────────────────────────────────────────
 export function getPrefs(): UserPrefs { return read<UserPrefs>(K.PREFS) ?? {} }
 export function savePrefs(prefs: Partial<UserPrefs>): void {
+  if (isGuest()) return
   write(K.PREFS, { ...getPrefs(), ...prefs })
 }
 
 // ── Sessions ──────────────────────────────────────────────────────────────
-export function getSessions(): DiarySession[] { return read<DiarySession[]>(K.SESSIONS) ?? [] }
+export function getSessions(): DiarySession[] {
+  if (isGuest()) return demo.DEMO_SESSIONS
+  return read<DiarySession[]>(K.SESSIONS) ?? []
+}
 export function getSession(id: string): DiarySession | null { return getSessions().find((s) => s.id === id) ?? null }
 export function saveSession(session: DiarySession): void {
+  if (isGuest()) return
   const list = getSessions()
   const idx  = list.findIndex((s) => s.id === session.id)
   if (idx >= 0) list[idx] = session; else list.push(session)
@@ -85,14 +93,17 @@ export function getTodaySession(): DiarySession | null {
 
 // ── Kindlings ─────────────────────────────────────────────────────────────
 export function getKindlings(sessionId: string): Kindling[] {
+  if (isGuest()) return demo.DEMO_ACTIVE_KINDLINGS
   return read<Kindling[]>(K.kindlings(sessionId)) ?? []
 }
 export function saveKindlings(sessionId: string, kindlings: Kindling[]): void {
+  if (isGuest()) return
   write(K.kindlings(sessionId), kindlings)
 }
 
 // ── Key Image ─────────────────────────────────────────────────────────────
 export function getKeyImage(sessionId: string): KeyImage | null {
+  if (isGuest()) return null
   const raw = localStorage.getItem(K.keyImage(sessionId))
          ?? sessionStorage.getItem(K.keyImage(sessionId))
   if (!raw) return null
@@ -105,6 +116,7 @@ export function getKeyImage(sessionId: string): KeyImage | null {
   } catch { return null }
 }
 export function saveKeyImage(sessionId: string, ki: KeyImage): void {
+  if (isGuest()) return
   // 구형 키 정리
   for (let i = localStorage.length - 1; i >= 0; i--) {
     const k = localStorage.key(i)
@@ -117,54 +129,70 @@ export function saveKeyImage(sessionId: string, ki: KeyImage): void {
   }
 }
 export function removeKeyImage(sessionId: string): void {
+  if (isGuest()) return
   localStorage.removeItem(K.keyImage(sessionId))
   sessionStorage.removeItem(K.keyImage(sessionId))
 }
 
 // ── Media Attachments ──────────────────────────────────────────────────────
 export function getAttachments(sessionId: string): MediaAttachment[] {
+  if (isGuest()) return []
   return read<MediaAttachment[]>(K.attachments(sessionId)) ?? []
 }
 export function saveAttachments(sessionId: string, atts: MediaAttachment[]): void {
+  if (isGuest()) return
   write(K.attachments(sessionId), atts)
 }
 
 // ── Style References ──────────────────────────────────────────────────────
 export function getStyleReferences(): StyleReference[] {
+  if (isGuest()) return []
   return read<StyleReference[]>(K.STYLE_REFS) ?? []
 }
 export function saveStyleReferences(refs: StyleReference[]): void {
+  if (isGuest()) return
   write(K.STYLE_REFS, refs)
 }
 export function saveStyleReference(ref: StyleReference): void {
+  if (isGuest()) return
   const list = getStyleReferences()
   const idx  = list.findIndex((r) => r.id === ref.id)
   if (idx >= 0) list[idx] = ref; else list.push(ref)
   write(K.STYLE_REFS, list)
 }
 export function deleteStyleReference(id: string): void {
+  if (isGuest()) return
   write(K.STYLE_REFS, getStyleReferences().filter((r) => r.id !== id))
 }
 
 // ── Diaries ───────────────────────────────────────────────────────────────
-export function getDiaries(): NovelDiary[] { return read<NovelDiary[]>(K.DIARIES) ?? [] }
+export function getDiaries(): NovelDiary[] {
+  if (isGuest()) return demo.DEMO_DIARIES
+  return read<NovelDiary[]>(K.DIARIES) ?? []
+}
 export function getDiary(id: string): NovelDiary | null { return getDiaries().find((d) => d.id === id) ?? null }
 export function saveDiary(diary: NovelDiary): void {
+  if (isGuest()) return
   const list = getDiaries()
   const idx  = list.findIndex((d) => d.id === diary.id)
   if (idx >= 0) list[idx] = diary; else list.unshift(diary)  // 최신순
   write(K.DIARIES, list)
 }
 export function deleteDiary(id: string): void {
+  if (isGuest()) return
   write(K.DIARIES, getDiaries().filter((d) => d.id !== id))
 }
 
 // ── Characters ─────────────────────────────────────────────────────────────
-export function getCharacters(): Character[] { return read<Character[]>(K.CHARACTERS) ?? [] }
+export function getCharacters(): Character[] {
+  if (isGuest()) return demo.DEMO_CHARACTERS
+  return read<Character[]>(K.CHARACTERS) ?? []
+}
 export function getCharacter(name: string): Character | null {
   return getCharacters().find((c) => c.name === name) ?? null
 }
 export function upsertCharacter(char: Character): void {
+  if (isGuest()) return
   const list = getCharacters()
   const idx  = list.findIndex((c) => c.name === char.name)
   if (idx >= 0) {
@@ -190,21 +218,28 @@ export function upsertCharacter(char: Character): void {
   write(K.CHARACTERS, list)
 }
 export function saveCharacterAvatar(name: string, avatarData: Character['avatarData']): void {
+  if (isGuest()) return
   const list = getCharacters()
   const idx  = list.findIndex((c) => c.name === name)
   if (idx >= 0) { list[idx].avatarData = avatarData; write(K.CHARACTERS, list) }
 }
 export function deleteCharacter(name: string): void {
+  if (isGuest()) return
   write(K.CHARACTERS, getCharacters().filter((c) => c.name !== name))
 }
 
 // ── Blocked Characters ─────────────────────────────────────────────────────
-export function getBlockedChars(): string[] { return read<string[]>(K.BLOCKED) ?? [] }
+export function getBlockedChars(): string[] {
+  if (isGuest()) return []
+  return read<string[]>(K.BLOCKED) ?? []
+}
 export function blockChar(name: string): void {
+  if (isGuest()) return
   const list = getBlockedChars()
   if (!list.includes(name)) { list.push(name); write(K.BLOCKED, list) }
 }
 export function unblockChar(name: string): void {
+  if (isGuest()) return
   write(K.BLOCKED, getBlockedChars().filter((n) => n !== name))
 }
 export function isBlocked(name: string): boolean {
@@ -235,6 +270,7 @@ export function exportAllData(): ExportData {
 }
 
 export function importAllData(data: ExportData): void {
+  if (isGuest()) return
   if (data.version !== 1) throw new Error('지원하지 않는 버전이에요.')
   write(K.DIARIES, data.diaries ?? [])
   write(K.STYLE_REFS, data.styleReferences ?? [])
@@ -244,33 +280,55 @@ export function importAllData(data: ExportData): void {
 }
 
 // ── Drawer: Chat Messages ─────────────────────────────────────────────────
-export function getChatMessages(): ChatMessage[] { return read<ChatMessage[]>(K.CHAT) ?? [] }
-export function saveChatMessages(msgs: ChatMessage[]): void { write(K.CHAT, msgs) }
+export function getChatMessages(): ChatMessage[] {
+  if (isGuest()) return []
+  return read<ChatMessage[]>(K.CHAT) ?? []
+}
+export function saveChatMessages(msgs: ChatMessage[]): void {
+  if (isGuest()) return
+  write(K.CHAT, msgs)
+}
 export function appendChatMessage(msg: ChatMessage): void {
+  if (isGuest()) return
   const list = getChatMessages()
   list.push(msg)
   write(K.CHAT, list.slice(-200)) // 최대 200개 보관
 }
 
 // ── Drawer: Badges ────────────────────────────────────────────────────────
-export function getBadges(): Badge[] { return read<Badge[]>(K.BADGES) ?? [] }
+export function getBadges(): Badge[] {
+  if (isGuest()) return demo.DEMO_BADGES
+  return read<Badge[]>(K.BADGES) ?? []
+}
 export function saveBadge(badge: Badge): void {
+  if (isGuest()) return
   const list = getBadges()
   if (!list.find((b) => b.id === badge.id)) { list.push(badge); write(K.BADGES, list) }
 }
 
 // ── Drawer: Character Profile ─────────────────────────────────────────────
-export function getCharacterProfile(): CharacterProfile | null { return read<CharacterProfile>(K.CHAR_PROFILE) }
-export function saveCharacterProfile(profile: CharacterProfile): void { write(K.CHAR_PROFILE, profile) }
+export function getCharacterProfile(): CharacterProfile | null {
+  if (isGuest()) return demo.DEMO_CHARACTER_PROFILE
+  return read<CharacterProfile>(K.CHAR_PROFILE)
+}
+export function saveCharacterProfile(profile: CharacterProfile): void {
+  if (isGuest()) return
+  write(K.CHAR_PROFILE, profile)
+}
 
 // ── Next Chapter Letters ──────────────────────────────────────────────────
-export function getLetters(): Letter[] { return read<Letter[]>(K.LETTERS) ?? [] }
+export function getLetters(): Letter[] {
+  if (isGuest()) return demo.DEMO_LETTERS
+  return read<Letter[]>(K.LETTERS) ?? []
+}
 export function saveLetter(letter: Letter): void {
+  if (isGuest()) return
   const list = getLetters().filter((l) => l.id !== letter.id)
   list.unshift(letter)
   write(K.LETTERS, list.slice(0, 30)) // 최대 30통 보관
 }
 export function markLetterRead(id: string): void {
+  if (isGuest()) return
   const list = getLetters().map((l) => l.id === id ? { ...l, read: true } : l)
   write(K.LETTERS, list)
 }
@@ -284,12 +342,17 @@ export function hasUnreadDeliveredLetter(): boolean {
 }
 
 // ── Saved Novels (책장) ────────────────────────────────────────────────────
-export function getSavedNovels(): SavedNovel[] { return read<SavedNovel[]>(K.SAVED_NOVELS) ?? [] }
+export function getSavedNovels(): SavedNovel[] {
+  if (isGuest()) return []
+  return read<SavedNovel[]>(K.SAVED_NOVELS) ?? []
+}
 export function saveNovel(novel: SavedNovel): void {
+  if (isGuest()) return
   const list = getSavedNovels().filter((n) => n.id !== novel.id)
   list.unshift(novel)
   write(K.SAVED_NOVELS, list.slice(0, 50)) // 최대 50편 보관
 }
 export function deleteNovel(id: string): void {
+  if (isGuest()) return
   write(K.SAVED_NOVELS, getSavedNovels().filter((n) => n.id !== id))
 }

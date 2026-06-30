@@ -248,7 +248,7 @@ function SplashScreen() {
 }
 
 // ── Login Gate ─────────────────────────────────────────────────────────────
-function LoginGate() {
+function LoginGate({ onGuest }: { onGuest: () => void }) {
   const [loading, setLoading] = useState(false)
 
   async function handleLogin() {
@@ -278,14 +278,92 @@ function LoginGate() {
         <div style={{ fontFamily: 'var(--font-korean)', fontSize: 14, color: 'var(--gray-4)', textAlign: 'center', lineHeight: 1.8 }}>
           오늘 있었던 일을<br />불 앞에 앉아 이야기해요
         </div>
-        <button
-          className='pixel-btn pixel-btn-fire'
-          onClick={handleLogin}
-          disabled={loading}
-          style={{ fontSize: 12, padding: '12px 24px', letterSpacing: '0.08em' }}
-        >
-          {loading ? '로그인 중...' : 'Google로 시작하기'}
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          <button
+            className='pixel-btn pixel-btn-fire'
+            onClick={handleLogin}
+            disabled={loading}
+            style={{ fontSize: 12, padding: '12px 24px', letterSpacing: '0.08em' }}
+          >
+            {loading ? '로그인 중...' : 'Google로 시작하기'}
+          </button>
+          <button
+            onClick={onGuest}
+            style={{
+              background: 'none', border: '1px solid var(--gray-2)',
+              color: 'var(--gray-4)', cursor: 'pointer',
+              fontFamily: 'var(--font-pixel)', fontSize: 12, letterSpacing: '0.08em',
+              padding: '10px 18px',
+            }}
+          >
+            로그인 없이 둘러보기
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Guest Mode Banner ───────────────────────────────────────────────────────
+function GuestBanner() {
+  const [loading, setLoading] = useState(false)
+  async function handleLogin() {
+    setLoading(true)
+    try { await signInWithGoogle() } catch { /* OAuth popup handles errors */ } finally { setLoading(false) }
+  }
+  return (
+    <div style={{
+      position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 7000,
+      background: '#140a02', borderTop: '2px solid var(--fire-org)',
+      padding: '8px max(12px, env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-right))',
+      display: 'flex', alignItems: 'center', gap: 10,
+    }}>
+      <span style={{ fontSize: 15, flexShrink: 0 }}>👀</span>
+      <span style={{
+        fontFamily: 'var(--font-korean)', fontSize: 14, color: 'var(--gray-4)',
+        lineHeight: 1.4, flex: 1, wordBreak: 'keep-all',
+      }}>
+        둘러보기 모드 · 로그인하면 내 기록을 저장할 수 있어요
+      </span>
+      <button
+        onClick={handleLogin}
+        disabled={loading}
+        className='pixel-btn pixel-btn-fire'
+        style={{ fontSize: 12, padding: '7px 12px', flexShrink: 0, letterSpacing: '0.06em' }}
+      >
+        {loading ? '...' : '로그인'}
+      </button>
+    </div>
+  )
+}
+
+// ── Guest Blocked Toast (게스트가 막힌 동작을 시도했을 때) ───────────────────
+function GuestBlockedToast() {
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>
+    function onBlocked() {
+      setVisible(true)
+      clearTimeout(timer)
+      timer = setTimeout(() => setVisible(false), 5000)
+    }
+    window.addEventListener('guest-blocked', onBlocked)
+    return () => { window.removeEventListener('guest-blocked', onBlocked); clearTimeout(timer) }
+  }, [])
+
+  if (!visible) return null
+  return (
+    <div style={{
+      position: 'fixed', bottom: 72, left: '50%', transform: 'translateX(-50%)',
+      zIndex: 9999, background: '#1a0500', border: '2px solid var(--fire-org)',
+      boxShadow: 'inset 0 0 0 1px var(--fire-org)',
+      padding: '12px 18px', maxWidth: 360, width: 'calc(100% - 32px)', textAlign: 'center',
+    }}>
+      <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-tip)', letterSpacing: '0.08em', marginBottom: 6 }}>
+        👀 둘러보기 모드
+      </div>
+      <div style={{ fontFamily: 'var(--font-korean)', fontSize: 14, color: '#ccc', lineHeight: 1.6, wordBreak: 'keep-all' }}>
+        둘러보기 모드에서는 미리 보기만 제공돼요.<br />로그인하면 직접 만들 수 있어요.
       </div>
     </div>
   )
@@ -305,6 +383,7 @@ import { PaywallModal } from '@/components/ui/PaywallModal'
 import { QuotaExceededError } from '@/services/claude/claude-service'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { FlameAnimation } from '@/features/bonfire/FlameAnimation'
+import { isGuest as readGuest, setGuest } from '@/services/guest/guest-mode'
 
 interface AppContextValue {
   user: User | null
@@ -341,6 +420,9 @@ export default function App() {
   const [syncing, setSyncing]         = useState(false)
   const [usageStatus, setUsageStatus] = useState<UsageStatus | null>(null)
   const [drawerOpen, setDrawerOpen]   = useState(false)
+  const [guest, setGuestState]        = useState<boolean>(() => readGuest())
+
+  function enterGuest() { setGuest(true); setGuestState(true) }
 
   useEffect(() => { initIAP().catch(console.error) }, [])
 
@@ -363,6 +445,9 @@ export default function App() {
       const prevUser = user
       setUser(newUser)
       setAuthLoading(false)
+
+      // 로그인하면 게스트 데모 데이터는 사라지고 실제 사용자 데이터로 전환
+      if (newUser && readGuest()) { setGuest(false); setGuestState(false) }
 
       if (newUser && import.meta.env.VITE_API_URL) {
         // First login: sync local data to server
@@ -399,14 +484,16 @@ export default function App() {
   }
 
   if (authLoading) return <SplashScreen />
-  if (!user) return <LoginGate />
+  if (!user && !guest) return <LoginGate onGuest={enterGuest} />
 
   return (
     <AppContext.Provider value={{ user, showPaywall, usageStatus, refreshUsage, openDrawer: () => setDrawerOpen(true) }}>
     <BrowserRouter basename={import.meta.env.BASE_URL}>
-      <OnboardingModal />
+      {!guest && <OnboardingModal />}
       <QuotaToast />
-      <InstallBanner />
+      {!guest && <InstallBanner />}
+      {guest && <GuestBanner />}
+      {guest && <GuestBlockedToast />}
       {syncing && <SyncOverlay />}
       {import.meta.env.VITE_PAYMENT_ENABLED === 'true' && paywallOpen && <PaywallModal user={user} source={paywallSource} onClose={() => setPaywallOpen(false)} />}
       {drawerOpen && <DrawerPopup onClose={() => setDrawerOpen(false)} />}

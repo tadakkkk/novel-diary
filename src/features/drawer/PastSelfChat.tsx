@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid'
 import { type ChatMessage } from '@/types'
 import * as storage from '@/services/storage'
 import * as claude from '@/services/claude/claude-service'
+import { guardGuestAction } from '@/services/guest/guest-mode'
 import { AvatarCanvas } from '@/components/ui/AvatarCanvas'
 
 const DUMMY_CHAR = {
@@ -45,6 +46,7 @@ export function PastSelfChat() {
   async function sendMessage() {
     const text = input.trim()
     if (!text || loading) return
+    if (guardGuestAction()) { setInput(''); return }   // 게스트는 대화 생성 불가
     setInput('')
 
     // AI 호출 시점에 항상 최신 일기 데이터를 fresh하게 읽음 (stale 클로저 방지)

@@ -5,6 +5,7 @@ import { v4 as uuid } from 'uuid'
 import { type Letter } from '@/types'
 import * as storage from '@/services/storage'
 import * as claude from '@/services/claude/claude-service'
+import { isGuest, guardGuestAction } from '@/services/guest/guest-mode'
 import {
   fetchTodayLetter, fetchAllLetters, requestLetterGeneration, markServerLetterRead,
   type ServerLetter,
@@ -485,7 +486,8 @@ export default function NextChapterPage() {
   }, [])
 
   async function loadLetter() {
-    if (SERVER_MODE) {
+    // 게스트는 서버를 호출하지 않고 데모 편지(local)를 그대로 사용
+    if (SERVER_MODE && !isGuest()) {
       setLoading(true)
       try {
         const [existing, all] = await Promise.all([fetchTodayLetter(), fetchAllLetters()])
@@ -555,6 +557,7 @@ export default function NextChapterPage() {
   }
 
   async function generateLetterLocal() {
+    if (guardGuestAction()) return   // 게스트는 편지 생성(AI) 불가
     setLoading(true)
     try {
       const content = await claude.generateNextChapterLetter(diaries)

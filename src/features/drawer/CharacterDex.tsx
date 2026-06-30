@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { type Badge, type CharacterProfile } from '@/types'
 import * as storage from '@/services/storage'
 import * as claude from '@/services/claude/claude-service'
+import { guardGuestAction } from '@/services/guest/guest-mode'
 import { useMobile } from '@/hooks/useMobile'
 
 // ── 레이더(스탯) 바 차트 ──────────────────────────────────────────────────
@@ -146,6 +147,7 @@ export function CharacterDex() {
 
   async function handleGenerateStory() {
     if (loadingStory) return
+    if (guardGuestAction()) return   // 게스트는 스토리 생성 불가
     setLoadingStory(true)
     try {
       const story = await claude.generateCharacterStory(diaries)

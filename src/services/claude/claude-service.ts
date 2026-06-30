@@ -4,6 +4,7 @@
 import { type Kindling, type Perspective, type ProcessingLevel, type StyleReference } from '@/types'
 import { getApiKey } from '@/services/storage'
 import { serverChat, QuotaExceededError, type ActionType } from '@/services/api/api-client'
+import { isGuest, GuestBlockedError } from '@/services/guest/guest-mode'
 
 export { QuotaExceededError }
 
@@ -27,6 +28,9 @@ interface CallOptions {
 }
 
 async function callApi(opts: CallOptions): Promise<string> {
+  // 게스트(둘러보기) 모드는 절대 AI/서버 호출을 하지 않는다.
+  if (isGuest()) throw new GuestBlockedError()
+
   if (USE_SERVER) {
     const { text } = await serverChat({
       messages: opts.messages as Parameters<typeof serverChat>[0]['messages'],
