@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAppContext } from '@/App'
 import { signInWithGoogle, signOut } from '@/services/auth/auth-service'
+import { deleteAccount } from '@/services/account/account-service'
 import * as storage from '@/services/storage'
 
 export function AppHeader() {
@@ -11,6 +12,9 @@ export function AppHeader() {
 
   const [navOpen,     setNavOpen]     = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [deleting,    setDeleting]    = useState(false)
+  const [deleteErr,   setDeleteErr]   = useState('')
   const [apiKeyInput, setApiKeyInput] = useState('')
   const [apiKeySaved, setApiKeySaved] = useState(() => !!storage.getApiKey())
   const [apiKeyExpanded, setApiKeyExpanded] = useState(false)
@@ -56,6 +60,22 @@ export function AppHeader() {
   async function handleLoginFromNav() {
     setNavOpen(false)
     try { await signInWithGoogle() } catch { /* 에러는 OAuth 팝업이 처리 */ }
+  }
+
+  async function handleDeleteAccount() {
+    if (deleting) return
+    setDeleting(true)
+    setDeleteErr('')
+    try {
+      await deleteAccount()
+      // signOut → onAuthStateChange가 user를 null로 만들어 LoginGate로 복귀
+      setDeleteModalOpen(false)
+      navigate('/')
+    } catch (e) {
+      setDeleteErr((e as Error).message || '계정 삭제에 실패했어요. 잠시 후 다시 시도해주세요.')
+    } finally {
+      setDeleting(false)
+    }
   }
 
   // ── 공통 스타일 변수 ────────────────────────────────────────────────────
@@ -274,12 +294,65 @@ export function AppHeader() {
                   >
                     로그아웃
                   </button>
+                  <button
+                    onClick={() => { setProfileOpen(false); setDeleteErr(''); setDeleteModalOpen(true) }}
+                    style={{ ...DROP_ITEM, color: '#ff5555', borderTop: '1px solid var(--gray-1)', fontSize: 12 }}
+                  >
+                    계정 삭제
+                  </button>
                 </div>
               )}
             </div>
           )}
         </div>
       </header>
+
+      {/* ── 계정 삭제 확인 모달 (App Store 5.1.1) ── */}
+      {deleteModalOpen && (
+        <div
+          className='modal-overlay open'
+          onClick={() => { if (!deleting) setDeleteModalOpen(false) }}
+          style={{ zIndex: 800 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'var(--black)', border: '3px solid #ff5555',
+              boxShadow: 'inset 0 0 0 2px #ff5555, inset 0 0 0 5px var(--black)',
+              padding: 32, maxWidth: 400, width: '90%', textAlign: 'center',
+            }}
+          >
+            <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 14, color: '#ff5555', letterSpacing: '0.08em', marginBottom: 16 }}>
+              ⚠ 계정 삭제
+            </div>
+            <p style={{ fontFamily: 'var(--font-korean)', fontSize: 14, color: 'var(--gray-5)', lineHeight: 1.8, marginBottom: 20, wordBreak: 'keep-all' }}>
+              정말 삭제하시겠어요?<br />
+              모든 일기와 기록이 <b style={{ color: '#ff5555' }}>영구 삭제</b>되며<br />복구할 수 없습니다.
+            </p>
+            {deleteErr && (
+              <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: '#ff4444', marginBottom: 14, lineHeight: 1.6 }}>
+                {deleteErr}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <button
+                disabled={deleting}
+                onClick={() => setDeleteModalOpen(false)}
+                style={{ fontFamily: 'var(--font-korean)', fontSize: 14, fontWeight: 700, padding: '10px 20px', border: '3px solid var(--white)', color: 'var(--white)', background: 'transparent', cursor: 'pointer', opacity: deleting ? 0.5 : 1 }}
+              >
+                취소
+              </button>
+              <button
+                disabled={deleting}
+                onClick={handleDeleteAccount}
+                style={{ fontFamily: 'var(--font-korean)', fontSize: 14, fontWeight: 700, padding: '10px 20px', border: '3px solid #ff5555', color: deleting ? '#888' : '#ff5555', background: 'transparent', cursor: deleting ? 'default' : 'pointer' }}
+              >
+                {deleting ? '삭제 중...' : '삭제'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </>
   )

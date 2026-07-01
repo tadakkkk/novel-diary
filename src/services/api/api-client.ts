@@ -171,6 +171,20 @@ export async function markServerLetterRead(): Promise<void> {
   await fetch(`${API_BASE}/api/letters/read`, { method: 'PATCH', headers })
 }
 
+// ── Account deletion (App Store 5.1.1) ──────────────────────────────────────
+// 서버에서 Supabase Auth 유저 + 관련 데이터(usage, letters)를 영구 삭제한다.
+export async function deleteAccountRequest(): Promise<void> {
+  if (isGuest()) throw new GuestBlockedError()
+  if (!API_BASE) throw new Error('VITE_API_URL not set')
+
+  const headers = await getAuthHeaders()
+  const res = await fetch(`${API_BASE}/api/account`, { method: 'DELETE', headers })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({})) as { error?: string }
+    throw new Error(err.error ?? `계정 삭제에 실패했어요. (HTTP ${res.status})`)
+  }
+}
+
 // ── Paddle Checkout ───────────────────────────────────────────────────────
 export async function createCheckoutSession(plan: 'weekly' | 'monthly'): Promise<string> {
   if (isGuest()) throw new GuestBlockedError()
