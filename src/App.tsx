@@ -249,11 +249,15 @@ function SplashScreen() {
 
 // ── Login Gate ─────────────────────────────────────────────────────────────
 function LoginGate({ onGuest }: { onGuest: () => void }) {
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState<'apple' | 'google' | null>(null)
 
+  async function handleAppleLogin() {
+    setLoading('apple')
+    try { await signInWithApple() } catch { /* OAuth popup handles errors */ } finally { setLoading(null) }
+  }
   async function handleLogin() {
-    setLoading(true)
-    try { await signInWithGoogle() } catch { /* OAuth popup handles errors */ } finally { setLoading(false) }
+    setLoading('google')
+    try { await signInWithGoogle() } catch { /* OAuth popup handles errors */ } finally { setLoading(null) }
   }
 
   return (
@@ -278,22 +282,44 @@ function LoginGate({ onGuest }: { onGuest: () => void }) {
         <div style={{ fontFamily: 'var(--font-korean)', fontSize: 14, color: 'var(--gray-4)', textAlign: 'center', lineHeight: 1.8 }}>
           오늘 있었던 일을<br />불 앞에 앉아 이야기해요
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 12, width: 240, maxWidth: '80vw' }}>
+          <button
+            onClick={handleAppleLogin}
+            disabled={loading !== null}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              minHeight: 44, padding: '12px 20px',
+              background: '#fff', color: '#000',
+              border: '2px solid #fff', cursor: 'pointer',
+              fontFamily: 'var(--font-korean)', fontSize: 14, fontWeight: 700, letterSpacing: '0.04em',
+              opacity: loading !== null ? 0.6 : 1,
+            }}
+          >
+            {loading === 'apple' ? '로그인 중...' : (
+              <>
+                <svg width='15' height='18' viewBox='0 0 17 20' fill='#000' aria-hidden='true' style={{ flexShrink: 0 }}>
+                  <path d='M14.06 10.6c-.02-2.06 1.68-3.05 1.76-3.1-0.96-1.4-2.45-1.6-2.98-1.62-1.27-.13-2.48.75-3.12.75-.64 0-1.64-.73-2.7-.71-1.39.02-2.67.81-3.38 2.05-1.44 2.5-.37 6.2 1.03 8.23.69.99 1.5 2.1 2.57 2.06 1.03-.04 1.42-.66 2.67-.66 1.24 0 1.6.66 2.69.64 1.11-.02 1.81-1 2.49-2 .78-1.15 1.1-2.26 1.12-2.32-.02-.01-2.15-.82-2.17-3.25zM12.01 4.5c.57-.69.95-1.65.85-2.6-.82.03-1.81.54-2.4 1.23-.53.61-.99 1.59-.87 2.52.91.07 1.85-.46 2.42-1.15z'/>
+                </svg>
+                Apple로 시작하기
+              </>
+            )}
+          </button>
           <button
             className='pixel-btn pixel-btn-fire'
             onClick={handleLogin}
-            disabled={loading}
-            style={{ fontSize: 12, padding: '12px 24px', letterSpacing: '0.08em' }}
+            disabled={loading !== null}
+            style={{ minHeight: 44, fontSize: 14, padding: '12px 20px', letterSpacing: '0.04em' }}
           >
-            {loading ? '로그인 중...' : 'Google로 시작하기'}
+            {loading === 'google' ? '로그인 중...' : 'Google로 시작하기'}
           </button>
           <button
             onClick={onGuest}
+            disabled={loading !== null}
             style={{
               background: 'none', border: '1px solid var(--gray-2)',
               color: 'var(--gray-4)', cursor: 'pointer',
               fontFamily: 'var(--font-pixel)', fontSize: 12, letterSpacing: '0.08em',
-              padding: '10px 18px',
+              padding: '10px 18px', minHeight: 44,
             }}
           >
             로그인 없이 둘러보기
@@ -375,7 +401,7 @@ import { initIAP } from '@/services/iap/iap-service'
 // ── Auth + Paywall + Data Sync ────────────────────────────────────────────
 import { createContext, useCallback, useContext } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { onAuthStateChange, signInWithGoogle, handleOAuthDeepLink } from '@/services/auth/auth-service'
+import { onAuthStateChange, signInWithGoogle, signInWithApple, handleOAuthDeepLink } from '@/services/auth/auth-service'
 import { Capacitor } from '@capacitor/core'
 import { App as CapApp } from '@capacitor/app'
 import { syncUserData, fetchUsageStatus, type UsageStatus } from '@/services/api/api-client'

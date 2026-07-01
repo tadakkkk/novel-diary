@@ -48,6 +48,30 @@ export async function signInWithGoogle(): Promise<void> {
   if (error) throw error
 }
 
+// ── Apple login (Sign in with Apple — App Store Guideline 4.8) ──────────────
+// Google과 동일한 PKCE/딥링크 플로우 재사용 (handleOAuthDeepLink 그대로 사용).
+export async function signInWithApple(): Promise<void> {
+  if (!supabase) throw new Error('Supabase not configured')
+
+  if (isNative) {
+    // 네이티브: 커스텀 스킴으로 리다이렉트하고 인앱 브라우저에서 진행
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: { redirectTo: NATIVE_REDIRECT, skipBrowserRedirect: true },
+    })
+    if (error) throw error
+    if (data?.url) await Browser.open({ url: data.url })
+    return
+  }
+
+  // 웹: 기존 방식 유지
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'apple',
+    options: { redirectTo: window.location.origin + import.meta.env.BASE_URL },
+  })
+  if (error) throw error
+}
+
 // ── Native deep-link callback handler ───────────────────────────────────────
 // appUrlOpen 으로 들어온 com.tadaktadak.app://login-callback?code=... 를 처리.
 export async function handleOAuthDeepLink(url: string): Promise<void> {
