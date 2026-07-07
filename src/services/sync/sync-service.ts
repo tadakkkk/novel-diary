@@ -31,6 +31,21 @@ function unmarkDirty(id: string): void {
   try { localStorage.setItem(DIRTY_KEY, JSON.stringify(q)) } catch { /* ignore */ }
 }
 
+// ── 삭제 대기 큐(tombstone) — 서버 delete 실패 시 재시도 + 부활 방지 ─────────
+const PENDING_DELETE_KEY = 'novel-diary:sync:pending-deletes'
+
+function getPendingDeletes(): string[] {
+  try { return JSON.parse(localStorage.getItem(PENDING_DELETE_KEY) ?? '[]') as string[] } catch { return [] }
+}
+function markPendingDelete(id: string): void {
+  const q = new Set(getPendingDeletes()); q.add(id)
+  try { localStorage.setItem(PENDING_DELETE_KEY, JSON.stringify([...q])) } catch { /* ignore */ }
+}
+function unmarkPendingDelete(id: string): void {
+  const q = getPendingDeletes().filter((x) => x !== id)
+  try { localStorage.setItem(PENDING_DELETE_KEY, JSON.stringify(q)) } catch { /* ignore */ }
+}
+
 // ── 마이그레이션 완료 플래그 (device-local) ─────────────────────────────────
 // "이 기기의 초기 전체 백업 + 이미지 이전이 완료됨"을 표시. 완료 후에는 전체
 // 스캔을 건너뛰고 dirty 큐(=실패/신규 저장분)만 재시도한다.
@@ -167,6 +182,7 @@ async function migrateImageIfNeeded(diary: NovelDiary, userId: string): Promise<
 // ── push: 일기 1편 upsert (실패해도 throw하지 않고 dirty 기록) ───────────────
 export async function pushDiary(diary: NovelDiary): Promise<void> {
   if (isGuest() || !supabase) return
+  if (getPendingDeletes().includes(diary.id)) return   // 삭제 대기 중인 일기는 push 금지
   try {
     const user = await getUser()
     if (!user) return
@@ -183,16 +199,41 @@ export async function pushDiary(diary: NovelDiary): Promise<void> {
 }
 
 // ── 서버 일기 삭제 (로컬 삭제와 함께 호출) ──────────────────────────────────
+// 로컬 삭제와 동시에 tombstone 큐에 등록 → 성공 시 큐에서 제거, 실패 시 남겨
+// 다음 syncDiaries에서 재시도 + 부활 방지.
 export async function deleteDiaryRemote(id: string): Promise<void> {
-  if (isGuest() || !supabase) return
+  if (isGuest()) return
+  markPendingDelete(id)
+  unmarkDirty(id)   // 삭제된 일기는 push 재시도 대상에서 제외
+  if (!supabase) return
   try {
     const user = await getUser()
     if (!user) return
-    await supabase.from('diaries').delete().eq('id', id).eq('user_id', user.id)
-    unmarkDirty(id)
+    const { error } = await supabase.from('diaries').delete().eq('id', id).eq('user_id', user.id)
+    if (error) throw error
+    unmarkPendingDelete(id)
   } catch (e) {
-    console.warn('[sync] deleteDiaryRemote failed:', (e as Error).message)
+    console.warn('[sync] deleteDiaryRemote failed(대기 큐 유지):', (e as Error).message)
   }
+}
+
+// tombstone 큐 재시도(병합 전 호출) — 성공한 것은 큐에서 제거
+async function flushPendingDeletes(): Promise<Set<string>> {
+  const pending = getPendingDeletes()
+  if (pending.length === 0 || !supabase) return new Set(pending)
+  const user = await getUser()
+  if (!user) return new Set(pending)
+  for (const id of pending) {
+    try {
+      const { error } = await supabase.from('diaries').delete().eq('id', id).eq('user_id', user.id)
+      if (error) throw error
+      unmarkPendingDelete(id)
+    } catch (e) {
+      console.warn('[sync] pending delete 재시도 실패:', (e as Error).message)
+    }
+  }
+  // 재시도 성공/실패 무관하게, 이번 병합에서 부활 방지에 쓸 "삭제 대상" 집합 반환
+  return new Set(pending)
 }
 
 // ── pull: 서버의 내 일기 전부 ───────────────────────────────────────────────
@@ -254,6 +295,10 @@ async function syncDiaries(): Promise<void> {
   const local = storage.getDiaries()
   const byId  = new Map<string, NovelDiary>(local.map((d) => [d.id, d]))
 
+  // 병합 전에 삭제 대기 큐(tombstone)를 서버에 먼저 재시도. 반환된 집합은
+  // 이번 병합에서 부활을 막을 "삭제 대상" (재시도 실패해도 부활은 방지).
+  const deleted = await flushPendingDeletes()
+
   let server: NovelDiary[] = []
   let pulled = true
   try { server = await pullDiaries() } catch { pulled = false }   // 오프라인: 병합 스킵, dirty만 재시도
@@ -263,6 +308,7 @@ async function syncDiaries(): Promise<void> {
   if (pulled) {
     const serverIds = new Set(server.map((s) => s.id))
     for (const s of server) {
+      if (deleted.has(s.id)) continue                                  // 삭제 대기 중 → 로컬에 부활시키지 않음
       const l = byId.get(s.id)
       if (!l) { byId.set(s.id, s) }                                     // 서버에만 → 로컬에 채움
       else if (ts(s) > ts(l)) { byId.set(s.id, s) }                     // 서버가 최신 → 서버 채택
@@ -275,8 +321,9 @@ async function syncDiaries(): Promise<void> {
     storage.setDiaries([...byId.values()].sort(byNewest))
   }
 
-  // dirty 큐(이전 실패분 + 신규 저장 실패분)는 항상 재시도
+  // dirty 큐(이전 실패분 + 신규 저장 실패분)는 항상 재시도. 단 삭제 대기 중은 제외.
   for (const id of getDirtyQueue()) {
+    if (deleted.has(id)) continue
     const d = byId.get(id)
     if (d) toPush.set(id, d)
   }
