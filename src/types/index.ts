@@ -123,7 +123,9 @@ export interface NovelDiary {
   kindlingSnapshot?: string[]
   characters?: Array<{ name: string; relationship: string }>
   characterNames?: string[]
-  keyImage?: string | { dataUrl: string } | null
+  // 하위호환: 기존 일기는 dataUrl(문자열 또는 { dataUrl })로 저장됨.
+  // 신규(로그인)는 Supabase Storage 경로만 { storagePath }로 저장.
+  keyImage?: string | { dataUrl: string } | { storagePath: string } | null
   title?: string
 }
 

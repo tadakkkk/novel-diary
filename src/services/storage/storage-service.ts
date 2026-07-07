@@ -182,6 +182,11 @@ export function deleteDiary(id: string): void {
   if (isGuest()) return
   write(K.DIARIES, getDiaries().filter((d) => d.id !== id))
 }
+// 동기화 병합 결과를 로컬에 일괄 반영 (클라우드 sync 전용)
+export function setDiaries(list: NovelDiary[]): void {
+  if (isGuest()) return
+  write(K.DIARIES, list)
+}
 
 // ── Characters ─────────────────────────────────────────────────────────────
 export function getCharacters(): Character[] {
@@ -226,6 +231,11 @@ export function saveCharacterAvatar(name: string, avatarData: Character['avatarD
 export function deleteCharacter(name: string): void {
   if (isGuest()) return
   write(K.CHARACTERS, getCharacters().filter((c) => c.name !== name))
+}
+// 동기화 병합 결과를 로컬에 일괄 반영 (클라우드 sync 전용)
+export function setCharacters(list: Character[]): void {
+  if (isGuest()) return
+  write(K.CHARACTERS, list)
 }
 
 // ── Blocked Characters ─────────────────────────────────────────────────────
