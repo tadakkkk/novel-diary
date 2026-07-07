@@ -405,6 +405,7 @@ import { onAuthStateChange, signInWithGoogle, signInWithApple, handleOAuthDeepLi
 import { Capacitor } from '@capacitor/core'
 import { App as CapApp } from '@capacitor/app'
 import { syncUserData, fetchUsageStatus, type UsageStatus } from '@/services/api/api-client'
+import { syncOnLogin } from '@/services/sync/sync-service'
 import { PaywallModal } from '@/components/ui/PaywallModal'
 import { QuotaExceededError } from '@/services/claude/claude-service'
 import { PixelStars } from '@/components/ui/PixelStars'
@@ -474,6 +475,9 @@ export default function App() {
 
       // 로그인하면 게스트 데모 데이터는 사라지고 실제 사용자 데이터로 전환
       if (newUser && readGuest()) { setGuest(false); setGuestState(false) }
+
+      // 클라우드 동기화(일기/등장인물) — supabase-js 직결, 백그라운드. 실패해도 로컬은 그대로.
+      if (newUser && !readGuest()) { void syncOnLogin() }
 
       if (newUser && import.meta.env.VITE_API_URL) {
         // First login: sync local data to server

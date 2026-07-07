@@ -4,9 +4,25 @@ import { DrawerPopup } from '@/features/drawer/DrawerPopup'
 import { type Character, type NovelDiary } from '@/types'
 import * as storage from '@/services/storage'
 import * as avatar from '@/services/avatar/avatar-service'
+import { deleteDiaryRemote } from '@/services/sync/sync-service'
+import { useKeyImageUrl } from '@/services/sync/image-upload'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { AvatarCanvas } from '@/components/ui/AvatarCanvas'
 import { useMobile } from '@/hooks/useMobile'
+
+// ── 대표 이미지 썸네일 (dataUrl 하위호환 + storagePath signed URL) ──────────
+function KeyImageThumb({ keyImage, width }: { keyImage: NovelDiary['keyImage']; width: number }) {
+  const url = useKeyImageUrl(keyImage)
+  return url ? (
+    <div style={{ width, flexShrink:0, borderLeft:'2px solid var(--gray-3)', overflow:'hidden' }}>
+      <img src={url} alt='' style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
+    </div>
+  ) : (
+    <div style={{ width, minHeight:100, display:'flex', alignItems:'center', justifyContent:'center', background:'#0a0a0a', borderLeft:'2px solid var(--gray-3)' }}>
+      <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)', transform:'rotate(-90deg)', whiteSpace:'nowrap', letterSpacing:'0.06em' }}>NO IMAGE</span>
+    </div>
+  )
+}
 
 // ── Storage Usage ─────────────────────────────────────────────────────────
 function StorageUsage() {
@@ -139,7 +155,7 @@ function DiaryModal({ diary, onClose, onDelete, onEdit }: {
   const charNames = diary.characterNames ?? (diary.characters ?? []).map((c) => typeof c === 'string' ? c : c.name)
   const chars = charNames.map((n) => storage.getCharacter(n)).filter(Boolean) as Character[]
   const kindlings = diary.kindlings ?? []
-  const keyImageUrl = typeof diary.keyImage === 'string' ? diary.keyImage : (diary.keyImage as { dataUrl: string } | null)?.dataUrl
+  const keyImageUrl = useKeyImageUrl(diary.keyImage)
 
   return (
     <>
@@ -267,6 +283,7 @@ export default function TimelinePage() {
   function handleDelete() {
     if (!deleteTarget) return
     storage.deleteDiary(deleteTarget)
+    void deleteDiaryRemote(deleteTarget)   // 서버에서도 삭제 (재동기화 시 부활 방지)
     setDeleteTarget(null)
     setSelectedDiary(null)
     loadData()
@@ -431,7 +448,6 @@ export default function TimelinePage() {
             {filtered.map((diary) => {
               const charNames = diary.characterNames ?? (diary.characters ?? []).map((c) => typeof c === 'string' ? c : c.name)
               const cardChars = charNames.slice(0, 4).map((n) => storage.getCharacter(n)).filter(Boolean) as Character[]
-              const keyImageUrl = typeof diary.keyImage === 'string' ? diary.keyImage : (diary.keyImage as { dataUrl: string } | null)?.dataUrl
               return (
                 <div key={diary.id}
                   style={{ border:'3px solid var(--gray-3)', background:'var(--black)', cursor:'pointer', position:'relative' }}
@@ -465,15 +481,7 @@ export default function TimelinePage() {
                         )}
                       </div>
                     </div>
-                    {keyImageUrl ? (
-                      <div style={{ width: isSmall ? 72 : isMobile ? 88 : 110, flexShrink:0, borderLeft:'2px solid var(--gray-3)', overflow:'hidden' }}>
-                        <img src={keyImageUrl} alt='' style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
-                      </div>
-                    ) : (
-                      <div style={{ width: isSmall ? 72 : isMobile ? 88 : 110, minHeight:100, display:'flex', alignItems:'center', justifyContent:'center', background:'#0a0a0a', borderLeft:'2px solid var(--gray-3)' }}>
-                        <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)', transform:'rotate(-90deg)', whiteSpace:'nowrap', letterSpacing:'0.06em' }}>NO IMAGE</span>
-                      </div>
-                    )}
+                    <KeyImageThumb keyImage={diary.keyImage} width={isSmall ? 72 : isMobile ? 88 : 110} />
                   </div>
                   <div style={{ borderTop:'1px solid var(--gray-2)', padding:'6px 10px', display:'flex', justifyContent:'flex-end', gap:6 }}>
                     <button className='pixel-btn pixel-btn-sm'

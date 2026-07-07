@@ -5,6 +5,8 @@ import { type Character, type NovelDiary, type Perspective, type ProcessingLevel
 import * as storage from '@/services/storage'
 import * as claude from '@/services/claude/claude-service'
 import { guardGuestAction } from '@/services/guest/guest-mode'
+import { pushDiary } from '@/services/sync/sync-service'
+import { uploadKeyImage, parseDataUrl, directKeyImageUrl } from '@/services/sync/image-upload'
 import { useAppContext } from '@/App'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { AvatarCanvas } from '@/components/ui/AvatarCanvas'
@@ -114,7 +116,7 @@ function CharacterModal({ character, onClose }: { character: Character; onClose:
 export default function DiaryPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const { showPaywall } = useAppContext()
+  const { showPaywall, user } = useAppContext()
   const { isMobile } = useMobile()
 
   // ── 초기 상태 로드 ─────────────────────────────────────────────────────
@@ -548,13 +550,30 @@ export default function DiaryPage() {
                   disabled={isSaved}
                   onClick={async () => {
                     if (!savedDiary) return
-                    const diary = { ...savedDiary, content: diaryContent, wordCount: diaryContent.length }
+                    let diary: NovelDiary = { ...savedDiary, content: diaryContent, wordCount: diaryContent.length }
+                    // 로그인 상태면 대표 이미지를 Storage에 업로드하고 경로만 저장
+                    // (base64를 localStorage에 쓰지 않아 iOS 저장 한도 문제 회피).
+                    // 업로드 실패 or 게스트면 기존 dataUrl 방식 폴백(데이터 유실 방지).
+                    if (user) {
+                      const dataUrl = directKeyImageUrl(diary.keyImage)
+                      if (dataUrl && dataUrl.startsWith('data:')) {
+                        try {
+                          const parsed = parseDataUrl(dataUrl)
+                          if (parsed) {
+                            const path = await uploadKeyImage(parsed.base64Data, parsed.mediaType, user.id)
+                            diary = { ...diary, keyImage: { storagePath: path } }
+                          }
+                        } catch (e) { console.warn('[DiaryPage] keyImage 업로드 실패, dataUrl 폴백:', (e as Error).message) }
+                      }
+                    }
                     console.log('[DiaryPage] saving diary — length:', diary.content.length, '| isEditMode was:', isEditMode)
                     // 등장인물을 일기 저장 시점에 storage에 반영
                     chars.forEach((c) => storage.upsertCharacter(c))
                     storage.saveDiary(diary)
                     setIsSaved(true)
                     setIsEditMode(false)
+                    // 서버 동기화(백그라운드, 실패해도 로컬은 그대로 · dirty 큐로 재시도)
+                    void pushDiary(diary)
                     console.log('[DiaryPage] saved → isSaved: true, isEditMode: false')
                     // 배지 감지 (백그라운드, 에러 무시)
                     if (storage.getApiKey() || import.meta.env.VITE_API_URL) {

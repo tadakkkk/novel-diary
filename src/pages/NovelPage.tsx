@@ -4,6 +4,7 @@ import { type Character, type NovelDiary, type SavedNovel } from '@/types'
 import * as storage from '@/services/storage'
 import * as claude from '@/services/claude/claude-service'
 import * as avatar from '@/services/avatar/avatar-service'
+import { resolveKeyImageUrl } from '@/services/sync/image-upload'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { AvatarCanvas } from '@/components/ui/AvatarCanvas'
 
@@ -530,8 +531,8 @@ export default function NovelPage() {
     const bodyW = currentBodyWidth()
     const pages: DiaryPage[] = []
     for (const diary of filtered) {
-      const imgUrl = typeof diary.keyImage === 'string' ? diary.keyImage
-        : (diary.keyImage as { dataUrl: string } | null)?.dataUrl ?? null
+      // dataUrl(레거시)은 그대로, storagePath는 signed URL 발급
+      const imgUrl = await resolveKeyImageUrl(diary.keyImage)
       const hasImage = !!imgUrl
       const charNames = diary.characterNames ?? (diary.characters ?? []).map((c) => typeof c === 'string' ? c : c.name)
       const hasChars = charNames.length > 0
