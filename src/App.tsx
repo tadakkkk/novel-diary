@@ -395,6 +395,57 @@ function GuestBlockedToast() {
   )
 }
 
+// ── Cloud Sync Banner (첫 백업/마이그레이션 진행 표시 · 비차단) ──────────────
+function SyncBanner() {
+  const [state, setState] = useState<{ done: number; total: number; complete: boolean } | null>(null)
+  useEffect(() => {
+    let hideTimer: ReturnType<typeof setTimeout>
+    function onSync(e: Event) {
+      const d = (e as CustomEvent).detail as { phase: string; done?: number; total?: number; success?: boolean }
+      if (d.phase === 'start') {
+        clearTimeout(hideTimer)
+        setState({ done: 0, total: d.total ?? 0, complete: false })
+      } else if (d.phase === 'progress') {
+        setState((s) => s ? { ...s, done: d.done ?? s.done, total: d.total ?? s.total } : s)
+      } else if (d.phase === 'done') {
+        if (d.success) {
+          setState((s) => ({ done: s?.done ?? 0, total: s?.total ?? 0, complete: true }))
+          hideTimer = setTimeout(() => setState(null), 2200)  // "백업 완료" 잠깐 표시 후 사라짐
+        } else {
+          setState(null)  // 실패는 조용히 사라짐 → 다음 기회에 재시도
+        }
+      }
+    }
+    window.addEventListener('tadak-sync', onSync)
+    return () => { window.removeEventListener('tadak-sync', onSync); clearTimeout(hideTimer) }
+  }, [])
+
+  if (!state) return null
+  const pct = state.total > 0 ? Math.round((state.done / state.total) * 100) : 0
+  return (
+    <div style={{
+      position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+      zIndex: 9997, background: '#140a02', border: '2px solid var(--fire-org)',
+      boxShadow: 'inset 0 0 0 1px var(--fire-org)',
+      padding: '10px 16px', width: 'calc(100% - 32px)', maxWidth: 360, textAlign: 'center',
+    }}>
+      <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-tip)', letterSpacing: '0.06em', marginBottom: state.complete ? 0 : 7 }}>
+        {state.complete ? '✓ 백업 완료' : '🔥 기록을 안전하게 백업하는 중...'}
+      </div>
+      {!state.complete && state.total > 0 && (
+        <>
+          <div style={{ height: 6, background: '#2a1500', border: '1px solid var(--gray-2)' }}>
+            <div style={{ height: '100%', width: `${pct}%`, background: 'var(--fire-org)', transition: 'width 0.3s' }} />
+          </div>
+          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-4)', marginTop: 6, letterSpacing: '0.06em' }}>
+            {state.done} / {state.total}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── IAP Init ──────────────────────────────────────────────────────────────
 import { initIAP } from '@/services/iap/iap-service'
 
@@ -524,6 +575,7 @@ export default function App() {
       {!guest && <InstallBanner />}
       {guest && <GuestBanner />}
       {guest && <GuestBlockedToast />}
+      {!guest && <SyncBanner />}
       {syncing && <SyncOverlay />}
       {import.meta.env.VITE_PAYMENT_ENABLED === 'true' && paywallOpen && <PaywallModal user={user} source={paywallSource} onClose={() => setPaywallOpen(false)} />}
       {drawerOpen && <DrawerPopup onClose={() => setDrawerOpen(false)} />}

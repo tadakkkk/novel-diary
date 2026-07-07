@@ -31,6 +31,57 @@ function unmarkDirty(id: string): void {
   try { localStorage.setItem(DIRTY_KEY, JSON.stringify(q)) } catch { /* ignore */ }
 }
 
+// ── 마이그레이션 완료 플래그 (device-local) ─────────────────────────────────
+// "이 기기의 초기 전체 백업 + 이미지 이전이 완료됨"을 표시. 완료 후에는 전체
+// 스캔을 건너뛰고 dirty 큐(=실패/신규 저장분)만 재시도한다.
+// 일부 실패(이미지 업로드 실패 등)가 남으면 플래그를 세우지 않아 다음 실행 때
+// 이어서 재시도한다. (upsert라 중복 안전)
+const MIGRATION_FLAG = 'novel-diary:migration:v1'
+function isMigrated(): boolean {
+  try { return localStorage.getItem(MIGRATION_FLAG) === '1' } catch { return false }
+}
+function setMigrated(): void {
+  try { localStorage.setItem(MIGRATION_FLAG, '1') } catch { /* ignore */ }
+}
+
+// ── 진행 표시 이벤트 (비차단 배너용) ────────────────────────────────────────
+type SyncPhase = 'start' | 'progress' | 'done'
+function emitSync(detail: { phase: SyncPhase; done?: number; total?: number; success?: boolean }): void {
+  try { window.dispatchEvent(new CustomEvent('tadak-sync', { detail })) } catch { /* ignore */ }
+}
+
+function hasDataUrlImage(d: NovelDiary): boolean {
+  const u = directKeyImageUrl(d.keyImage)
+  return !!u && u.startsWith('data:')
+}
+
+// ── 세션 대표이미지 별도 키(base64) 정리 ────────────────────────────────────
+// `novel-diary:key-image:{sessionId}` 에 남은 base64는 용량을 차지한다.
+// 해당 세션의 일기가 이미 storagePath로 백업됐다면 이 키를 삭제해 용량 회복.
+// 단, 오늘(진행 중) 세션의 키는 생성 플로우에서 쓰이므로 삭제하지 않는다.
+function cleanupMigratedSessionImages(): void {
+  try {
+    const KEY_PREFIX = 'novel-diary:key-image:'
+    const diaries = storage.getDiaries()
+    const backedUp = new Set(
+      diaries.filter((d) => d.sessionId && keyImageStoragePath(d.keyImage)).map((d) => d.sessionId as string),
+    )
+    const todayId = storage.getTodaySession()?.id
+    const targets: string[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)
+      if (!k || !k.startsWith(KEY_PREFIX)) continue
+      const sid = k.slice(KEY_PREFIX.length)
+      if (sid === todayId) continue          // 진행 중(오늘) 세션 보호
+      if (backedUp.has(sid)) targets.push(sid) // 백업 완료된 세션만 정리
+    }
+    for (const sid of targets) storage.removeKeyImage(sid)
+    if (targets.length) console.info(`[sync] 세션 이미지 키 ${targets.length}개 정리(용량 회복)`)
+  } catch (e) {
+    console.warn('[sync] 세션 이미지 정리 실패:', (e as Error).message)
+  }
+}
+
 // ── diaries 테이블 ↔ NovelDiary 매핑 ────────────────────────────────────────
 interface DiaryRow {
   id: string
@@ -199,6 +250,7 @@ export async function syncOnLogin(): Promise<void> {
 }
 
 async function syncDiaries(): Promise<void> {
+  const migrated = isMigrated()
   const local = storage.getDiaries()
   const byId  = new Map<string, NovelDiary>(local.map((d) => [d.id, d]))
 
@@ -212,26 +264,43 @@ async function syncDiaries(): Promise<void> {
     const serverIds = new Set(server.map((s) => s.id))
     for (const s of server) {
       const l = byId.get(s.id)
-      if (!l) { byId.set(s.id, s) }                    // 서버에만 → 로컬에 채움
-      else if (ts(s) > ts(l)) { byId.set(s.id, s) }    // 서버가 최신 → 서버 채택
-      else if (ts(l) > ts(s)) { toPush.set(l.id, l) }  // 로컬이 최신 → push 대상
+      if (!l) { byId.set(s.id, s) }                                     // 서버에만 → 로컬에 채움
+      else if (ts(s) > ts(l)) { byId.set(s.id, s) }                     // 서버가 최신 → 서버 채택
+      else if (ts(l) > ts(s) && !migrated) { toPush.set(l.id, l) }      // 로컬이 최신 → push (전체 스캔 시)
     }
-    for (const l of local) if (!serverIds.has(l.id)) toPush.set(l.id, l)  // 로컬에만 → push
+    // 로컬에만 있는 것 push — 완료 플래그 전(전체 스캔)에만. 이후 신규/실패분은 dirty로 커버.
+    if (!migrated) for (const l of local) if (!serverIds.has(l.id)) toPush.set(l.id, l)
 
     // 병합 결과를 로컬에 반영
     storage.setDiaries([...byId.values()].sort(byNewest))
   }
 
-  // dirty 큐(이전 실패분) 합류
+  // dirty 큐(이전 실패분 + 신규 저장 실패분)는 항상 재시도
   for (const id of getDirtyQueue()) {
     const d = byId.get(id)
     if (d) toPush.set(id, d)
   }
 
+  // 첫 전체 마이그레이션(밀린 백업이 실제로 있을 때)만 진행 배너 표시
+  const showProgress = !migrated && toPush.size > 0
+  if (showProgress) emitSync({ phase: 'start', done: 0, total: toPush.size })
+
   // 순차 push (이미지 마이그레이션이 로컬 read-modify-write를 하므로 경합 방지)
+  let done = 0
   for (const d of toPush.values()) {
     await pushDiary(d)
+    done++
+    if (showProgress) emitSync({ phase: 'progress', done, total: toPush.size })
   }
+
+  // 백업 완료된 세션의 base64 별도 키 정리 (용량 회복)
+  cleanupMigratedSessionImages()
+
+  // 완료 판정: 실패(dirty) 없고 남은 dataUrl 이미지도 없으면 이 기기 마이그레이션 완료
+  const complete = getDirtyQueue().length === 0 && !storage.getDiaries().some(hasDataUrlImage)
+  if (!migrated && complete) setMigrated()
+
+  if (showProgress) emitSync({ phase: 'done', success: complete })
 }
 
 async function syncCharacters(): Promise<void> {
