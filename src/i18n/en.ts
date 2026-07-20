@@ -334,5 +334,10 @@ export const en: Record<string, string> = {
   'keyImage.removeTitle': 'Remove image',
   'keyImage.label': "Today's key image",
 
+  // === Services (user-facing errors) ===
+  'storage.unsupportedVersion': 'Unsupported version.',
+  'apiClient.deleteAccountFailed': 'Account deletion failed. (HTTP {status})',
+  'apiClient.checkoutFailed': "Couldn't open the checkout page. Please try again shortly.",
+
   // @@APPEND_EN@@
 }

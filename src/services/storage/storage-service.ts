@@ -6,6 +6,7 @@ import {
 } from '@/types'
 import { isGuest } from '@/services/guest/guest-mode'
 import * as demo from '@/data/guestDemoData'
+import { t } from '@/i18n'
 
 // ── 키 상수 ──────────────────────────────────────────────────────────────
 const P = 'novel-diary:'
@@ -281,7 +282,7 @@ export function exportAllData(): ExportData {
 
 export function importAllData(data: ExportData): void {
   if (isGuest()) return
-  if (data.version !== 1) throw new Error('지원하지 않는 버전이에요.')
+  if (data.version !== 1) throw new Error(t('storage.unsupportedVersion'))
   write(K.DIARIES, data.diaries ?? [])
   write(K.STYLE_REFS, data.styleReferences ?? [])
   write(K.CHARACTERS, data.characters ?? [])

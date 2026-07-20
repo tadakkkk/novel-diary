@@ -334,5 +334,10 @@ export const ko: Record<string, string> = {
   'keyImage.removeTitle': '이미지 제거',
   'keyImage.label': '오늘의 대표 이미지',
 
+  // === Services (유저 노출 에러) ===
+  'storage.unsupportedVersion': '지원하지 않는 버전이에요.',
+  'apiClient.deleteAccountFailed': '계정 삭제에 실패했어요. (HTTP {status})',
+  'apiClient.checkoutFailed': '결제 페이지를 열 수 없어요. 잠시 후 다시 시도해주세요.',
+
   // @@APPEND_KO@@
 }

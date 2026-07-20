@@ -6,6 +6,7 @@ import type { User } from '@supabase/supabase-js'
 import { getSession } from '@/services/auth/auth-service'
 import { getDeviceId } from '@/services/storage'
 import { isGuest, GuestBlockedError } from '@/services/guest/guest-mode'
+import { t, tf } from '@/i18n'
 
 const API_BASE = import.meta.env.VITE_API_URL as string | undefined
 const PAYMENT_ENABLED = import.meta.env.VITE_PAYMENT_ENABLED === 'true'
@@ -181,7 +182,7 @@ export async function deleteAccountRequest(): Promise<void> {
   const res = await fetch(`${API_BASE}/api/account`, { method: 'DELETE', headers })
   if (!res.ok) {
     const err = await res.json().catch(() => ({})) as { error?: string }
-    throw new Error(err.error ?? `계정 삭제에 실패했어요. (HTTP ${res.status})`)
+    throw new Error(err.error ?? tf('apiClient.deleteAccountFailed', { status: res.status }))
   }
 }
 
@@ -199,7 +200,7 @@ export async function createCheckoutSession(plan: 'weekly' | 'monthly'): Promise
   if (!res.ok) {
     const body = await res.json().catch(() => ({})) as { error?: string; detail?: unknown }
     console.error('[createCheckoutSession] server error:', body)
-    throw new Error(body.error ?? '결제 페이지를 열 수 없어요. 잠시 후 다시 시도해주세요.')
+    throw new Error(body.error ?? t('apiClient.checkoutFailed'))
   }
   const { url } = await res.json() as { url: string }
   return url
