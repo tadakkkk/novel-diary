@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { spawnPixelParticles } from '@/lib/particles'
 import { MAX_KINDLING_LENGTH } from '@/lib/constants'
+import { t } from '@/i18n'
 
 interface Props {
   onAdd: (text: string) => void
@@ -43,12 +44,12 @@ export function KindlingInput({ onAdd, prefillValue, onPrefillConsumed }: Props)
 
   return (
     <div className='kindling-input-section'>
-      <div className='input-label'>▸ 새 땔감 추가</div>
+      <div className='input-label'>{t('kindling.addLabel')}</div>
       <div className='input-row'>
         <textarea
           ref={textareaRef}
           className='pixel-input kindling-textarea'
-          placeholder='오늘 있었던 일을 조각조각 던져보세요...'
+          placeholder={t('kindling.placeholder')}
           maxLength={MAX_KINDLING_LENGTH}
           value={value}
           onChange={(e) => setValue(e.target.value)}
@@ -58,7 +59,7 @@ export function KindlingInput({ onAdd, prefillValue, onPrefillConsumed }: Props)
           ref={btnRef}
           className='kindling-add-btn'
           onClick={handleAdd}
-          title='추가 (Ctrl+Enter)'
+          title={t('kindling.addTitle')}
         >
           +
         </button>

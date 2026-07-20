@@ -284,5 +284,55 @@ export const ko: Record<string, string> = {
   'paywall.restore': '구매 복원',
   'paywall.later': '나중에 하기',
 
+  // === DrawerPopup ===
+  'drawer.title': '▸ 주인공의 서랍',
+  'drawer.desc1': '일기 기반 대화',
+  'drawer.desc2': '성향 분석 + 배지',
+  'drawer.desc3': '소설로 엮기',
+  'drawer.desc4': '오늘 ???의 편지',
+
+  // === CharacterDex ===
+  'characterDex.tabStory': '스토리',
+  'characterDex.tabStats': '성향',
+  'characterDex.tabBadgesN': '배지 ({n})',
+  'characterDex.storyEmpty0': '일기가 쌓이면 캐릭터 스토리가 만들어져요.',
+  'characterDex.storyEmptyBtn': '아래 버튼으로 스토리를 생성해보세요.',
+  'characterDex.generating': '▸ 생성 중...',
+  'characterDex.updateStory': '↺ 스토리 업데이트',
+  'characterDex.viewStory': '▸ 캐릭터 스토리 보기',
+  'characterDex.generatedOn': '{date} 생성',
+  'characterDex.analyzing': '분석 중...',
+  'characterDex.needMore': '일기가 조금 더 쌓이면 분석할 수 있어',
+  'characterDex.progress': '(현재 {n}개 / {min}개 필요)',
+  'characterDex.analyzing2': '분석 중이에요...',
+  'characterDex.badgesEmpty': '일기를 저장할 때 의미 있는 순간이 있으면 자동으로 배지가 생성돼요.',
+
+  // === PastSelfChat ===
+  'pastSelf.dummyName': '과거의 나',
+  'pastSelf.errorReply': '지금은 말하기 어려워.',
+  'pastSelf.emptyNoDiary1': '아직 쌓인 이야기가 없어.',
+  'pastSelf.emptyNoDiary2': '일기를 먼저 써봐.',
+  'pastSelf.emptyWaiting1': '과거의 주인공이 기다리고 있어.',
+  'pastSelf.emptyWaiting2': '지금의 고민을 말해봐.',
+  'pastSelf.sourceLabel': '{date}의 나',
+  'pastSelf.inputPlaceholder': '지금의 고민을 말해봐...',
+
+  // === StoryTab ===
+  'storyTab.header': '► 주인공의 이야기',
+  'storyTab.empty1': '아직 저장된 일기가 없어요.',
+  'storyTab.empty2': '일기를 쓰고 저장하면 여기서 소설로 엮을 수 있어요.',
+  'storyTab.desc1': '일기들을 하나의 소설로 엮어 볼 수 있어요.',
+  'storyTab.desc2': '기간을 선택하고 책을 펼쳐보세요.',
+  'storyTab.openBtn': '▸ 주인공의 이야기 열기',
+
+  // === Kindling / KeyImage ===
+  'kindling.continueTitle': '클릭하면 이어서 작성',
+  'kindling.addLabel': '▸ 새 땔감 추가',
+  'kindling.placeholder': '오늘 있었던 일을 조각조각 던져보세요...',
+  'kindling.addTitle': '추가 (Ctrl+Enter)',
+  'keyImage.alt': '대표 이미지',
+  'keyImage.removeTitle': '이미지 제거',
+  'keyImage.label': '오늘의 대표 이미지',
+
   // @@APPEND_KO@@
 }

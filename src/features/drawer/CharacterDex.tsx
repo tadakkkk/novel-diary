@@ -4,6 +4,8 @@ import * as storage from '@/services/storage'
 import * as claude from '@/services/claude/claude-service'
 import { guardGuestAction } from '@/services/guest/guest-mode'
 import { useMobile } from '@/hooks/useMobile'
+import { t, tf } from '@/i18n'
+import { getAppLanguage } from '@/services/claude/prompts/language'
 
 // ── 레이더(스탯) 바 차트 ──────────────────────────────────────────────────
 function StatBars({ stats }: { stats: Array<{ label: string; value: number }> }) {
@@ -161,9 +163,9 @@ export function CharacterDex() {
   }
 
   const TAB_BTNS: Array<{ key: typeof view; label: string }> = [
-    { key: 'story', label: '스토리' },
-    { key: 'stats', label: '성향' },
-    { key: 'badges', label: `배지 (${badges.length})` },
+    { key: 'story', label: t('characterDex.tabStory') },
+    { key: 'stats', label: t('characterDex.tabStats') },
+    { key: 'badges', label: tf('characterDex.tabBadgesN', { n: badges.length }) },
   ]
 
   return (
@@ -192,7 +194,7 @@ export function CharacterDex() {
             </div>
           ) : (
             <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--text-off)', marginBottom: 14, lineHeight: 1.8 }}>
-              {diaries.length === 0 ? '일기가 쌓이면 캐릭터 스토리가 만들어져요.' : '아래 버튼으로 스토리를 생성해보세요.'}
+              {diaries.length === 0 ? t('characterDex.storyEmpty0') : t('characterDex.storyEmptyBtn')}
             </div>
           )}
           <button
@@ -200,11 +202,11 @@ export function CharacterDex() {
             style={{ fontSize: 12, padding: '8px 14px' }}
             disabled={loadingStory || noApiAccess || diaries.length === 0}
             onClick={handleGenerateStory}>
-            {loadingStory ? '▸ 생성 중...' : profile?.story ? '↺ 스토리 업데이트' : '▸ 캐릭터 스토리 보기'}
+            {loadingStory ? t('characterDex.generating') : profile?.story ? t('characterDex.updateStory') : t('characterDex.viewStory')}
           </button>
           {profile?.generatedAt && (
             <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--text-off)', marginTop: 6 }}>
-              {new Date(profile.generatedAt).toLocaleDateString('ko')} 생성
+              {tf('characterDex.generatedOn', { date: new Date(profile.generatedAt).toLocaleDateString(getAppLanguage() === 'en' ? 'en-US' : 'ko') })}
             </div>
           )}
         </div>
@@ -215,12 +217,12 @@ export function CharacterDex() {
         <div>
           <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)', letterSpacing: '0.1em', marginBottom: 12 }}>► ABILITY STATS</div>
           {loadingStats ? (
-            <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-4)', textAlign: 'center', padding: '24px 0' }}>분석 중...</div>
+            <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-4)', textAlign: 'center', padding: '24px 0' }}>{t('characterDex.analyzing')}</div>
           ) : !canAnalyze ? (
             <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--text-off)', textAlign: 'center', padding: '24px 0', lineHeight: 1.9 }}>
-              일기가 조금 더 쌓이면 분석할 수 있어<br />
+              {t('characterDex.needMore')}<br />
               <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-4)', letterSpacing: '0.06em' }}>
-                (현재 {diaries.length}개 / {MIN_DIARIES}개 필요)
+                {tf('characterDex.progress', { n: diaries.length, min: MIN_DIARIES })}
               </span>
             </div>
           ) : profile?.stats && profile.stats.length > 0 ? (
@@ -232,7 +234,7 @@ export function CharacterDex() {
             </>
           ) : (
             <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--text-off)', textAlign: 'center', padding: '24px 0' }}>
-              분석 중이에요...
+              {t('characterDex.analyzing2')}
             </div>
           )}
         </div>
@@ -244,7 +246,7 @@ export function CharacterDex() {
           <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)', letterSpacing: '0.1em', marginBottom: 12 }}>► ACHIEVEMENT BADGES</div>
           {badges.length === 0 && (
             <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--text-off)', marginBottom: 12, lineHeight: 1.7 }}>
-              일기를 저장할 때 의미 있는 순간이 있으면 자동으로 배지가 생성돼요.
+              {t('characterDex.badgesEmpty')}
             </div>
           )}
           <BadgeGrid badges={badges} cols={isSmall ? 2 : 3} />

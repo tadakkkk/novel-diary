@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMobile } from '@/hooks/useMobile'
 import { hasUnreadDeliveredLetter } from '@/services/storage'
+import { t } from '@/i18n'
 
 const DRAWER_BG      = '#0d0a07'
 const DRAWER_BORDER  = '#2a1e0f'
@@ -23,10 +24,10 @@ interface SlotDef {
 }
 
 const SLOTS: SlotDef[] = [
-  { num: '01', name: '과거의 주인공에게 묻기', desc: '일기 기반 대화',    path: '/past-self' },
-  { num: '02', name: '주인공 도감',           desc: '성향 분석 + 배지', path: '/character-dex' },
-  { num: '03', name: '주인공의 이야기',        desc: '소설로 엮기',      path: '/story' },
-  { num: '04', name: '다음 챕터',             desc: '오늘 ???의 편지', path: '/next-chapter' },
+  { num: '01', name: t('page.pastSelf'),       desc: t('drawer.desc1'), path: '/past-self' },
+  { num: '02', name: t('page.characterDex'),   desc: t('drawer.desc2'), path: '/character-dex' },
+  { num: '03', name: t('novel.title'),         desc: t('drawer.desc3'), path: '/story' },
+  { num: '04', name: t('nextChapter.mainTitle'), desc: t('drawer.desc4'), path: '/next-chapter' },
 ]
 
 interface Props {
@@ -201,7 +202,7 @@ export function DrawerPopup({ onClose }: Props) {
               fontFamily: 'var(--font-pixel)', fontSize: 14,
               color: ACCENT, letterSpacing: '0.06em', whiteSpace: 'nowrap',
             }}>
-              ▸ 주인공의 서랍
+              {t('drawer.title')}
             </div>
             {/* 영문 부제는 장식 — 좁은 모바일에서 줄바꿈 깨짐 방지 위해 데스크탑만 노출 */}
             {!isMobile && (

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { type Kindling } from '@/types'
 import * as claude from '@/services/claude/claude-service'
 import * as storage from '@/services/storage'
+import { t } from '@/i18n'
 
 const QUESTION_MAX_LEN = 50  // 이 미만인 땔감에만 반문 생성
 
@@ -76,7 +77,7 @@ export function KindlingItem({
         <button
           className='k-del pixel-btn'
           onClick={() => onRemove(kindling.id)}
-          title='삭제'
+          title={t('common.delete')}
           style={{ cursor: 'pointer', flexShrink: 0 }}
         >
           ✕
@@ -92,7 +93,7 @@ export function KindlingItem({
             cursor: 'pointer',
             animation: 'slideUp 0.22s ease-out',
           }}
-          title='클릭하면 이어서 작성'
+          title={t('kindling.continueTitle')}
         >
           <span style={{
             fontFamily: 'var(--font-korean)',

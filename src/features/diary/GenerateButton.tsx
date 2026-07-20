@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useAppContext } from '@/App'
 import { isDiaryQuotaExceeded } from '@/services/quota/quota-service'
+import { t } from '@/i18n'
 
 interface Props {
   visible: boolean
@@ -19,7 +20,7 @@ export function GenerateButton({ visible, sessionId }: Props) {
   return (
     <div className={`generate-btn-wrap${visible ? ' visible' : ''}`}>
       <button className='generate-btn' onClick={handleClick}>
-        ▶ 일기 쓰기 ◀
+        {t('bonfire.writeDiary')}
       </button>
     </div>
   )

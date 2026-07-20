@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { type KeyImage } from '@/types'
+import { t } from '@/i18n'
 
 interface Props {
   keyImage: KeyImage | null
@@ -36,15 +37,15 @@ export function KeyImageUploader({ keyImage, onUpload, onRemove }: Props) {
             <img
               className='key-image-preview'
               src={keyImage.dataUrl}
-              alt='대표 이미지'
+              alt={t('keyImage.alt')}
             />
-            <button className='key-image-remove' onClick={handleRemove} title='이미지 제거'>
+            <button className='key-image-remove' onClick={handleRemove} title={t('keyImage.removeTitle')}>
               [x]
             </button>
           </>
         ) : (
           <div className='key-image-placeholder'>
-            오늘의 대표 이미지<br />(선택)
+            {t('keyImage.label')}<br />{t('common.optional')}
           </div>
         )}
       </div>

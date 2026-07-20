@@ -284,5 +284,55 @@ export const en: Record<string, string> = {
   'paywall.restore': 'Restore purchases',
   'paywall.later': 'Maybe later',
 
+  // === DrawerPopup ===
+  'drawer.title': "▸ Protagonist's drawer",
+  'drawer.desc1': 'Diary-based chat',
+  'drawer.desc2': 'Traits + badges',
+  'drawer.desc3': 'Bind into a novel',
+  'drawer.desc4': "Today's letter from ???",
+
+  // === CharacterDex ===
+  'characterDex.tabStory': 'Story',
+  'characterDex.tabStats': 'Traits',
+  'characterDex.tabBadgesN': 'Badges ({n})',
+  'characterDex.storyEmpty0': 'Once your diaries pile up, a character story appears.',
+  'characterDex.storyEmptyBtn': 'Use the button below to generate a story.',
+  'characterDex.generating': '▸ Generating...',
+  'characterDex.updateStory': '↺ Update story',
+  'characterDex.viewStory': '▸ View character story',
+  'characterDex.generatedOn': 'Created {date}',
+  'characterDex.analyzing': 'Analyzing...',
+  'characterDex.needMore': 'A few more diaries and I can analyze you',
+  'characterDex.progress': '(now {n} / {min} needed)',
+  'characterDex.analyzing2': 'Analyzing...',
+  'characterDex.badgesEmpty': 'When you save a diary with a meaningful moment, a badge appears automatically.',
+
+  // === PastSelfChat ===
+  'pastSelf.dummyName': 'Past me',
+  'pastSelf.errorReply': "I can't say right now.",
+  'pastSelf.emptyNoDiary1': "There's no story yet.",
+  'pastSelf.emptyNoDiary2': 'Write a diary first.',
+  'pastSelf.emptyWaiting1': 'Your past self is waiting.',
+  'pastSelf.emptyWaiting2': "Tell me what's on your mind.",
+  'pastSelf.sourceLabel': 'Me on {date}',
+  'pastSelf.inputPlaceholder': "Tell me what's on your mind...",
+
+  // === StoryTab ===
+  'storyTab.header': "► The Protagonist's Story",
+  'storyTab.empty1': 'No saved diaries yet.',
+  'storyTab.empty2': 'Write and save diaries, then bind them into a novel here.',
+  'storyTab.desc1': 'You can bind your diaries into a single novel.',
+  'storyTab.desc2': 'Pick a range and open the book.',
+  'storyTab.openBtn': "▸ Open The Protagonist's Story",
+
+  // === Kindling / KeyImage ===
+  'kindling.continueTitle': 'Click to continue writing',
+  'kindling.addLabel': '▸ Add kindling',
+  'kindling.placeholder': 'Toss in the little things that happened today...',
+  'kindling.addTitle': 'Add (Ctrl+Enter)',
+  'keyImage.alt': 'Key image',
+  'keyImage.removeTitle': 'Remove image',
+  'keyImage.label': "Today's key image",
+
   // @@APPEND_EN@@
 }

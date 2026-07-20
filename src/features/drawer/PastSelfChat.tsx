@@ -5,9 +5,10 @@ import * as storage from '@/services/storage'
 import * as claude from '@/services/claude/claude-service'
 import { guardGuestAction } from '@/services/guest/guest-mode'
 import { AvatarCanvas } from '@/components/ui/AvatarCanvas'
+import { t, tf } from '@/i18n'
 
 const DUMMY_CHAR = {
-  name: '과거의 나', relationship: '', appearances: [], episodes: [],
+  name: t('pastSelf.dummyName'), relationship: '', appearances: [], episodes: [],
   avatarData: { seed: 42, hairColor: 'dark brown', skinTone: 'medium', eyeColor: 'brown', clothColor: 'navy' },
 }
 
@@ -72,7 +73,7 @@ export function PastSelfChat() {
       storage.saveChatMessages(final)
     } catch {
       const errMsg: ChatMessage = {
-        id: uuid(), role: 'assistant', content: '지금은 말하기 어려워.', createdAt: new Date().toISOString(),
+        id: uuid(), role: 'assistant', content: t('pastSelf.errorReply'), createdAt: new Date().toISOString(),
       }
       const final = [...next, errMsg]
       setMessages(final)
@@ -96,13 +97,13 @@ export function PastSelfChat() {
       }}>
         {diaryCount === 0 ? (
           <div style={{ textAlign: 'center', padding: '32px 0', fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--text-off)', letterSpacing: '0.08em', lineHeight: 2.2 }}>
-            아직 쌓인 이야기가 없어.<br />
-            일기를 먼저 써봐.
+            {t('pastSelf.emptyNoDiary1')}<br />
+            {t('pastSelf.emptyNoDiary2')}
           </div>
         ) : messages.length === 0 && (
           <div style={{ textAlign: 'center', padding: '32px 0', fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--text-off)', letterSpacing: '0.08em', lineHeight: 2.2 }}>
-            과거의 주인공이 기다리고 있어.<br />
-            지금의 고민을 말해봐.
+            {t('pastSelf.emptyWaiting1')}<br />
+            {t('pastSelf.emptyWaiting2')}
           </div>
         )}
 
@@ -127,7 +128,7 @@ export function PastSelfChat() {
               </div>
               {msg.role === 'assistant' && msg.sourceDate && (
                 <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)', marginTop: 4, letterSpacing: '0.06em', cursor: 'default' }}>
-                  {msg.sourceDate}의 나
+                  {tf('pastSelf.sourceLabel', { date: msg.sourceDate })}
                 </div>
               )}
             </div>
@@ -152,7 +153,7 @@ export function PastSelfChat() {
       <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 10, borderTop: '2px solid var(--gray-2)', padding: '10px 12px', paddingBottom: 'max(12px, env(safe-area-inset-bottom))', display: 'flex', gap: 8, background: '#0d0d0d' }}>
         <textarea
           className='pixel-input'
-          placeholder='지금의 고민을 말해봐...'
+          placeholder={t('pastSelf.inputPlaceholder')}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
