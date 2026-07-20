@@ -1,5 +1,6 @@
 import { type FlameLevel } from '@/types'
 import { DEFAULT_GENERATION_THRESHOLD, FLAME_THRESHOLDS } from '@/lib/constants'
+import { t, tf } from '@/i18n'
 
 export function calcFlameLevel(count: number): FlameLevel {
   let level = 0
@@ -15,5 +16,5 @@ export function isGenerationReady(count: number): boolean {
 
 export function getThresholdHint(count: number): string {
   const rem = DEFAULT_GENERATION_THRESHOLD - count
-  return rem > 0 ? `땔감 ${rem}개 더 필요해요` : `► 일기 생성 가능`
+  return rem > 0 ? tf('flame.needMore', { n: rem }) : t('flame.ready')
 }

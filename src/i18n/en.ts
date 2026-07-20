@@ -339,5 +339,9 @@ export const en: Record<string, string> = {
   'apiClient.deleteAccountFailed': 'Account deletion failed. (HTTP {status})',
   'apiClient.checkoutFailed': "Couldn't open the checkout page. Please try again shortly.",
 
+  // === flame ===
+  'flame.needMore': '{n} more kindling to go',
+  'flame.ready': '► Ready to generate',
+
   // @@APPEND_EN@@
 }

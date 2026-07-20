@@ -5,8 +5,13 @@ import {
   type MediaAttachment, type NovelDiary, type SavedNovel, type StyleReference, type UserPrefs,
 } from '@/types'
 import { isGuest } from '@/services/guest/guest-mode'
-import * as demo from '@/data/guestDemoData'
+import * as demoKo from '@/data/guestDemoData'
+import * as demoEn from '@/data/guestDemoData.en'
 import { t } from '@/i18n'
+import { getAppLanguage } from '@/services/claude/prompts/language'
+
+// 게스트 데모 데이터: 앱 언어에 따라 ko/en 세트를 선택 (App Store 심사 대비).
+function demo() { return getAppLanguage() === 'en' ? demoEn : demoKo }
 
 // ── 키 상수 ──────────────────────────────────────────────────────────────
 const P = 'novel-diary:'
@@ -76,7 +81,7 @@ export function savePrefs(prefs: Partial<UserPrefs>): void {
 
 // ── Sessions ──────────────────────────────────────────────────────────────
 export function getSessions(): DiarySession[] {
-  if (isGuest()) return demo.DEMO_SESSIONS
+  if (isGuest()) return demo().DEMO_SESSIONS
   return read<DiarySession[]>(K.SESSIONS) ?? []
 }
 export function getSession(id: string): DiarySession | null { return getSessions().find((s) => s.id === id) ?? null }
@@ -94,7 +99,7 @@ export function getTodaySession(): DiarySession | null {
 
 // ── Kindlings ─────────────────────────────────────────────────────────────
 export function getKindlings(sessionId: string): Kindling[] {
-  if (isGuest()) return demo.DEMO_ACTIVE_KINDLINGS
+  if (isGuest()) return demo().DEMO_ACTIVE_KINDLINGS
   return read<Kindling[]>(K.kindlings(sessionId)) ?? []
 }
 export function saveKindlings(sessionId: string, kindlings: Kindling[]): void {
@@ -168,7 +173,7 @@ export function deleteStyleReference(id: string): void {
 
 // ── Diaries ───────────────────────────────────────────────────────────────
 export function getDiaries(): NovelDiary[] {
-  if (isGuest()) return demo.DEMO_DIARIES
+  if (isGuest()) return demo().DEMO_DIARIES
   return read<NovelDiary[]>(K.DIARIES) ?? []
 }
 export function getDiary(id: string): NovelDiary | null { return getDiaries().find((d) => d.id === id) ?? null }
@@ -191,7 +196,7 @@ export function setDiaries(list: NovelDiary[]): void {
 
 // ── Characters ─────────────────────────────────────────────────────────────
 export function getCharacters(): Character[] {
-  if (isGuest()) return demo.DEMO_CHARACTERS
+  if (isGuest()) return demo().DEMO_CHARACTERS
   return read<Character[]>(K.CHARACTERS) ?? []
 }
 export function getCharacter(name: string): Character | null {
@@ -308,7 +313,7 @@ export function appendChatMessage(msg: ChatMessage): void {
 
 // ── Drawer: Badges ────────────────────────────────────────────────────────
 export function getBadges(): Badge[] {
-  if (isGuest()) return demo.DEMO_BADGES
+  if (isGuest()) return demo().DEMO_BADGES
   return read<Badge[]>(K.BADGES) ?? []
 }
 export function saveBadge(badge: Badge): void {
@@ -319,7 +324,7 @@ export function saveBadge(badge: Badge): void {
 
 // ── Drawer: Character Profile ─────────────────────────────────────────────
 export function getCharacterProfile(): CharacterProfile | null {
-  if (isGuest()) return demo.DEMO_CHARACTER_PROFILE
+  if (isGuest()) return demo().DEMO_CHARACTER_PROFILE
   return read<CharacterProfile>(K.CHAR_PROFILE)
 }
 export function saveCharacterProfile(profile: CharacterProfile): void {
@@ -329,7 +334,7 @@ export function saveCharacterProfile(profile: CharacterProfile): void {
 
 // ── Next Chapter Letters ──────────────────────────────────────────────────
 export function getLetters(): Letter[] {
-  if (isGuest()) return demo.DEMO_LETTERS
+  if (isGuest()) return demo().DEMO_LETTERS
   return read<Letter[]>(K.LETTERS) ?? []
 }
 export function saveLetter(letter: Letter): void {

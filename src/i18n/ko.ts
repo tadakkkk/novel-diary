@@ -339,5 +339,9 @@ export const ko: Record<string, string> = {
   'apiClient.deleteAccountFailed': '계정 삭제에 실패했어요. (HTTP {status})',
   'apiClient.checkoutFailed': '결제 페이지를 열 수 없어요. 잠시 후 다시 시도해주세요.',
 
+  // === flame ===
+  'flame.needMore': '땔감 {n}개 더 필요해요',
+  'flame.ready': '► 일기 생성 가능',
+
   // @@APPEND_KO@@
 }
