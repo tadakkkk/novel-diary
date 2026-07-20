@@ -5,14 +5,14 @@
     <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>ko</string>
+	<string>en</string>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>ko</string>
 		<string>en</string>
 	</array>
 	<key>CFBundleDisplayName</key>
-        <string>타닥타닥</string>
+        <string>Crackle Journal</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -53,9 +53,9 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>프로필 사진 촬영에 사용됩니다</string>
+	<string>Used to take profile photos</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>대표 이미지 선택에 사용됩니다</string>
+	<string>Used to pick your key image for the day</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
