@@ -11,20 +11,21 @@ import { useAppContext } from '@/App'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { AvatarCanvas } from '@/components/ui/AvatarCanvas'
 import { useMobile } from '@/hooks/useMobile'
+import { t, tf } from '@/i18n'
 
 const LV_LABELS: Record<number, string> = { 1:'SUBTLE', 2:'CALM', 3:'NORMAL', 4:'DRAMATIC', 5:'INTENSE' }
 
 const WEATHER_OPTIONS = [
-  { val:'맑음', icon:'☀' }, { val:'흐림', icon:'☁' },
-  { val:'비', icon:'☂' },   { val:'눈', icon:'❄' },
-  { val:'바람', icon:'〰' },  { val:'안개', icon:'≋' },
+  { val:t('weather.sunny'), icon:'☀' }, { val:t('weather.cloudy'), icon:'☁' },
+  { val:t('weather.rain'), icon:'☂' },   { val:t('weather.snow'), icon:'❄' },
+  { val:t('weather.wind'), icon:'〰' },  { val:t('weather.fog'), icon:'≋' },
 ]
 
 const PERSPECTIVES: Array<{ val: Perspective; name: string; ex: string }> = [
-  { val:'1인칭주인공', name:'1인칭 주인공', ex:'"나는 오늘…"' },
-  { val:'1인칭관찰자', name:'1인칭 관찰자', ex:'"나는 그를 봤다…"' },
-  { val:'3인칭관찰자', name:'3인칭 관찰자', ex:'"그녀는 걸었다…"' },
-  { val:'3인칭전지적', name:'3인칭 전지적', ex:'"그가 몰랐던 건…"' },
+  { val:'1인칭주인공', name:t('perspective.1인칭주인공'), ex:t('perspective.ex.1인칭주인공') },
+  { val:'1인칭관찰자', name:t('perspective.1인칭관찰자'), ex:t('perspective.ex.1인칭관찰자') },
+  { val:'3인칭관찰자', name:t('perspective.3인칭관찰자'), ex:t('perspective.ex.3인칭관찰자') },
+  { val:'3인칭전지적', name:t('perspective.3인칭전지적'), ex:t('perspective.ex.3인칭전지적') },
 ]
 
 // ── Typewriter ────────────────────────────────────────────────────────────
@@ -52,7 +53,7 @@ function ApiKeyModal({ onSaved, onClose }: { onSaved: () => void; onClose: () =>
   const [val, setVal] = useState('')
   const [err, setErr] = useState('')
   function save() {
-    if (!val.trim().startsWith('sk-ant')) { setErr('⚠ 유효하지 않은 키 형식입니다.'); return }
+    if (!val.trim().startsWith('sk-ant')) { setErr(t('diary.apiKeyInvalid')); return }
     storage.saveApiKey(val.trim())
     onSaved()
   }
@@ -61,14 +62,14 @@ function ApiKeyModal({ onSaved, onClose }: { onSaved: () => void; onClose: () =>
       <div style={{ background:'var(--black)', border:'3px solid var(--fire-org)', boxShadow:'inset 0 0 0 2px var(--fire-org),inset 0 0 0 5px var(--black)', padding:28, maxWidth:420, width:'90%' }}>
         <h2 style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-amb)', marginBottom:12, letterSpacing:'.1em' }}>API KEY REQUIRED</h2>
         <p style={{ fontFamily:'var(--font-korean)', fontSize:13, color:'var(--gray-4)', marginBottom:14, lineHeight:1.7 }}>
-          Claude API 키를 입력하세요.<br />키는 localStorage에만 저장되며 외부로 전송되지 않습니다.
+          {t('diary.apiKeyPrompt1')}<br />{t('diary.apiKeyPrompt2')}
         </p>
         <input type='password' className='pixel-input' placeholder='sk-ant-api...' value={val} onChange={(e) => setVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && save()} />
         <small style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)', letterSpacing:'.06em', display:'block', marginTop:6 }}>⚠ NEVER EXPOSE YOUR KEY IN PRODUCTION. MVP ONLY.</small>
         <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#ff4444', marginTop:8, minHeight:14 }}>{err}</div>
         <div style={{ marginTop:14, display:'flex', gap:8 }}>
-          <button className='pixel-btn pixel-btn-fire' onClick={save}>▸ 저장하기</button>
-          <button className='pixel-btn' onClick={onClose}>취소</button>
+          <button className='pixel-btn pixel-btn-fire' onClick={save}>{t('common.save')}</button>
+          <button className='pixel-btn' onClick={onClose}>{t('common.cancel')}</button>
         </div>
       </div>
     </div>
@@ -93,7 +94,7 @@ function CharacterModal({ character, onClose }: { character: Character; onClose:
           </div>
         </div>
         <div className='modal-section'>
-          <div className='modal-sec-title'>등장한 일기</div>
+          <div className='modal-sec-title'>{t('diary.modalAppearances')}</div>
           <div className='appear-list'>
             {(character.appearances ?? []).map((d) => (
               <span key={d} className='px-tag px-tag-white'>{d}</span>
@@ -101,7 +102,7 @@ function CharacterModal({ character, onClose }: { character: Character; onClose:
           </div>
         </div>
         <div className='modal-section'>
-          <div className='modal-sec-title'>에피소드</div>
+          <div className='modal-sec-title'>{t('diary.modalEpisodes')}</div>
           {(character.episodes ?? []).map((e, i) => (
             <div key={i} className='episode-item'><b>{e.date}</b> {e.summary ?? ''}</div>
           ))}
@@ -236,7 +237,7 @@ export default function DiaryPage() {
   function saveNewStyleRef() {
     const title   = newSrTitleRef.current?.value.trim() ?? ''
     const content = newSrContentRef.current?.value.trim() ?? ''
-    if (!title || !content) { alert('제목과 내용을 입력해주세요.'); return }
+    if (!title || !content) { alert(t('diary.srTitleContentRequired')); return }
     const ref: StyleReference = { id: uuid(), userId: '', title, content, excerpt: content.slice(0, 200), createdAt: new Date().toISOString() }
     storage.saveStyleReference(ref)
     const updated = storage.getStyleReferences()
@@ -268,11 +269,11 @@ export default function DiaryPage() {
 
   async function doGenerate() {
     if (isGenerating.current) return
-    if (kindlings.length === 0) { alert('땔감이 없어요. 먼저 사건을 입력해주세요.'); return }
+    if (kindlings.length === 0) { alert(t('diary.noKindling')); return }
     isGenerating.current = true
     abortCtrl.current = new AbortController()
     setIsEditLoad(false)
-    setStatus('generating'); setProgress('▸ 일기를 쓰고 있어요...')
+    setStatus('generating'); setProgress(t('diary.progressWriting'))
 
     try {
       const allRefs    = storage.getStyleReferences()
@@ -292,7 +293,7 @@ export default function DiaryPage() {
         signal: abortCtrl.current?.signal,
       })
 
-      setProgress('▸ 등장인물 추출 중...')
+      setProgress(t('diary.progressExtracting'))
       const sessionDate = new Date().toISOString().slice(0, 10)
       const existingChars = storage.getCharacters()
       const allChars    = await claude.extractCharacters(content, sessionDate, existingChars).catch(() => [])
@@ -335,12 +336,12 @@ export default function DiaryPage() {
         setStatus('idle')
         const userMsg =
           msg.includes('401') || msg.includes('Unauthorized') || msg.includes('authentication') || msg.includes('invalid x-api-key')
-            ? '인증에 실패했어요. 다시 로그인하거나 잠시 후 시도해주세요.'
+            ? t('diary.errAuth')
           : msg.includes('429') || msg.includes('rate_limit') || msg.includes('overloaded')
-            ? 'Claude 서버가 혼잡해요. 잠시 후 다시 시도해주세요.'
+            ? t('diary.errBusy')
           : msg.includes('fetch') || msg.includes('network') || msg.includes('Failed to fetch')
-            ? '네트워크 연결을 확인해주세요.'
-          : `오류가 발생했어요: ${msg}`
+            ? t('diary.errNetwork')
+          : tf('diary.errGeneric', { msg })
         alert(userMsg)
       }
     } finally {
@@ -353,12 +354,12 @@ export default function DiaryPage() {
       <PixelStars />
       <header className='app-header' style={{ height: 'calc(52px + env(safe-area-inset-top))' }}>
         <button className='app-logo' onClick={() => safeNavigate('/')} style={{ background:'none', border:'none', cursor:'pointer' }}>
-          <span className='logo-korean'>타닥타닥</span>
-          <span className='logo-en'>◀ 모닥불로</span>
+          <span className='logo-korean'>{t('brand.name')}</span>
+          <span className='logo-en'>{t('diary.navToBonfire')}</span>
         </button>
         <div className='header-actions' style={{ marginLeft: 'auto' }}>
           <span className='px-tag px-tag-fire diary-kindling-count'>KINDLING ×{kindlings.length}</span>
-          <button className='pixel-btn pixel-btn-sm' onClick={() => safeNavigate('/timeline')}>[타임라인]</button>
+          <button className='pixel-btn pixel-btn-sm' onClick={() => safeNavigate('/timeline')}>{t('diary.navTimeline')}</button>
         </div>
       </header>
 
@@ -369,7 +370,7 @@ export default function DiaryPage() {
 
           {/* Weather */}
           <div>
-            <div className='opt-title'>► 날씨 <span style={{ color:'var(--text-off)', fontSize:12 }}>(선택)</span></div>
+            <div className='opt-title'>{t('diary.optWeather')} <span style={{ color:'var(--text-off)', fontSize:12 }}>{t('common.optional')}</span></div>
             <div className='weather-grid'>
               {WEATHER_OPTIONS.map((w) => (
                 <div key={w.val} className={`weather-opt${weather === w.val ? ' sel' : ''}`}
@@ -382,7 +383,7 @@ export default function DiaryPage() {
 
           {/* Perspective */}
           <div>
-            <div className='opt-title'>► 서술 시점</div>
+            <div className='opt-title'>{t('diary.optPerspective')}</div>
             <div className='pv-grid'>
               {PERSPECTIVES.map((p) => (
                 <div key={p.val} className={`pv-card${perspective === p.val ? ' sel' : ''}`} onClick={() => setPerspective(p.val)}>
@@ -393,20 +394,20 @@ export default function DiaryPage() {
             </div>
             {perspective.startsWith('3인칭') && (
               <div style={{ marginTop:6, display:'flex', flexDirection:'column', gap:4 }}>
-                <div className='nickname-label'>▸ 소설 속 내 이름/호칭</div>
-                <input className='pixel-input' placeholder='예: 지유, 그녀, 청년'
+                <div className='nickname-label'>{t('diary.nicknameLabel')}</div>
+                <input className='pixel-input' placeholder={t('diary.nicknamePlaceholder')}
                   style={{ fontSize:16, padding:'7px 10px' }} value={nickname}
                   onChange={(e) => { setNickname(e.target.value); storage.savePrefs({ nickname: e.target.value }) }} />
-                <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)', marginTop:3 }}>저장됨 · 다음에 자동 입력</div>
+                <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)', marginTop:3 }}>{t('diary.nicknameSaved')}</div>
               </div>
             )}
           </div>
 
           {/* Processing Level */}
           <div>
-            <div className='opt-title'>► 가공 정도</div>
+            <div className='opt-title'>{t('diary.optProcessing')}</div>
             <div className='slider-wrap'>
-              <div className='slider-ends'><span>담백하게</span><span>극적으로</span></div>
+              <div className='slider-ends'><span>{t('diary.sliderPlain')}</span><span>{t('diary.sliderDramatic')}</span></div>
               <input type='range' min={1} max={5} value={procLevel}
                 onChange={(e) => setProcLevel(+e.target.value as ProcessingLevel)} />
               <div className='slider-val'>[ {LV_LABELS[procLevel]} ]</div>
@@ -415,11 +416,11 @@ export default function DiaryPage() {
 
           {/* Style Refs */}
           <div>
-            <div className='opt-title'>► 참고 문체 <span style={{ color:'var(--gray-4)', fontSize:12 }}>(복수 선택 가능)</span></div>
+            <div className='opt-title'>{t('diary.optStyle')} <span style={{ color:'var(--gray-4)', fontSize:12 }}>{t('diary.styleMulti')}</span></div>
             <div className='sr-list'>
               <div className={`sr-none${selectedSrIds.size === 0 ? ' sel' : ''}`}
                 onClick={() => setSelectedSrIds(new Set())}>
-                [기본 문체]<span className='sr-check'>✓</span>
+                {t('diary.styleDefault')}<span className='sr-check'>✓</span>
               </div>
               {styleRefs.map((sr) => (
                 <div key={sr.id} className={`sr-item${selectedSrIds.has(sr.id) ? ' sel' : ''}`}
@@ -431,13 +432,13 @@ export default function DiaryPage() {
               ))}
             </div>
             <div className='add-sr-toggle' style={{ marginTop:8 }} onClick={() => setShowAddSr(!showAddSr)}>
-              + 새 문체 추가
+              {t('diary.styleAddNew')}
             </div>
             {showAddSr && (
               <div style={{ display:'flex', flexDirection:'column', gap:5, marginTop:6 }}>
-                <input ref={newSrTitleRef} className='pixel-input' placeholder='문체 이름' style={{ fontSize:16, padding:'6px 8px' }} />
-                <textarea ref={newSrContentRef} className='pixel-input' placeholder='문체 샘플 텍스트 (최대 10,000자)' maxLength={10000} style={{ fontSize:16, minHeight:70 }} />
-                <button className='pixel-btn pixel-btn-fire' style={{ fontSize:12, padding:'7px 10px' }} onClick={saveNewStyleRef}>▸ 저장 + 선택</button>
+                <input ref={newSrTitleRef} className='pixel-input' placeholder={t('diary.stylePlaceholderName')} style={{ fontSize:16, padding:'6px 8px' }} />
+                <textarea ref={newSrContentRef} className='pixel-input' placeholder={t('diary.stylePlaceholderContent')} maxLength={10000} style={{ fontSize:16, minHeight:70 }} />
+                <button className='pixel-btn pixel-btn-fire' style={{ fontSize:12, padding:'7px 10px' }} onClick={saveNewStyleRef}>{t('diary.styleSaveSelect')}</button>
               </div>
             )}
           </div>
@@ -463,10 +464,10 @@ export default function DiaryPage() {
             <div className='gen-overlay active'>
               <div className='gen-fire'>🔥</div>
               <div className='gen-label'>WRITING YOUR STORY</div>
-              <div className='gen-sub'>타닥타닥, 이야기가 피어오르는 중</div>
+              <div className='gen-sub'>{t('diary.genSub')}</div>
               <div className='gen-progress'>{progress}</div>
               <button className='pixel-btn pixel-btn-sm' style={{ marginTop:16, fontSize:12, borderColor:'#555', color:'#888' }} onClick={cancelGeneration}>
-                ✕ 취소
+                {t('diary.genCancel')}
               </button>
             </div>
           )}
@@ -476,7 +477,7 @@ export default function DiaryPage() {
               <div className='diary-meta'>
                 <div className='diary-tags'>
                   <span className='px-tag px-tag-fire'>▸ GENERATED</span>
-                  <span className='px-tag px-tag-white'>{perspective}</span>
+                  <span className='px-tag px-tag-white'>{t('perspective.' + perspective)}</span>
                   <span className='px-tag px-tag-white'>{LV_LABELS[procLevel]}</span>
                   {weather && <span className='px-tag px-tag-white'>{weather}</span>}
                 </div>
@@ -484,7 +485,7 @@ export default function DiaryPage() {
                 <div className='diary-sub-meta'>
                   STYLE: {selectedSrIds.size > 0
                     ? styleRefs.filter((r) => selectedSrIds.has(r.id)).map((r) => r.title).join(', ').toUpperCase()
-                    : '기본 문체'}
+                    : t('diary.styleDefaultPlain')}
                 </div>
               </div>
 
@@ -514,16 +515,16 @@ export default function DiaryPage() {
               )}
 
               <div className='diary-actions'>
-                <button className='pixel-btn' onClick={startGeneration}>↺ 다시 생성</button>
+                <button className='pixel-btn' onClick={startGeneration}>{t('diary.regenerate')}</button>
                 <button className='pixel-btn' onClick={() => {
                   if (!savedDiary) return
                   const text = `${savedDiary.date}\n${'─'.repeat(32)}\n\n${savedDiary.content}\n`
                   const a = document.createElement('a')
                   a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }))
-                  a.download = `일기_${savedDiary.date}.txt`
+                  a.download = `${t('diary.downloadPrefix')}_${savedDiary.date}.txt`
                   a.click()
                   URL.revokeObjectURL(a.href)
-                }}>↓ 텍스트 저장</button>
+                }}>{t('diary.saveText')}</button>
                 {(typingDone || isEditLoad) && (
                   <button
                     className={`pixel-btn${isEditMode ? ' pixel-btn-fire' : ''}`}
@@ -542,7 +543,7 @@ export default function DiaryPage() {
                       }
                     }}
                   >
-                    {isEditMode ? '✓ 수정 완료' : '✎ 수정하기'}
+                    {isEditMode ? t('diary.editDone') : t('diary.edit')}
                   </button>
                 )}
                 <button
@@ -583,19 +584,19 @@ export default function DiaryPage() {
                     }
                   }}
                 >
-                  {isSaved ? '✓ 저장됨' : '▸ 일기 저장'}
+                  {isSaved ? t('diary.saved') : t('diary.saveDiary')}
                 </button>
                 {isSaved && (
-                  <button className='pixel-btn' onClick={() => safeNavigate('/timeline')}>타임라인으로 →</button>
+                  <button className='pixel-btn' onClick={() => safeNavigate('/timeline')}>{t('diary.toTimeline')}</button>
                 )}
               </div>
 
               {chars.length > 0 && (
                 <div className='char-section'>
-                  <div className='char-section-title'>► 등장인물</div>
+                  <div className='char-section-title'>{t('diary.charsTitle')}</div>
                   {!isSaved && (
                     <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-amb)', marginBottom:8, letterSpacing:'0.06em' }}>
-                      ⚠ 일기를 저장해야 등장인물이 등록돼요
+                      {t('diary.charsSaveHint')}
                     </div>
                   )}
                   <div className='char-grid'>
@@ -626,11 +627,11 @@ export default function DiaryPage() {
           <div style={{ background:'var(--black)', border:'3px solid var(--fire-org)', boxShadow:'inset 0 0 0 2px var(--fire-org),inset 0 0 0 5px var(--black)', padding:'28px 32px', maxWidth:380, width:'90%', textAlign:'center' }}>
             <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-amb)', letterSpacing:'0.1em', marginBottom:14 }}>⚠ UNSAVED DIARY</div>
             <p style={{ fontFamily:'var(--font-korean)', fontSize:14, color:'var(--gray-5)', lineHeight:1.8, marginBottom:22 }}>
-              저장되지 않은 일기가 있어.<br />나가면 사라져.
+              {t('diary.unsavedBody1')}<br />{t('diary.unsavedBody2')}
             </p>
             <div style={{ display:'flex', gap:10, justifyContent:'center' }}>
-              <button className='pixel-btn pixel-btn-fire' onClick={() => setPendingNav(null)}>계속 작성하기</button>
-              <button className='pixel-btn' onClick={() => { navigate(pendingNav); setPendingNav(null) }}>그냥 나가기</button>
+              <button className='pixel-btn pixel-btn-fire' onClick={() => setPendingNav(null)}>{t('diary.keepWriting')}</button>
+              <button className='pixel-btn' onClick={() => { navigate(pendingNav); setPendingNav(null) }}>{t('diary.leaveAnyway')}</button>
             </div>
           </div>
         </div>

@@ -13,6 +13,7 @@ import { KeyImageUploader } from '@/features/media/KeyImageUploader'
 import { isGenerationReady, getThresholdHint } from '@/lib/flame'
 import { formatKoreanDate } from '@/lib/date'
 import { useMobile } from '@/hooks/useMobile'
+import { t } from '@/i18n'
 
 export default function BonfirePage() {
   const navigate = useNavigate()
@@ -48,7 +49,7 @@ export default function BonfirePage() {
   const gaugeBar = '█'.repeat(flameLevel) + '░'.repeat(5 - flameLevel)
 
   function handleNewSession() {
-    if (count > 0 && !confirm('현재 땔감을 버리고 새 일기를 시작할까요?')) return
+    if (count > 0 && !confirm(t('bonfire.newSessionConfirm'))) return
     newBonfireSession()
     window.location.reload()
   }
@@ -105,7 +106,7 @@ export default function BonfirePage() {
               style={{ fontSize: 14, fontFamily: 'var(--font-korean)', minHeight: 44, padding: '10px 18px' }}
               onClick={handleNewSession}
             >
-              🔥 새 일기 시작
+              {t('bonfire.newSession')}
             </button>
           </div>
 
@@ -122,7 +123,7 @@ export default function BonfirePage() {
               <span className='bf-m-kcount'>KINDLING <b>{count}</b></span>
               {ready && (
                 <button className='bf-m-genbtn' onClick={handleGoWrite}>
-                  ▶ 일기 쓰기 ◀
+                  {t('bonfire.writeDiary')}
                 </button>
               )}
             </div>
@@ -197,7 +198,7 @@ export default function BonfirePage() {
               style={{ fontSize:12 }}
               onClick={handleNewSession}
             >
-              🔥 새 일기 시작
+              {t('bonfire.newSession')}
             </button>
           </div>
         </main>

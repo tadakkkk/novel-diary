@@ -12,6 +12,8 @@ import {
 } from '@/services/api/api-client'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { useMobile } from '@/hooks/useMobile'
+import { t, tf } from '@/i18n'
+import { getAppLanguage } from '@/services/claude/prompts/language'
 
 const SERVER_MODE = !!import.meta.env.VITE_API_URL
 
@@ -26,13 +28,18 @@ type View = 'main' | 'archive'
 // ── 도착 시각 포맷 ─────────────────────────────────────────────────────────
 function formatArrivedAt(iso: string): string {
   const d = new Date(iso)
+  const h = d.getHours()
+  const m = String(d.getMinutes()).padStart(2, '0')
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+  if (getAppLanguage() === 'en') {
+    const dateStr = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(d)
+    const ampm = h < 12 ? 'AM' : 'PM'
+    return `Arrived ${dateStr}, ${h12}:${m} ${ampm}`
+  }
   const y = d.getFullYear()
   const mo = d.getMonth() + 1
   const day = d.getDate()
-  const h = d.getHours()
-  const m = String(d.getMinutes()).padStart(2, '0')
   const ampm = h < 12 ? '오전' : '오후'
-  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
   return `${y}년 ${mo}월 ${day}일 ${ampm} ${h12}:${m} 도착`
 }
 
@@ -72,8 +79,13 @@ function formatScheduledAt(iso: string): string {
     d.getDate() === now.getDate()
   const h = d.getHours()
   const m = String(d.getMinutes()).padStart(2, '0')
-  const ampm = h < 12 ? '오전' : '오후'
   const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+  if (getAppLanguage() === 'en') {
+    const ampm = h < 12 ? 'AM' : 'PM'
+    const dayLabel = isToday ? 'today' : 'tomorrow'
+    return `Arriving ${dayLabel} at ${h12}:${m} ${ampm}`
+  }
+  const ampm = h < 12 ? '오전' : '오후'
   const dayLabel = isToday ? '오늘' : '내일'
   return `${dayLabel} ${ampm} ${h12}:${m}에 도착할 예정이야`
 }
@@ -209,7 +221,7 @@ function LetterArrivalPopup({ onConfirm, onLater }: { onConfirm: () => void; onL
           fontFamily: 'var(--font-pixel)', fontSize: 16,
           color: TEXT_BASE, letterSpacing: '0.12em',
         }}>
-          편지가 도착했어.
+          {t('nextChapter.arrived')}
         </div>
         <div style={{
           fontFamily: 'var(--font-pixel)', fontSize: 12,
@@ -229,7 +241,7 @@ function LetterArrivalPopup({ onConfirm, onLater }: { onConfirm: () => void; onL
             letterSpacing: '0.08em', padding: '12px 0', width: '100%',
           }}
         >
-          편지 확인하기
+          {t('nextChapter.confirmRead')}
         </button>
         <button
           onClick={onLater}
@@ -239,7 +251,7 @@ function LetterArrivalPopup({ onConfirm, onLater }: { onConfirm: () => void; onL
             color: '#4a3520', letterSpacing: '0.08em', padding: '8px 0',
           }}
         >
-          나중에
+          {t('nextChapter.later')}
         </button>
       </div>
     </div>
@@ -333,7 +345,7 @@ function ArchiveView({
         paddingBottom: 12, borderBottom: `1px solid #1a1208`, marginBottom: 12,
       }}>
         <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: TEXT_BASE, letterSpacing: '0.08em' }}>
-          지금까지 {totalCount}통의 편지를 받았어
+          {tf('nextChapter.archiveCount', { n: totalCount })}
         </div>
         <button
           onClick={onBack}
@@ -342,14 +354,14 @@ function ArchiveView({
             fontFamily: 'var(--font-pixel)', fontSize: 12,
             color: '#4a3520', letterSpacing: '0.06em',
           }}
-        >← 돌아가기</button>
+        >{t('nextChapter.back')}</button>
       </div>
 
       {/* 날짜 검색 */}
       <div style={{ marginBottom: 16 }}>
         <input
           type='text'
-          placeholder='YYYY.MM.DD 또는 YYYY.MM'
+          placeholder={t('nextChapter.searchPlaceholder')}
           value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
           style={{
@@ -371,7 +383,7 @@ function ArchiveView({
           color: '#4a3520', letterSpacing: '0.06em',
           textAlign: 'center', paddingTop: 24,
         }}>
-          그날은 편지가 없었어
+          {t('nextChapter.noLetterThatDay')}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -434,7 +446,7 @@ function ArchiveView({
                       className='pixel-btn pixel-btn-sm'
                       style={{ fontSize: 12, letterSpacing: '0.06em' }}
                     >
-                      닫기
+                      {t('common.closeWord')}
                     </button>
                   </div>
                 </div>
@@ -650,11 +662,11 @@ export default function NextChapterPage() {
             flexShrink: 0, whiteSpace: 'nowrap',
           }}
         >
-          {view === 'archive' ? '← 다음 챕터' : '← 서랍'}
+          {view === 'archive' ? t('nextChapter.headerBackChapter') : t('nextChapter.headerBackDrawer')}
         </button>
         <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
           <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)', letterSpacing: '0.1em' }}>
-            {view === 'archive' ? '편지 보관함' : '다음 챕터'}
+            {view === 'archive' ? t('nextChapter.archiveTitle') : t('nextChapter.mainTitle')}
           </div>
           <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: '#4a3520', letterSpacing: '0.08em', marginTop: 2 }}>
             FROM. ???
@@ -687,13 +699,13 @@ export default function NextChapterPage() {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 64, gap: 24 }}>
                 <Mailbox />
                 <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: TEXT_BASE, letterSpacing: '0.08em' }}>
-                  아직 편지가 오지 않았어
+                  {t('nextChapter.noLetterYet')}
                 </div>
                 <div style={{
                   fontFamily: 'var(--font-pixel)', fontSize: 12,
                   color: '#4a3520', letterSpacing: '0.06em', textAlign: 'center', lineHeight: 2,
                 }}>
-                  오늘 일기를 쓰면<br />???가 읽고 편지를 보내줄 거야
+                  {t('nextChapter.writePrompt1')}<br />{t('nextChapter.writePrompt2')}
                 </div>
               </div>
             )}
@@ -703,7 +715,7 @@ export default function NextChapterPage() {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 64, gap: 24 }}>
                 <Envelope open={false} pulse />
                 <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: '#4a3520', letterSpacing: '0.08em' }}>
-                  편지를 기다리는 중<span style={{ animation: 'blink 1s step-end infinite' }}>...</span>
+                  {t('nextChapter.waiting')}<span style={{ animation: 'blink 1s step-end infinite' }}>...</span>
                 </div>
               </div>
             )}
@@ -716,7 +728,7 @@ export default function NextChapterPage() {
                   fontFamily: 'var(--font-pixel)', fontSize: 12,
                   color: '#4a3520', letterSpacing: '0.06em', textAlign: 'center', lineHeight: 2,
                 }}>
-                  편지가 배송되고 있어<br />
+                  {t('nextChapter.delivering')}<br />
                   <span style={{ color: TEXT_BASE }}>{pendingTime}</span>
                 </div>
               </div>
@@ -761,7 +773,7 @@ export default function NextChapterPage() {
                         letterSpacing: '0.08em', padding: '10px 24px',
                       }}
                     >
-                      편지 열기
+                      {t('nextChapter.openLetter')}
                     </button>
                   </div>
                 )}
@@ -802,7 +814,7 @@ export default function NextChapterPage() {
                           className='pixel-btn pixel-btn-sm'
                           style={{ fontSize: 12, letterSpacing: '0.06em' }}
                         >
-                          닫기
+                          {t('common.closeWord')}
                         </button>
                       </div>
                     )}
@@ -819,7 +831,7 @@ export default function NextChapterPage() {
                   className='pixel-btn pixel-btn-sm'
                   style={{ fontSize: 12, letterSpacing: '0.06em' }}
                 >
-                  지난 편지 보기
+                  {t('nextChapter.pastLetters')}
                 </button>
               </div>
             )}

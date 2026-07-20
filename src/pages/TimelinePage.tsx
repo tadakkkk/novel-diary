@@ -9,6 +9,8 @@ import { useKeyImageUrl } from '@/services/sync/image-upload'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { AvatarCanvas } from '@/components/ui/AvatarCanvas'
 import { useMobile } from '@/hooks/useMobile'
+import { t, tf } from '@/i18n'
+import { getAppLanguage } from '@/services/claude/prompts/language'
 
 // ── 대표 이미지 썸네일 (dataUrl 하위호환 + storagePath signed URL) ──────────
 function KeyImageThumb({ keyImage, width }: { keyImage: NovelDiary['keyImage']; width: number }) {
@@ -40,7 +42,7 @@ function StorageUsage() {
   const color = pct > 0.8 ? '#ff5555' : pct > 0.5 ? 'var(--fire-org)' : 'var(--gray-4)'
   return (
     <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color, letterSpacing:'0.06em' }}
-      title={`localStorage 사용량 (약 5 MB 한도)`}>
+      title={t('timeline.storageTitle')}>
       💾 {label}
     </span>
   )
@@ -48,8 +50,11 @@ function StorageUsage() {
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 function formatDate(iso: string | undefined) {
-  if (!iso) return '날짜 없음'
+  if (!iso) return t('date.none')
   const d = new Date(iso)
+  if (getAppLanguage() === 'en') {
+    return new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(d)
+  }
   const days = ['일','월','화','수','목','금','토']
   return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`
 }
@@ -106,25 +111,25 @@ function CharModal({ name, onClose }: { name: string; onClose: () => void }) {
                 <button
                   onClick={() => { setRelVal(char.relationship ?? ''); setEditingRel(true) }}
                   style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-org)', background:'transparent', border:'none', cursor:'pointer', padding:'0 2px', lineHeight:1, opacity:0.7 }}
-                  title='설명 수정'>✏</button>
+                  title={t('timeline.editRelTitle')}>✏</button>
               )}
             </div>
           </div>
           <button className='modal-close' onClick={onClose}>[ x ]</button>
         </div>
         <div style={{ padding:'16px 20px 20px' }}>
-          <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:8 }}>등장 일기</div>
+          <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:8 }}>{t('timeline.appearDiaries')}</div>
           <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:16 }}>
             {(char.appearances ?? []).length === 0
-              ? <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)' }}>없음</span>
+              ? <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)' }}>{t('timeline.none')}</span>
               : char.appearances.slice(-10).map((d) => (
                 <span key={d} style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-amb)', border:'1px solid var(--fire-org)', padding:'3px 8px', letterSpacing:'0.06em' }}>{d}</span>
               ))}
           </div>
-          <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:8, paddingTop:12, borderTop:'1px solid var(--gray-2)' }}>에피소드</div>
+          <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:8, paddingTop:12, borderTop:'1px solid var(--gray-2)' }}>{t('diary.modalEpisodes')}</div>
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
             {(char.episodes ?? []).length === 0
-              ? <div style={{ fontFamily:'var(--font-korean)', fontSize:13, color:'var(--text-off)' }}>에피소드 없음</div>
+              ? <div style={{ fontFamily:'var(--font-korean)', fontSize:13, color:'var(--text-off)' }}>{t('timeline.noEpisodes')}</div>
               : char.episodes.map((ep, i) => (
                 <div key={i} style={{ borderLeft:'2px solid var(--fire-org)', paddingLeft:10 }}>
                   <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', marginBottom:3, letterSpacing:'0.06em' }}>{ep.date}</div>
@@ -167,13 +172,13 @@ function DiaryModal({ diary, onClose, onDelete, onEdit }: {
               <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-amb)', letterSpacing:'0.1em', marginBottom:6 }}>{formatDate(diary.date)}</div>
               <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
                 {diary.generationOptions?.perspective && (
-                  <span className='px-tag px-tag-white'>{diary.generationOptions.perspective}</span>
+                  <span className='px-tag px-tag-white'>{t('perspective.' + diary.generationOptions.perspective)}</span>
                 )}
                 {diary.generationOptions?.weather && (
                   <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)' }}>{diary.generationOptions.weather}</span>
                 )}
                 {diary.kindlings && (
-                  <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)' }}>땔감 {diary.kindlings.length}개</span>
+                  <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)' }}>{tf('timeline.kindlingCount', { n: diary.kindlings.length })}</span>
                 )}
               </div>
             </div>
@@ -189,7 +194,7 @@ function DiaryModal({ diary, onClose, onDelete, onEdit }: {
 
             {chars.length > 0 && (
               <>
-                <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', letterSpacing:'0.1em', textTransform:'uppercase', margin:'24px 0 12px', paddingTop:18, borderTop:'1px solid var(--gray-2)' }}>등장인물</div>
+                <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', letterSpacing:'0.1em', textTransform:'uppercase', margin:'24px 0 12px', paddingTop:18, borderTop:'1px solid var(--gray-2)' }}>{t('timeline.characters')}</div>
                 <div style={{ display:'flex', gap:14, flexWrap:'wrap' }}>
                   {chars.map((char) => (
                     <div key={char.name} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5, cursor:'pointer' }}
@@ -206,7 +211,7 @@ function DiaryModal({ diary, onClose, onDelete, onEdit }: {
 
             {kindlings.length > 0 && (
               <>
-                <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', letterSpacing:'0.1em', textTransform:'uppercase', margin:'24px 0 12px', paddingTop:18, borderTop:'1px solid var(--gray-2)' }}>오늘의 땔감</div>
+                <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', letterSpacing:'0.1em', textTransform:'uppercase', margin:'24px 0 12px', paddingTop:18, borderTop:'1px solid var(--gray-2)' }}>{t('timeline.todayKindling')}</div>
                 <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
                   {kindlings.map((k, i) => (
                     <div key={k.id ?? i} style={{ display:'flex', gap:10, padding:'9px 12px', borderLeft:'2px solid var(--gray-2)', lineHeight:1.6 }}>
@@ -219,8 +224,8 @@ function DiaryModal({ diary, onClose, onDelete, onEdit }: {
             )}
 
             <div style={{ display:'flex', gap:8, marginTop:20, justifyContent:'flex-end', paddingTop:16, borderTop:'1px solid var(--gray-2)' }}>
-              <button className='pixel-btn pixel-btn-sm' onClick={onEdit}>✎ 다시 쓰기</button>
-              <button className='pixel-btn pixel-btn-sm' style={{ borderColor:'#ff5555', color:'#ff5555' }} onClick={onDelete}>✕ 삭제</button>
+              <button className='pixel-btn pixel-btn-sm' onClick={onEdit}>{t('timeline.rewrite')}</button>
+              <button className='pixel-btn pixel-btn-sm' style={{ borderColor:'#ff5555', color:'#ff5555' }} onClick={onDelete}>{t('timeline.deleteBtn')}</button>
             </div>
           </div>
         </div>
@@ -248,7 +253,7 @@ export default function TimelinePage() {
     const json = JSON.stringify(data, null, 2)
     const a = document.createElement('a')
     a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }))
-    a.download = `타닥타닥_백업_${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `${t('timeline.backupFilename')}_${new Date().toISOString().slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(a.href)
   }
@@ -260,12 +265,12 @@ export default function TimelinePage() {
     reader.onload = (ev) => {
       try {
         const data = JSON.parse(ev.target!.result as string) as storage.ExportData
-        if (!confirm(`가져오면 현재 데이터 위에 덮어써져요.\n일기 ${data.diaries?.length ?? 0}편, 인물 ${data.characters?.length ?? 0}명을 가져올까요?`)) return
+        if (!confirm(tf('timeline.importConfirm', { d: data.diaries?.length ?? 0, c: data.characters?.length ?? 0 }))) return
         storage.importAllData(data)
         loadData()
-        alert('가져오기 완료!')
+        alert(t('timeline.importDone'))
       } catch (err) {
-        alert('파일을 읽을 수 없어요: ' + (err as Error).message)
+        alert(t('timeline.importError') + (err as Error).message)
       }
     }
     reader.readAsText(file, 'utf-8')
@@ -308,13 +313,13 @@ export default function TimelinePage() {
       <PixelStars />
       <header className='app-header'>
         <button className='app-logo' onClick={() => navigate('/')} style={{ background:'none', border:'none', cursor:'pointer' }}>
-          <span className='logo-korean'>타닥타닥</span>
-          <span className='logo-en'>◀ 모닥불로</span>
+          <span className='logo-korean'>{t('brand.name')}</span>
+          <span className='logo-en'>{t('diary.navToBonfire')}</span>
         </button>
         <div className='header-actions' style={{ marginLeft:'auto' }}>
-          <button className='pixel-btn pixel-btn-sm' onClick={handleExport} title='전체 데이터 내보내기'>↓ 내보내기</button>
-          <label className='pixel-btn pixel-btn-sm' style={{ cursor:'pointer' }} title='백업 파일 가져오기'>
-            ↑ 가져오기
+          <button className='pixel-btn pixel-btn-sm' onClick={handleExport} title={t('timeline.exportTitle')}>{t('timeline.export')}</button>
+          <label className='pixel-btn pixel-btn-sm' style={{ cursor:'pointer' }} title={t('timeline.importTitle')}>
+            {t('timeline.import')}
             <input type='file' accept='.json' style={{ display:'none' }} onChange={handleImport} />
           </label>
         </div>
@@ -324,18 +329,18 @@ export default function TimelinePage() {
       <div style={{ minHeight:'100vh', paddingTop:64, maxWidth:760, margin:'0 auto', padding:`64px ${isMobile ? 14 : 28}px 0`, position:'relative', zIndex:1 }}>
 
         <h1 style={{ fontFamily:'var(--font-pixel)', fontSize:14, color:'var(--fire-amb)', letterSpacing:'0.1em', textTransform:'uppercase', paddingTop:32 }}>
-          일기 타임라인
+          {t('timeline.title')}
         </h1>
         <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', margin:'12px 0 0', letterSpacing:'0.1em', paddingBottom:20, borderBottom:'2px solid var(--gray-2)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <span>{diaries.length > 0 ? `${diaries.length}편의 일기` : 'NO DIARIES YET'}</span>
+          <span>{diaries.length > 0 ? tf('novel.coverCount', { n: diaries.length }) : 'NO DIARIES YET'}</span>
           <StorageUsage />
         </div>
 
         {/* ── Character Roster ──────────────────────────────────────────── */}
         <div style={{ marginTop:24, border:'3px solid var(--fire-org)', boxShadow:'inset 0 0 0 2px var(--fire-org), inset 0 0 0 5px var(--black)', background:'var(--black)' }}>
           <div style={{ padding:'10px 16px 8px', borderBottom:'2px solid var(--fire-org)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-org)', letterSpacing:'0.12em', textTransform:'uppercase' }}>▸ 등장인물</span>
-            <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-amb)' }}>{characters.length}명</span>
+            <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-org)', letterSpacing:'0.12em', textTransform:'uppercase' }}>{t('novel.charsLabel')}</span>
+            <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-amb)' }}>{tf('timeline.charCountName', { n: characters.length })}</span>
           </div>
           <div style={{ overflowX:'auto', overflowY:'hidden', padding:'16px 12px 12px', scrollbarWidth:'thin' } as React.CSSProperties}>
             {characters.length === 0 ? (
@@ -353,20 +358,20 @@ export default function TimelinePage() {
                     <AvatarCanvas character={char} size={48} />
                     <div style={{ fontFamily:'var(--font-korean)', fontSize:12, fontWeight:700, color:'var(--white)', textAlign:'center', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:72 }}>{char.name}</div>
                     <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-4)', textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:72 }}>{char.relationship}</div>
-                    <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-org)', letterSpacing:'0.06em' }}>{(char.appearances ?? []).length}회</div>
+                    <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-org)', letterSpacing:'0.06em' }}>{tf('timeline.appearCount', { n: (char.appearances ?? []).length })}</div>
                     <div style={{ display:'flex', gap:4, justifyContent:'center', marginTop:2 }}>
                       <button
                         style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-3)', background:'transparent', border:'none', cursor:'pointer', padding:'2px 4px' }}
                         onClick={(e) => { e.stopPropagation(); regenAvatar(char.name) }}
-                        title='아바타 다시 생성'>↺</button>
+                        title={t('timeline.regenAvatarTitle')}>↺</button>
                       <button
                         style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#e06060', background:'transparent', border:'1px solid #663333', cursor:'pointer', padding:'2px 5px' }}
-                        onClick={(e) => { e.stopPropagation(); if (confirm(`"${char.name}"을(를) 차단하면 앞으로 이 인물이 일기에 등장하지 않아요.\n차단할까요?`)) { storage.blockChar(char.name); loadData() } }}
-                        title='일기에서 차단'>🚫</button>
+                        onClick={(e) => { e.stopPropagation(); if (confirm(tf('timeline.blockConfirm', { name: char.name }))) { storage.blockChar(char.name); loadData() } }}
+                        title={t('timeline.blockTitle')}>🚫</button>
                       <button
                         style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-3)', background:'transparent', border:'1px solid var(--gray-3)', cursor:'pointer', padding:'2px 5px' }}
-                        onClick={(e) => { e.stopPropagation(); if (confirm(`"${char.name}" 을(를) 삭제할까요?`)) { storage.deleteCharacter(char.name); loadData() } }}
-                        title='인물 삭제'>✕</button>
+                        onClick={(e) => { e.stopPropagation(); if (confirm(tf('timeline.deleteCharConfirm', { name: char.name }))) { storage.deleteCharacter(char.name); loadData() } }}
+                        title={t('timeline.deleteCharTitle')}>✕</button>
                     </div>
                   </div>
                 ))}
@@ -381,7 +386,7 @@ export default function TimelinePage() {
             <button
               style={{ width:'100%', padding:'8px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', background:'transparent', border:'none', cursor:'pointer' }}
               onClick={() => setShowBlocked((v) => !v)}>
-              <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#663333', letterSpacing:'0.1em' }}>🚫 차단된 인물 {blockedChars.length}명</span>
+              <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#663333', letterSpacing:'0.1em' }}>{tf('timeline.blockedCount', { n: blockedChars.length })}</span>
               <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--gray-3)' }}>{showBlocked ? '▲' : '▼'}</span>
             </button>
             {showBlocked && (
@@ -392,7 +397,7 @@ export default function TimelinePage() {
                     <button
                       style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-org)', background:'transparent', border:'1px solid #442200', cursor:'pointer', padding:'2px 7px' }}
                       onClick={() => { storage.unblockChar(name); loadData() }}>
-                      차단 해제
+                      {t('timeline.unblock')}
                     </button>
                   </div>
                 ))}
@@ -412,7 +417,7 @@ export default function TimelinePage() {
             <input
               className='pixel-input'
               style={{ flex:1, fontSize:16, padding:'7px 10px' }}
-              placeholder='일기 내용, 날짜로 검색...'
+              placeholder={t('timeline.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -426,8 +431,8 @@ export default function TimelinePage() {
         {diaries.length === 0 ? (
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'80px 24px', color:'var(--text-off)', fontFamily:'var(--font-pixel)', fontSize:12, textAlign:'center', lineHeight:2.4, letterSpacing:'0.1em', textTransform:'uppercase' }}>
             <div style={{ fontSize:32, marginBottom:16, opacity:0.2 }}>▒</div>
-            일기가 없어요<br />먼저 일기를 써보세요
-            <button className='pixel-btn pixel-btn-sm' style={{ marginTop:16 }} onClick={() => navigate('/')}>일기 쓰러 가기</button>
+            {t('novel.noDiaries1')}<br />{t('novel.noDiaries2')}
+            <button className='pixel-btn pixel-btn-sm' style={{ marginTop:16 }} onClick={() => navigate('/')}>{t('novel.goWrite')}</button>
           </div>
         ) : (() => {
           const q = searchQuery.trim().toLowerCase()
@@ -442,7 +447,7 @@ export default function TimelinePage() {
           <div style={{ display:'flex', flexDirection:'column', gap:16, paddingBottom:60 }}>
             {filtered.length === 0 && (
               <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)', textAlign:'center', padding:'48px 0', letterSpacing:'0.1em' }}>
-                검색 결과가 없어요
+                {t('timeline.noSearchResults')}
               </div>
             )}
             {filtered.map((diary) => {
@@ -459,10 +464,10 @@ export default function TimelinePage() {
                       <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8, flexWrap:'wrap' }}>
                         <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-amb)', letterSpacing:'0.08em' }}>{formatDateShort(diary.date)}</span>
                         {diary.generationOptions?.perspective && (
-                          <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, padding:'2px 7px', border:'1px solid var(--gray-3)', color:'var(--gray-4)' }}>{diary.generationOptions.perspective}</span>
+                          <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, padding:'2px 7px', border:'1px solid var(--gray-3)', color:'var(--gray-4)' }}>{t('perspective.' + diary.generationOptions.perspective)}</span>
                         )}
                         <span style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)' }}>
-                          {diary.kindlings ? `땔감 ${diary.kindlings.length}개` : ''}
+                          {diary.kindlings ? tf('timeline.kindlingCount', { n: diary.kindlings.length }) : ''}
                         </span>
                       </div>
                       <div style={{ fontFamily:'var(--font-korean)', fontSize:14, color:'var(--gray-5)', lineHeight:1.7, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden', marginBottom:12 }}>
@@ -486,10 +491,10 @@ export default function TimelinePage() {
                   <div style={{ borderTop:'1px solid var(--gray-2)', padding:'6px 10px', display:'flex', justifyContent:'flex-end', gap:6 }}>
                     <button className='pixel-btn pixel-btn-sm'
                       style={{ fontSize:12, padding:'4px 10px', borderWidth:1 }}
-                      onClick={(e) => { e.stopPropagation(); handleEdit(diary) }}>✎ 다시 쓰기</button>
+                      onClick={(e) => { e.stopPropagation(); handleEdit(diary) }}>{t('timeline.rewrite')}</button>
                     <button className='pixel-btn pixel-btn-sm'
                       style={{ fontSize:12, padding:'4px 10px', borderWidth:1, borderColor:'#ff5555', color:'#ff5555' }}
-                      onClick={(e) => { e.stopPropagation(); setDeleteTarget(diary.id) }}>✕ 삭제</button>
+                      onClick={(e) => { e.stopPropagation(); setDeleteTarget(diary.id) }}>{t('timeline.deleteBtn')}</button>
                   </div>
                 </div>
               )
@@ -518,14 +523,14 @@ export default function TimelinePage() {
           <div style={{ background:'var(--black)', border:'3px solid var(--white)', boxShadow:'inset 0 0 0 2px var(--white), inset 0 0 0 5px var(--black)', padding:36, textAlign:'center', maxWidth:400 }}
             onClick={(e) => e.stopPropagation()}>
             <div style={{ fontFamily:'var(--font-pixel)', fontSize:14, color:'var(--white)', marginBottom:24, letterSpacing:'0.08em', lineHeight:2 }}>
-              정말 삭제할까요?<br />
-              <span style={{ fontSize:12, color:'var(--gray-4)' }}>되돌릴 수 없어요</span>
+              {t('novel.confirmDelete')}<br />
+              <span style={{ fontSize:12, color:'var(--gray-4)' }}>{t('timeline.irreversible')}</span>
             </div>
             <div style={{ display:'flex', gap:16, justifyContent:'center' }}>
               <button style={{ fontFamily:'var(--font-korean)', fontSize:14, fontWeight:700, padding:'10px 20px', border:'3px solid #ff5555', color:'#ff5555', background:'transparent', cursor:'pointer' }}
-                onClick={handleDelete}>삭제</button>
+                onClick={handleDelete}>{t('common.delete')}</button>
               <button style={{ fontFamily:'var(--font-korean)', fontSize:14, fontWeight:700, padding:'10px 20px', border:'3px solid var(--white)', color:'var(--white)', background:'transparent', cursor:'pointer' }}
-                onClick={() => setDeleteTarget(null)}>취소</button>
+                onClick={() => setDeleteTarget(null)}>{t('common.cancel')}</button>
             </div>
           </div>
         </div>

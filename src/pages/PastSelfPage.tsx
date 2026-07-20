@@ -1,12 +1,13 @@
 import { PastSelfChat } from '@/features/drawer/PastSelfChat'
 import { PixelStars } from '@/components/ui/PixelStars'
 import { FeatureHeader } from '@/components/ui/FeatureHeader'
+import { t } from '@/i18n'
 
 export default function PastSelfPage() {
   return (
     <>
       <PixelStars />
-      <FeatureHeader title='과거의 주인공에게 묻기' />
+      <FeatureHeader title={t('page.pastSelf')} />
       <PastSelfChat />
     </>
   )
