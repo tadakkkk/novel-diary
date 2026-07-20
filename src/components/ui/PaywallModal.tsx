@@ -3,6 +3,7 @@ import type { User } from '@supabase/supabase-js'
 import { signInWithGoogle } from '@/services/auth/auth-service'
 import { createCheckoutSession } from '@/services/api/api-client'
 import { isNativePlatform, purchaseIAP, restoreIAPPurchases, type IAPPlan } from '@/services/iap/iap-service'
+import { t } from '@/i18n'
 
 interface Props {
   user: User | null
@@ -21,7 +22,7 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
     try {
       await signInWithGoogle()
     } catch {
-      setError('로그인 중 오류가 발생했어요. 다시 시도해주세요.')
+      setError(t('paywall.loginError'))
       setLoading(null)
     }
   }
@@ -36,7 +37,7 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
         if (success) {
           onClose()
         } else {
-          setError('구독이 확인되지 않았어요. 잠시 후 다시 시도해주세요.')
+          setError(t('paywall.subNotConfirmed'))
         }
       } else {
         // Web: Paddle checkout
@@ -44,7 +45,7 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
         window.location.href = url
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : '오류가 발생했어요.')
+      setError(e instanceof Error ? e.message : t('paywall.genericError'))
     } finally {
       setLoading(null)
     }
@@ -58,10 +59,10 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
       if (success) {
         onClose()
       } else {
-        setError('복원할 구독이 없어요.')
+        setError(t('paywall.noRestore'))
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : '복원 중 오류가 발생했어요.')
+      setError(e instanceof Error ? e.message : t('paywall.restoreError'))
     } finally {
       setLoading(null)
     }
@@ -81,10 +82,10 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
         {/* Header */}
         <div style={{ padding: '20px 24px 16px', borderBottom: '2px solid var(--gray-2)' }}>
           <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 16, color: 'var(--fire-tip)', letterSpacing: '0.06em', marginBottom: 8 }}>
-            {source === 'subscribe' ? '✨ 구독 플랜 선택' : '🔥 무료 횟수를 모두 사용했어요'}
+            {source === 'subscribe' ? t('paywall.titleSubscribe') : t('paywall.titleQuota')}
           </div>
           <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--gray-4)', lineHeight: 1.7 }}>
-            {source === 'subscribe' ? '구독하면 제한 없이 일기를 쓸 수 있어요.' : '30회 무료 사용이 끝났어요.'}
+            {source === 'subscribe' ? t('paywall.descSubscribe') : t('paywall.descQuota')}
           </div>
         </div>
 
@@ -98,8 +99,8 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
                 lineHeight: 1.8, marginBottom: 20,
                 padding: '14px 16px', border: '1px solid var(--gray-2)',
               }}>
-                계속하려면 로그인이 필요해요.<br />
-                Google 계정으로 로그인하면 구독 플랜을 선택할 수 있어요.
+                {t('paywall.loginNeeded1')}<br />
+                {t('paywall.loginNeeded2')}
               </div>
 
               <button
@@ -114,7 +115,7 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
                   <path fill='#4CAF50' d='M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.4 35.6 26.8 36 24 36c-5.2 0-9.7-2.8-11.3-7H6.3C9.7 39.7 16.3 44 24 44z'/>
                   <path fill='#1976D2' d='M43.6 20H24v8h11.3c-.8 2.3-2.4 4.3-4.5 5.8l6.2 5.2C40.9 36.2 44 30.5 44 24c0-1.3-.1-2.7-.4-4z'/>
                 </svg>
-                {loading === 'login' ? '로그인 중...' : 'Google로 로그인'}
+                {loading === 'login' ? t('app.loggingIn') : t('appHeader.googleLogin')}
               </button>
             </>
           ) : (
@@ -126,22 +127,22 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
                 {/* 월간 — 추천 */}
                 <div style={{ border: '2px solid var(--fire-org)', background: 'rgba(255,90,0,0.06)', padding: '16px 14px', position: 'relative' }}>
                   <div style={{ position: 'absolute', top: -11, left: 10, background: 'var(--fire-org)', color: '#000', fontFamily: 'var(--font-pixel)', fontSize: 12, padding: '2px 7px', letterSpacing: '0.08em' }}>
-                    추천
+                    {t('paywall.recommended')}
                   </div>
                   <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-tip)', letterSpacing: '0.06em', marginBottom: 6 }}>
-                    월간 구독
+                    {t('paywall.monthly')}
                   </div>
                   <div style={{ fontFamily: 'var(--font-korean)', fontSize: 20, fontWeight: 700, color: 'var(--white)', marginBottom: 2 }}>
                     {isNative ? '₩3,800' : '₩3,800'}
                   </div>
                   <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-4)', marginBottom: 4 }}>
-                    / 월
+                    {t('paywall.perMonth')}
                   </div>
                   <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: '#a0e080', marginBottom: 12 }}>
-                    주간 대비 약 21% 절약
+                    {t('paywall.monthlySave')}
                   </div>
                   <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-4)', marginBottom: 14 }}>
-                    매월 자동 결제<br />언제든 취소 가능
+                    {t('paywall.monthlyBilling1')}<br />{t('paywall.billingCancel')}
                   </div>
                   <button
                     className='pixel-btn pixel-btn-fire'
@@ -149,26 +150,26 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
                     disabled={isLoading}
                     onClick={() => handleSubscribe('monthly')}
                   >
-                    {loading === 'monthly' ? '...' : '▸ 구독하기'}
+                    {loading === 'monthly' ? '...' : t('paywall.subscribeBtn')}
                   </button>
                 </div>
 
                 {/* 주간 */}
                 <div style={{ border: '2px solid var(--gray-2)', padding: '16px 14px' }}>
                   <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--white)', letterSpacing: '0.06em', marginBottom: 6 }}>
-                    주간 구독
+                    {t('paywall.weekly')}
                   </div>
                   <div style={{ fontFamily: 'var(--font-korean)', fontSize: 20, fontWeight: 700, color: 'var(--white)', marginBottom: 2 }}>
                     ₩1,200
                   </div>
                   <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-4)', marginBottom: 4 }}>
-                    / 주
+                    {t('paywall.perWeek')}
                   </div>
                   <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-4)', marginBottom: 12 }}>
                     &nbsp;
                   </div>
                   <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-4)', marginBottom: 14 }}>
-                    매주 자동 결제<br />언제든 취소 가능
+                    {t('paywall.weeklyBilling1')}<br />{t('paywall.billingCancel')}
                   </div>
                   <button
                     className='pixel-btn'
@@ -176,7 +177,7 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
                     disabled={isLoading}
                     onClick={() => handleSubscribe('weekly')}
                   >
-                    {loading === 'weekly' ? '...' : '▸ 구독하기'}
+                    {loading === 'weekly' ? '...' : t('paywall.subscribeBtn')}
                   </button>
                 </div>
               </div>
@@ -193,7 +194,7 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
                     marginBottom: 4,
                   }}
                 >
-                  {loading === 'restore' ? '복원 중...' : '구매 복원'}
+                  {loading === 'restore' ? t('paywall.restoring') : t('paywall.restore')}
                 </button>
               )}
             </>
@@ -212,7 +213,7 @@ export function PaywallModal({ user, onClose, source = 'quota' }: Props) {
             onClick={onClose}
             style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: '#8e8e8e', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.06em', textDecoration: 'underline' }}
           >
-            나중에 하기
+            {t('paywall.later')}
           </button>
         </div>
       </div>

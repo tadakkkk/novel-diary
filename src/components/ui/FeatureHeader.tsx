@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAppContext } from '@/App'
+import { t } from '@/i18n'
 
 // 서랍에서 진입하는 기능 페이지 공용 헤더.
 // 좌측 뒤로가기 + 우측 제목. 좁은 모바일에서 제목이 화면 밖으로 잘리지 않도록
@@ -29,7 +30,7 @@ export function FeatureHeader({ title }: { title: string }) {
           cursor: 'pointer', letterSpacing: '0.04em',
           flexShrink: 0, whiteSpace: 'nowrap',
         }}
-      >← 서랍</button>
+      >{t('nextChapter.headerBackDrawer')}</button>
       <span style={{
         marginLeft: 'auto', minWidth: 0,
         fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)',

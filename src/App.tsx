@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import * as storage from '@/services/storage'
+import { t } from '@/i18n'
 
 // ── PWA Install Prompt ─────────────────────────────────────────────────────
 interface BeforeInstallPromptEvent extends Event {
@@ -50,10 +51,10 @@ function InstallBanner() {
       <span style={{ fontSize: 22, flexShrink: 0 }}>🔥</span>
       <div style={{ flex: 1 }}>
         <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-tip)', letterSpacing: '0.08em', marginBottom: 3 }}>
-          홈 화면에 추가하기
+          {t('app.installTitle')}
         </div>
         <div style={{ fontFamily: 'var(--font-korean)', fontSize: 12, color: 'var(--gray-4)', lineHeight: 1.5 }}>
-          앱처럼 설치하면 더 편하게 사용할 수 있어요
+          {t('app.installDesc')}
         </div>
       </div>
       <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
@@ -62,7 +63,7 @@ function InstallBanner() {
           className='pixel-btn pixel-btn-fire'
           style={{ fontSize: 12, padding: '8px 12px' }}
         >
-          설치
+          {t('app.install')}
         </button>
         <button
           onClick={handleDismiss}
@@ -110,15 +111,15 @@ function QuotaToast() {
       padding: '12px 20px', maxWidth: 400, textAlign: 'center',
     }}>
       <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-tip)', letterSpacing: '0.1em', marginBottom: 6 }}>
-        ⚠ 저장 공간 부족
+        {t('app.quotaTitle')}
       </div>
       <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: '#ccc', lineHeight: 1.6 }}>
-        브라우저 저장 공간이 꽉 찼어요.<br />
-        오래된 일기나 문체 참고를 삭제하면 공간이 확보됩니다.
+        {t('app.quotaBody1')}<br />
+        {t('app.quotaBody2')}
       </div>
       <button onClick={() => setVisible(false)}
         style={{ marginTop: 10, fontFamily: 'var(--font-pixel)', fontSize: 12, background: 'transparent', border: '1px solid #555', color: '#888', padding: '4px 10px', cursor: 'pointer' }}>
-        닫기
+        {t('common.closeWord')}
       </button>
     </div>
   )
@@ -147,7 +148,7 @@ function OnboardingModal() {
 
   function saveKey() {
     const trimmed = key.trim()
-    if (!trimmed.startsWith('sk-ant-')) { setErr('올바른 Anthropic API 키 형식이 아니에요 (sk-ant-로 시작)'); return }
+    if (!trimmed.startsWith('sk-ant-')) { setErr(t('app.apiKeyInvalidFormat')); return }
     storage.saveApiKey(trimmed)
     dismiss()
   }
@@ -160,9 +161,9 @@ function OnboardingModal() {
 
         {/* Header */}
         <div style={{ padding:'20px 24px 16px', borderBottom:'2px solid var(--gray-2)' }}>
-          <div style={{ fontFamily:'var(--font-pixel)', fontSize:18, color:'var(--fire-tip)', letterSpacing:'0.06em', marginBottom:6 }}>🔥 타닥타닥</div>
+          <div style={{ fontFamily:'var(--font-pixel)', fontSize:18, color:'var(--fire-tip)', letterSpacing:'0.06em', marginBottom:6 }}>🔥 {t('brand.name')}</div>
           <div style={{ fontFamily:'var(--font-korean)', fontSize:13, color:'var(--gray-4)', lineHeight:1.7 }}>
-            일상의 사건을 소설 문체의 일기로 변환해주는 앱이에요.
+            {t('app.onboardIntro')}
           </div>
         </div>
 
@@ -171,9 +172,9 @@ function OnboardingModal() {
           <div style={{ padding:'24px' }}>
             <div style={{ display:'flex', flexDirection:'column', gap:14, marginBottom:28 }}>
               {[
-                ['🪵', '땔감 입력', '오늘 있었던 일을 조각조각 던지세요'],
-                ['✍️', '일기 생성', 'Claude AI가 소설 문체로 일기를 써줘요'],
-                ['▒', '주인공의 이야기', '쌓인 일기를 한 권의 책으로 엮어 봐요'],
+                ['🪵', t('app.onboard1Title'), t('app.onboard1Desc')],
+                ['✍️', t('app.onboard2Title'), t('app.onboard2Desc')],
+                ['▒', t('novel.title'), t('app.onboard3Desc')],
               ].map(([icon, title, desc]) => (
                 <div key={title} style={{ display:'flex', gap:14, alignItems:'flex-start' }}>
                   <span style={{ fontSize:22, flexShrink:0, lineHeight:1.3 }}>{icon}</span>
@@ -185,11 +186,11 @@ function OnboardingModal() {
               ))}
             </div>
             <div style={{ display:'flex', gap:8 }}>
-              <button className='pixel-btn pixel-btn-fire' style={{ flex:1 }} onClick={() => setStep(2)}>▸ API 키 설정하기</button>
-              <button className='pixel-btn' onClick={dismiss} style={{ fontSize:12, padding:'10px 14px' }}>나중에</button>
+              <button className='pixel-btn pixel-btn-fire' style={{ flex:1 }} onClick={() => setStep(2)}>{t('app.setApiKey')}</button>
+              <button className='pixel-btn' onClick={dismiss} style={{ fontSize:12, padding:'10px 14px' }}>{t('nextChapter.later')}</button>
             </div>
             <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)', marginTop:10, textAlign:'center', letterSpacing:'0.06em' }}>
-              Claude API 키가 있어야 일기를 생성할 수 있어요
+              {t('app.apiKeyNeeded')}
             </div>
           </div>
         ) : (
@@ -197,10 +198,9 @@ function OnboardingModal() {
           <div style={{ padding:'24px' }}>
             <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--fire-amb)', letterSpacing:'0.1em', marginBottom:16 }}>► ANTHROPIC API KEY</div>
             <div style={{ fontFamily:'var(--font-korean)', fontSize:13, color:'var(--gray-4)', lineHeight:1.7, marginBottom:16 }}>
-              <a href='https://console.anthropic.com/' target='_blank' rel='noreferrer'
-                style={{ color:'var(--fire-org)', textDecoration:'underline' }}>console.anthropic.com</a>에서
-              발급받은 API 키를 입력해주세요.<br />
-              키는 이 기기의 브라우저에만 저장되며 외부로 전송되지 않아요.
+              {t('app.apiKeyDescBefore')}<a href='https://console.anthropic.com/' target='_blank' rel='noreferrer'
+                style={{ color:'var(--fire-org)', textDecoration:'underline' }}>console.anthropic.com</a>{t('app.apiKeyDescAfter')}<br />
+              {t('app.apiKeyDescStored')}
             </div>
             <input
               ref={inputRef}
@@ -214,13 +214,13 @@ function OnboardingModal() {
             />
             <div style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'#ff4444', minHeight:14, marginBottom:14 }}>{err}</div>
             <div style={{ display:'flex', gap:8 }}>
-              <button className='pixel-btn' onClick={() => setStep(1)} style={{ fontSize:12, padding:'10px 14px' }}>◀ 뒤로</button>
-              <button className='pixel-btn pixel-btn-fire' style={{ flex:1 }} onClick={saveKey}>▸ 저장하고 시작하기</button>
+              <button className='pixel-btn' onClick={() => setStep(1)} style={{ fontSize:12, padding:'10px 14px' }}>{t('app.back')}</button>
+              <button className='pixel-btn pixel-btn-fire' style={{ flex:1 }} onClick={saveKey}>{t('app.saveAndStart')}</button>
             </div>
             <div style={{ marginTop:10, textAlign:'center' }}>
               <button onClick={dismiss}
                 style={{ fontFamily:'var(--font-pixel)', fontSize:12, color:'var(--text-off)', background:'none', border:'none', cursor:'pointer', letterSpacing:'0.06em', textDecoration:'underline' }}>
-                키 없이 둘러보기
+                {t('app.browseNoKey')}
               </button>
             </div>
           </div>
@@ -238,7 +238,7 @@ function SplashScreen() {
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16,
     }}>
       <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 24, color: 'var(--fire-tip)', letterSpacing: '0.06em' }}>
-        타닥타닥
+        {t('brand.name')}
       </div>
       <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)', letterSpacing: '0.2em' }}>
         ···
@@ -269,7 +269,7 @@ function LoginGate({ onGuest }: { onGuest: () => void }) {
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 26, color: 'var(--fire-tip)', letterSpacing: '0.06em', marginBottom: 6 }}>
-            타닥타닥
+            {t('brand.name')}
           </div>
           <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-amb)', letterSpacing: '0.15em' }}>
             TADAK-TADAK
@@ -280,7 +280,7 @@ function LoginGate({ onGuest }: { onGuest: () => void }) {
           <div className='pixel-ground' />
         </div>
         <div style={{ fontFamily: 'var(--font-korean)', fontSize: 14, color: 'var(--gray-4)', textAlign: 'center', lineHeight: 1.8 }}>
-          오늘 있었던 일을<br />불 앞에 앉아 이야기해요
+          {t('app.loginTagline1')}<br />{t('app.loginTagline2')}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 12, width: 240, maxWidth: '80vw' }}>
           <button
@@ -295,12 +295,12 @@ function LoginGate({ onGuest }: { onGuest: () => void }) {
               opacity: loading !== null ? 0.6 : 1,
             }}
           >
-            {loading === 'apple' ? '로그인 중...' : (
+            {loading === 'apple' ? t('app.loggingIn') : (
               <>
                 <svg width='15' height='18' viewBox='0 0 17 20' fill='#000' aria-hidden='true' style={{ flexShrink: 0 }}>
                   <path d='M14.06 10.6c-.02-2.06 1.68-3.05 1.76-3.1-0.96-1.4-2.45-1.6-2.98-1.62-1.27-.13-2.48.75-3.12.75-.64 0-1.64-.73-2.7-.71-1.39.02-2.67.81-3.38 2.05-1.44 2.5-.37 6.2 1.03 8.23.69.99 1.5 2.1 2.57 2.06 1.03-.04 1.42-.66 2.67-.66 1.24 0 1.6.66 2.69.64 1.11-.02 1.81-1 2.49-2 .78-1.15 1.1-2.26 1.12-2.32-.02-.01-2.15-.82-2.17-3.25zM12.01 4.5c.57-.69.95-1.65.85-2.6-.82.03-1.81.54-2.4 1.23-.53.61-.99 1.59-.87 2.52.91.07 1.85-.46 2.42-1.15z'/>
                 </svg>
-                Apple로 시작하기
+                {t('app.startApple')}
               </>
             )}
           </button>
@@ -310,7 +310,7 @@ function LoginGate({ onGuest }: { onGuest: () => void }) {
             disabled={loading !== null}
             style={{ minHeight: 44, fontSize: 14, padding: '12px 20px', letterSpacing: '0.04em' }}
           >
-            {loading === 'google' ? '로그인 중...' : 'Google로 시작하기'}
+            {loading === 'google' ? t('app.loggingIn') : t('app.startGoogle')}
           </button>
           <button
             onClick={onGuest}
@@ -322,7 +322,7 @@ function LoginGate({ onGuest }: { onGuest: () => void }) {
               padding: '10px 18px', minHeight: 44,
             }}
           >
-            로그인 없이 둘러보기
+            {t('app.browseNoLogin')}
           </button>
         </div>
       </div>
@@ -349,7 +349,7 @@ function GuestBanner() {
         fontFamily: 'var(--font-korean)', fontSize: 14, color: 'var(--gray-4)',
         lineHeight: 1.4, flex: 1, wordBreak: 'keep-all',
       }}>
-        둘러보기 모드 · 로그인하면 내 기록을 저장할 수 있어요
+        {t('app.guestBanner')}
       </span>
       <button
         onClick={handleLogin}
@@ -357,7 +357,7 @@ function GuestBanner() {
         className='pixel-btn pixel-btn-fire'
         style={{ fontSize: 12, padding: '7px 12px', flexShrink: 0, letterSpacing: '0.06em' }}
       >
-        {loading ? '...' : '로그인'}
+        {loading ? '...' : t('app.login')}
       </button>
     </div>
   )
@@ -386,10 +386,10 @@ function GuestBlockedToast() {
       padding: '12px 18px', maxWidth: 360, width: 'calc(100% - 32px)', textAlign: 'center',
     }}>
       <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-tip)', letterSpacing: '0.08em', marginBottom: 6 }}>
-        👀 둘러보기 모드
+        {t('app.guestToastTitle')}
       </div>
       <div style={{ fontFamily: 'var(--font-korean)', fontSize: 14, color: '#ccc', lineHeight: 1.6, wordBreak: 'keep-all' }}>
-        둘러보기 모드에서는 미리 보기만 제공돼요.<br />로그인하면 직접 만들 수 있어요.
+        {t('app.guestToastBody1')}<br />{t('app.guestToastBody2')}
       </div>
     </div>
   )
@@ -430,7 +430,7 @@ function SyncBanner() {
       padding: '10px 16px', width: 'calc(100% - 32px)', maxWidth: 360, textAlign: 'center',
     }}>
       <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-tip)', letterSpacing: '0.06em', marginBottom: state.complete ? 0 : 7 }}>
-        {state.complete ? '✓ 백업 완료' : '🔥 기록을 안전하게 백업하는 중...'}
+        {state.complete ? t('app.backupDone') : t('app.backingUp')}
       </div>
       {!state.complete && state.total > 0 && (
         <>
@@ -483,8 +483,8 @@ export function useAppContext() { return useContext(AppContext) }
 function SyncOverlay() {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.92)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-      <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-tip)', letterSpacing: '0.08em' }}>동기화 중...</div>
-      <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--gray-4)' }}>데이터를 서버에 저장하고 있어요</div>
+      <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--fire-tip)', letterSpacing: '0.08em' }}>{t('app.syncing')}</div>
+      <div style={{ fontFamily: 'var(--font-korean)', fontSize: 13, color: 'var(--gray-4)' }}>{t('app.syncingBody')}</div>
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { useAppContext } from '@/App'
 import { signInWithGoogle, signOut } from '@/services/auth/auth-service'
 import { deleteAccount } from '@/services/account/account-service'
 import * as storage from '@/services/storage'
+import { t, tf } from '@/i18n'
 
 export function AppHeader() {
   const navigate  = useNavigate()
@@ -46,9 +47,9 @@ export function AppHeader() {
 
   // ── 네비 메뉴 항목 ─────────────────────────────────────────────────────
   const NAV_ITEMS = [
-    { label: '타임라인',     path: '/timeline',  drawer: false },
-    { label: '주인공의 서랍', path: null,         drawer: true  },
-    { label: '참고 문체',    path: '/style-ref', drawer: false },
+    { label: t('appHeader.navTimeline'), path: '/timeline',  drawer: false },
+    { label: t('appHeader.navDrawer'),   path: null,         drawer: true  },
+    { label: t('styleRef.title'),        path: '/style-ref', drawer: false },
   ]
 
   function handleNavItem(item: typeof NAV_ITEMS[number]) {
@@ -72,7 +73,7 @@ export function AppHeader() {
       setDeleteModalOpen(false)
       navigate('/')
     } catch (e) {
-      setDeleteErr((e as Error).message || '계정 삭제에 실패했어요. 잠시 후 다시 시도해주세요.')
+      setDeleteErr((e as Error).message || t('appHeader.deleteFailed'))
     } finally {
       setDeleting(false)
     }
@@ -102,7 +103,7 @@ export function AppHeader() {
         <div ref={navRef} style={{ position: 'relative' }}>
           <button
             onClick={() => { setNavOpen(v => !v); setProfileOpen(false) }}
-            aria-label='메뉴'
+            aria-label={t('appHeader.menuLabel')}
             style={{
               background: 'none', border: '2px solid var(--gray-2)',
               cursor: 'pointer', padding: '6px 9px',
@@ -144,7 +145,7 @@ export function AppHeader() {
 
               {!user && (
                 <button onClick={handleLoginFromNav} style={{ ...DROP_ITEM, color: 'var(--fire-org)' }}>
-                  Google로 로그인
+                  {t('appHeader.googleLogin')}
                 </button>
               )}
             </div>
@@ -160,7 +161,7 @@ export function AppHeader() {
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
           }}
         >
-          <span className='logo-korean'>타닥타닥</span>
+          <span className='logo-korean'>{t('brand.name')}</span>
           <span className='logo-en'>tadak-tadak</span>
         </button>
 
@@ -179,7 +180,7 @@ export function AppHeader() {
                 padding: '4px 8px', background: 'none', cursor: 'pointer',
               }}
             >
-              🔥 {remaining}회 남음
+              {tf('appHeader.remaining', { n: remaining })}
             </button>
           )}
 
@@ -230,7 +231,7 @@ export function AppHeader() {
                     onClick={() => { setProfileOpen(false); showPaywall('subscribe') }}
                     style={{ ...DROP_ITEM, color: 'var(--fire-org)' }}
                   >
-                    {isSubscribed ? '구독 관리' : '구독하기'}
+                    {isSubscribed ? t('appHeader.manageSub') : t('appHeader.subscribe')}
                   </button>
                   )}
 
@@ -242,13 +243,13 @@ export function AppHeader() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: apiKeyExpanded ? 8 : 0 }}>
                       <span style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: apiKeySaved ? 'var(--fire-org)' : 'var(--gray-3)', letterSpacing: '0.04em' }}>
-                        {apiKeySaved ? '설정됨' : '미설정'}
+                        {apiKeySaved ? t('appHeader.apiKeySet') : t('appHeader.apiKeyUnset')}
                       </span>
                       <button
                         onClick={() => { setApiKeyExpanded(v => !v); setApiKeyInput('') }}
                         style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-3)', background: 'transparent', border: '1px solid var(--gray-2)', padding: '2px 6px', cursor: 'pointer', letterSpacing: '0.04em' }}
                       >
-                        {apiKeyExpanded ? '닫기' : (apiKeySaved ? '변경' : '입력')}
+                        {apiKeyExpanded ? t('common.closeWord') : (apiKeySaved ? t('appHeader.apiKeyChange') : t('appHeader.apiKeyEnter'))}
                       </button>
                     </div>
                     {apiKeyExpanded && (
@@ -272,14 +273,14 @@ export function AppHeader() {
                             }}
                             style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: '#000', background: 'var(--fire-org)', border: 'none', padding: '4px 10px', cursor: 'pointer', letterSpacing: '0.04em', flex: 1 }}
                           >
-                            저장
+                            {t('common.saveShort')}
                           </button>
                           {apiKeySaved && (
                             <button
                               onClick={() => { storage.saveApiKey(''); setApiKeySaved(false); setApiKeyExpanded(false) }}
                               style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: 'var(--gray-3)', background: 'transparent', border: '1px solid var(--gray-2)', padding: '4px 8px', cursor: 'pointer', letterSpacing: '0.04em' }}
                             >
-                              삭제
+                              {t('common.delete')}
                             </button>
                           )}
                         </div>
@@ -292,13 +293,13 @@ export function AppHeader() {
                     onClick={() => { setProfileOpen(false); signOut() }}
                     style={{ ...DROP_ITEM, color: 'var(--gray-3)', borderTop: '1px solid var(--gray-1)' }}
                   >
-                    로그아웃
+                    {t('appHeader.logout')}
                   </button>
                   <button
                     onClick={() => { setProfileOpen(false); setDeleteErr(''); setDeleteModalOpen(true) }}
                     style={{ ...DROP_ITEM, color: '#ff5555', borderTop: '1px solid var(--gray-1)', fontSize: 12 }}
                   >
-                    계정 삭제
+                    {t('appHeader.deleteAccount')}
                   </button>
                 </div>
               )}
@@ -323,11 +324,11 @@ export function AppHeader() {
             }}
           >
             <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 14, color: '#ff5555', letterSpacing: '0.08em', marginBottom: 16 }}>
-              ⚠ 계정 삭제
+              {t('appHeader.deleteAccountTitle')}
             </div>
             <p style={{ fontFamily: 'var(--font-korean)', fontSize: 14, color: 'var(--gray-5)', lineHeight: 1.8, marginBottom: 20, wordBreak: 'keep-all' }}>
-              정말 삭제하시겠어요?<br />
-              모든 일기와 기록이 <b style={{ color: '#ff5555' }}>영구 삭제</b>되며<br />복구할 수 없습니다.
+              {t('appHeader.deleteConfirmLine1')}<br />
+              {t('appHeader.deleteConfirmPre')}<b style={{ color: '#ff5555' }}>{t('appHeader.deleteConfirmBold')}</b>{t('appHeader.deleteConfirmPost')}<br />{t('appHeader.deleteConfirmLine3')}
             </p>
             {deleteErr && (
               <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 12, color: '#ff4444', marginBottom: 14, lineHeight: 1.6 }}>
@@ -340,14 +341,14 @@ export function AppHeader() {
                 onClick={() => setDeleteModalOpen(false)}
                 style={{ fontFamily: 'var(--font-korean)', fontSize: 14, fontWeight: 700, padding: '10px 20px', border: '3px solid var(--white)', color: 'var(--white)', background: 'transparent', cursor: 'pointer', opacity: deleting ? 0.5 : 1 }}
               >
-                취소
+                {t('common.cancel')}
               </button>
               <button
                 disabled={deleting}
                 onClick={handleDeleteAccount}
                 style={{ fontFamily: 'var(--font-korean)', fontSize: 14, fontWeight: 700, padding: '10px 20px', border: '3px solid #ff5555', color: deleting ? '#888' : '#ff5555', background: 'transparent', cursor: deleting ? 'default' : 'pointer' }}
               >
-                {deleting ? '삭제 중...' : '삭제'}
+                {deleting ? t('appHeader.deleting') : t('common.delete')}
               </button>
             </div>
           </div>
