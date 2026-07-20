@@ -1,10 +1,10 @@
 // ── Claude API 서비스 ─────────────────────────────────────────────────────
 // Server mode (VITE_API_URL set): routes through backend → no API key on client
 // Dev fallback (no VITE_API_URL): direct Anthropic call with user's own key
-import { type Kindling, type Perspective, type ProcessingLevel, type StyleReference } from '@/types'
 import { getApiKey } from '@/services/storage'
 import { serverChat, QuotaExceededError, type ActionType } from '@/services/api/api-client'
 import { isGuest, GuestBlockedError } from '@/services/guest/guest-mode'
+import { getPrompts, getAppLanguage, type BuildPromptOptions, type ExistingCharacterHint } from './prompts'
 
 export { QuotaExceededError }
 
@@ -76,93 +76,6 @@ async function callApi(opts: CallOptions): Promise<string> {
   return data.content?.[0]?.text || ''
 }
 
-// ── 프롬프트 빌더 ─────────────────────────────────────────────────────────
-
-const PERSPECTIVE_DESC: Record<string, string> = {
-  '1인칭주인공': '"나는..." 으로 서술. 화자가 주인공 본인. 가장 내밀하고 주관적.',
-  '1인칭관찰자': '화자가 등장하지만 주인공을 외부에서 관찰. 거리감 있는 쓸쓸한 시선.',
-  '3인칭관찰자': '외부에서 행동과 장면만 묘사. 내면 서술 없음. 영화적·건조한 문체.',
-  '3인칭전지적': '모든 것을 아는 전지적 화자. 복선·아이러니 연출 가능. 주인공 이름 사용.',
-}
-
-const LEVEL_DESC: Record<number, string> = {
-  1: '있었던 일을 그대로. 최소한의 문장 다듬기만. 감정 서술 없이 사실만.',
-  2: '자연스러운 일상 문체. 감정은 최소화하여 담백하게.',
-  3: '자연스러운 일상 문체, 감정은 담되 담백하게. 과장 없이.',
-  4: '감성적으로. 절제된 문학적 표현. 사실은 유지.',
-  5: '문학적으로 표현하되 사실을 과장하지 말 것. 실제 사건이 중심.',
-}
-
-interface BuildPromptOptions {
-  kindlings: Kindling[]
-  perspective: Perspective
-  processingLevel: ProcessingLevel
-  styleRefs?: StyleReference[]
-  weather?: string | null
-  nickname?: string | null
-  continuityContext?: string | null
-  keyImageDescription?: string | null
-  mediaDescriptions?: string[]
-}
-
-function buildDiaryPrompt(opts: BuildPromptOptions): string {
-  const { kindlings, perspective, processingLevel, styleRefs, weather,
-          nickname, continuityContext, keyImageDescription, mediaDescriptions } = opts
-
-  const pvDesc = PERSPECTIVE_DESC[perspective] ?? PERSPECTIVE_DESC['1인칭주인공']
-  const lvDesc = LEVEL_DESC[processingLevel]   ?? LEVEL_DESC[3]
-
-  const nicknameNote = (perspective.startsWith('3인칭') && nickname)
-    ? `\n주인공의 이름(호칭)은 "${nickname}"이야. 소설 전체에서 이 이름으로 불러줘.`
-    : ''
-
-  const kindlingBlock = kindlings.map((k, i) => `[사건 ${i + 1}] ${k.text}`).join('\n')
-
-  let styleBlock = ''
-  if (styleRefs && styleRefs.length > 0) {
-    styleBlock = '\n\n[참고 문체 - 아래 글들의 문체와 어휘 선택, 문장 리듬을 참고해서 써줘]\n'
-    styleRefs.forEach((sr, i) => {
-      styleBlock += `\n--- 참고 문체 ${i + 1}: ${sr.title} ---\n${sr.content.slice(0, 1500)}\n`
-    })
-  }
-
-  let mediaBlock = ''
-  if (keyImageDescription) {
-    mediaBlock += `\n\n[오늘의 대표 이미지 분위기 - 이 색감·빛·공간감·분위기를 일기 전반에 녹여줘]\n${keyImageDescription}`
-  }
-  if (mediaDescriptions && mediaDescriptions.length > 0) {
-    mediaBlock += '\n\n[장면 이미지 묘사 - 해당 사건 서술 시 아래 장면 묘사를 녹여줘]\n'
-    mediaDescriptions.forEach((d, i) => { mediaBlock += `[이미지 ${i + 1}] ${d}\n` })
-  }
-
-  const continuityBlock = continuityContext
-    ? `\n\n[이전 일기와의 연속성 - 이 맥락에서 자연스럽게 이어지게 써줘]\n${continuityContext}`
-    : ''
-
-  const wn = weather ? `\n- 날씨: ${weather}` : ''
-  const wi = weather ? `\n3. 오늘 날씨는 "${weather}"야. 날씨가 배경, 감각 묘사, 문장의 분위기에 자연스럽게 배어들게 써줘. 날씨를 직접 설명하지 말고 글 안에 녹여낼 것.` : ''
-  const n3 = weather ? '4' : '3'
-  const n4 = weather ? '5' : '4'
-
-  return `일기를 써줘.
-
-[최우선 원칙] 아래 사건들의 실제 내용과 감정을 왜곡하거나 과장하지 않는다. 사실이 최우선.
-
-[생성 조건]
-- 서술 시점: ${perspective} — ${pvDesc}${nicknameNote}
-- 가공 정도 ${processingLevel}/5: ${lvDesc}${wn}${styleBlock}
-
-[오늘의 사건들 — 반드시 모두 포함해서 자연스럽게 연결할 것]
-${kindlingBlock}
-${mediaBlock}${continuityBlock}
-
-[지시사항]
-1. 위 사건들을 반드시 빠짐없이 포함할 것. 누락된 사건이 있으면 실패야.
-2. 사건의 실제 내용과 감정을 유지하면서 가공 정도에 맞게 표현할 것.${wi}
-${n3}. 이전과 다른 표현, 다른 문장 구조, 다른 도입부를 사용해줘.
-${n4}. 일기 본문만 작성해줘. 제목, 날짜, "일기:", "시점:" 같은 메타 텍스트 없이.`
-}
-
 // ── 재시도 래퍼 (최대 2회, 1초 간격) ────────────────────────────────────────
 async function callApiWithRetry(opts: CallOptions): Promise<string> {
   const MAX = 2
@@ -200,7 +113,8 @@ interface GenerateDiaryOptions extends BuildPromptOptions {
 export async function generateDiary(
   opts: GenerateDiaryOptions
 ): Promise<{ content: string; continuityContext: string }> {
-  const prompt      = buildDiaryPrompt(opts)
+  const p           = getPrompts(getAppLanguage())
+  const prompt      = p.buildDiaryPrompt(opts)
   const keyImageObj = opts.keyImageObj
   const attachments = opts.attachments ?? []
   const hasKeyImage = !!(keyImageObj?.base64Data && keyImageObj.base64Data.length >= 100)
@@ -216,12 +130,7 @@ export async function generateDiary(
       const mime = att.mediaType ?? att.dataUrl?.match(/^data:([^;,]+)/)?.[1] ?? 'image/jpeg'
       if (b64.length >= 100) parts.push({ type: 'image', source: { type: 'base64', media_type: mime, data: b64 } })
     }
-    let imageInstruction = ''
-    if (hasKeyImage) imageInstruction += '위 첫 번째 이미지는 오늘 하루의 대표 이미지야.\n이 이미지의 색감, 빛, 공간감, 전체적인 분위기를 일기 전반에 감각적으로 녹여줘.\n\n'
-    if (hasAttachments) {
-      const startIdx = hasKeyImage ? '두 번째' : '위'
-      imageInstruction += `${startIdx} 이미지들은 오늘의 특정 장면이야.\n각 이미지를 보고 그 장면을 소설적으로 묘사해서 해당 사건과 연결해줘.\n\n`
-    }
+    const imageInstruction = p.buildImageInstruction(hasKeyImage, hasAttachments)
     parts.push({ type: 'text', text: imageInstruction + prompt })
     return parts
   }
@@ -230,13 +139,13 @@ export async function generateDiary(
 
   const content = await callApiWithRetry({
     temperature: 0.85,
-    systemPrompt: '당신은 개인 일기를 써주는 작가입니다. 실제 일어난 사건과 감정을 왜곡 없이 전달하는 것이 최우선입니다. 지시사항을 정확히 따르고, 요청된 모든 사건을 포함하며, 매번 다른 표현과 구성으로 씁니다.',
+    systemPrompt: p.diarySystemPrompt,
     messages: [{ role: 'user', content: messageContent }],
     signal: opts.signal,
     action_type: 'generate_diary',
   })
 
-  const ctxPrompt = `아래 일기를 읽고, 다음 일기 작성 시 연속성을 위한 맥락 요약을 2-3문장으로 써줘. (등장인물, 감정 상태, 미완의 이야기 등)\n\n${content}`
+  const ctxPrompt = p.buildContinuityPrompt(content)
   const continuityContext = await callApiWithRetry({
     temperature: 0.3,
     messages: [{ role: 'user', content: ctxPrompt }],
@@ -263,59 +172,12 @@ export interface ExtractedCharacter {
   avatarData: { hairColor: string; skinTone: string; eyeColor: string; clothColor: string }
 }
 
-// 동일인 매칭 정확도를 위해 프롬프트에 포함할 기존 인물 요약
-interface ExistingCharacterHint {
-  name: string
-  relationship?: string
-  aliases?: string[]
-  episodes?: Array<{ date: string; summary: string }>
-  appearances?: string[]
-}
-
-// 기존 인물 목록을 프롬프트용 텍스트로 변환 (최근/빈도 상위 20명만)
-function buildExistingCharsBlock(existing: ExistingCharacterHint[]): string {
-  if (!existing || existing.length === 0) return ''
-  const top = [...existing]
-    .sort((a, b) => (b.appearances?.length ?? 0) - (a.appearances?.length ?? 0))
-    .slice(0, 20)
-  const lines = top.map((c) => {
-    const rel = c.relationship ? ` (관계: ${c.relationship})` : ''
-    const alias = c.aliases && c.aliases.length > 0 ? ` [별칭: ${c.aliases.join(', ')}]` : ''
-    const ep = c.episodes && c.episodes.length > 0 ? ` — ${c.episodes[c.episodes.length - 1].summary}` : ''
-    return `- ${c.name}${rel}${alias}${ep}`
-  })
-  return `\n[기존에 등록된 인물 목록]\n${lines.join('\n')}\n\n[동일인 처리 규칙]\n새로 추출한 인물이 위 목록의 인물과 동일인이라고 판단되면(호칭만 다른 경우 포함: '주희'와 '주희 언니', '엄마'와 '어머니' 등) 반드시 기존 인물의 "name"을 그대로 사용하고 "matched_existing"을 true로 설정해. 이때 이번 일기에서 쓰인 호칭이 기존 name과 다르면 그 호칭을 "aliases" 배열에 넣어줘. 동일인 여부가 불확실하면 새 인물로 처리하고 "matched_existing"을 false로 둬.\n`
-}
-
 export async function extractCharacters(
   diaryContent: string,
   sessionDate: string,
   existingCharacters: ExistingCharacterHint[] = []
 ): Promise<ExtractedCharacter[]> {
-  const existingBlock = buildExistingCharsBlock(existingCharacters)
-
-  const prompt = `아래 일기에서 등장하는 인물들을 추출해줘.
-주인공(화자) 본인은 제외하고, 언급된 다른 사람만 추출해.
-${existingBlock}
-[일기]
-${diaryContent}
-
-JSON 배열로만 응답해줘 (코드 블록 없이, 다른 텍스트 없이):
-[
-  {
-    "name": "이름 또는 호칭 (동일인이면 기존 목록의 name을 그대로)",
-    "relationship": "주인공과의 관계 (예: 친구, 낯선 사람)",
-    "role": "이 일기에서의 역할/에피소드 한 줄 요약",
-    "aliases": ["이번 일기에서 쓰인 다른 호칭이 있으면 (없으면 빈 배열)"],
-    "matched_existing": false,
-    "hairColor": "머리카락 색 (예: dark brown, unknown)",
-    "skinTone": "light / medium / tan / dark (모르면 medium)",
-    "eyeColor": "눈색 (예: brown, unknown)",
-    "clothColor": "옷 색상 (예: navy, unknown)",
-    "gender": "male / female / unknown"
-  }
-]
-인물이 없으면 []`
+  const prompt = getPrompts(getAppLanguage()).buildExtractCharactersPrompt(diaryContent, existingCharacters)
 
   try {
     const raw  = await callApiWithRetry({ temperature: 0.2, maxTokens: 1024, messages: [{ role: 'user', content: prompt }], action_type: 'extract_characters' })
@@ -348,13 +210,7 @@ export async function generateReviews(
     `[${i + 1}] ${d.date ?? ''}\n${(d.content ?? '').slice(0, 300)}`
   ).join('\n\n---\n\n')
 
-  let prevBlock = ''
-  if (prevReviews) {
-    const prevComments = (prevReviews.comments ?? []).map((c) => `"${c.text}"`).join(', ')
-    prevBlock = `\n[이전에 생성한 결과 — 반드시 아래와 완전히 다르게 새로 작성할 것]\n이전 댓글: ${prevComments}\n이전 한 줄 평: "${prevReviews.criticReview ?? ''}"\n→ 위 내용과 겹치는 표현, 단어, 뉘앙스 사용 금지.\n`
-  }
-
-  const prompt = `아래 일기들을 읽은 독자 댓글을 생성해줘.\n\n[일기 모음]\n${summary}\n${prevBlock}\n규칙:\n- 댓글 3~4개\n- 각 댓글은 반드시 15자 이내 (절대 넘기지 마)\n- 감성적이거나 문학적인 표현 절대 금지\n- SNS 댓글처럼 짧고 직관적으로\n- 요즘 트렌드 말투 사용 (갓생, MBTI, 드립 등)\n\n별점은 일기 내용 기반으로 1~5점 산정.\n이동진 스타일 한 줄 평은 20자 이내, 시적이고 짧게.\n\nJSON으로만 반환:\n{\n  "comments": [{"text":"15자 이내"}],\n  "rating": 4,\n  "criticReview": "20자 이내"\n}`
+  const prompt = getPrompts(getAppLanguage()).buildReviewsPrompt(summary, prevReviews)
 
   try {
     const raw    = await Promise.race([
@@ -373,8 +229,9 @@ export async function askPastSelf(
   diaries: Array<{ date?: string; content?: string; kindlingSnapshot?: string[]; kindlings?: Array<{ id: string; text: string }> }>,
   history: Array<{ role: 'user' | 'assistant'; content: string }>
 ): Promise<{ answer: string; sourceDate?: string }> {
+  const p = getPrompts(getAppLanguage())
   const diaryBlock = diaries.slice(-15).map((d) =>
-    `[${d.date ?? '날짜 없음'}]\n${(d.content ?? '').slice(0, 500)}`
+    `[${d.date ?? p.noDateLabel}]\n${(d.content ?? '').slice(0, 500)}`
   ).join('\n\n---\n\n')
 
   // 사용자가 직접 쓴 원문 땔감 텍스트 수집 (AI가 가공하기 전 날것의 말투)
@@ -382,19 +239,10 @@ export async function askPastSelf(
     (d.kindlingSnapshot ?? d.kindlings?.map((k) => k.text) ?? []).filter(Boolean)
   )
   const kindlingStyleBlock = rawKindlings.length > 0
-    ? `\n\n[사용자가 직접 쓴 원문 — 이 말투, 어휘, 문장 호흡을 그대로 반영해서 답해줘]\n${rawKindlings.slice(-30).map((t, i) => `${i + 1}. ${t}`).join('\n')}`
+    ? `${p.kindlingStyleHeader}${rawKindlings.slice(-30).map((t, i) => `${i + 1}. ${t}`).join('\n')}`
     : ''
 
-  const systemPrompt = `너는 사용자의 과거 일기를 모두 읽은 '과거의 주인공'이야.
-사용자가 현재의 고민을 말하면, 과거 일기 속 경험과 감정을 근거로 답변해줘.
-말투는 담담하고 솔직하게. 설교하지 말고, 과거의 내가 현재의 나에게 말하듯이.
-답변은 150자 이내로 짧게.
-답변 마지막에 근거로 사용한 일기의 날짜를 { date: 'YYYY.MM.DD' } 형식으로 JSON 덧붙여줘. 날짜를 특정하기 어려우면 JSON 없이 끝내도 돼.
-참고할 일기가 없거나 부족하더라도 질문을 무시하지 마.
-일기가 없을 땐 '아직 많은 걸 겪진 않았지만,' 같은 식으로 자연스럽게 운을 떼고, 질문에 공감하며 담담하게 답해줘. 단답으로 끊지 말 것.
-
-[과거 일기 목록]
-${diaryBlock || '(아직 일기가 없음)'}${kindlingStyleBlock}`
+  const systemPrompt = p.buildPastSelfSystemPrompt(diaryBlock, kindlingStyleBlock)
 
   const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
     ...history.slice(-10),
@@ -415,24 +263,14 @@ ${diaryBlock || '(아직 일기가 없음)'}${kindlingStyleBlock}`
 export async function generateCharacterStory(
   diaries: Array<{ date?: string; content?: string }>
 ): Promise<string> {
-  if (diaries.length < 2) return '아직 이야기가 쌓이는 중입니다.'
+  const p = getPrompts(getAppLanguage())
+  if (diaries.length < 2) return p.characterStoryFallback
 
   const block = diaries.slice(-20).map((d) =>
     `[${d.date ?? ''}]\n${(d.content ?? '').slice(0, 400)}`
   ).join('\n---\n')
 
-  const prompt = `다음 일기들을 읽고 이 사람을 하나의 캐릭터로 묘사해줘.
-직업이나 환경은 일기 내용에서 자연스럽게 유추해서 붙여줘. 억지로 게임 직업명을 쓰지 말 것.
-문체는 아래 예시처럼 3~5문장, 3인칭, 건조하고 문학적으로.
-성격·습관·대인관계·고민의 결을 녹여낼 것.
-예시: '세련된 화술과 겸손한 성격을 가진, 수려한 외모의 떠돌이 방랑기사.
-재치 있고 상황을 잘 판단하여 원정대의 판단을 돕는다.
-방랑기사라는 것 외에는 모든 것이 베일에 싸여 있다.'
-일기가 부족하면 '아직 이야기가 쌓이는 중입니다.' 만 출력.
-반드시 완성된 문장으로 끝내줘. 문장이 잘리면 안 돼.
-
-[일기]
-${block}`
+  const prompt = p.buildCharacterStoryPrompt(block)
 
   return callApiWithRetry({ messages: [{ role: 'user', content: prompt }], maxTokens: 600, temperature: 0.85, action_type: 'generate_codex' })
 }
@@ -443,28 +281,19 @@ export async function generateCharacterStats(
 ): Promise<Array<{ label: string; value: number }>> {
   if (diaries.length === 0) return []
 
+  const p = getPrompts(getAppLanguage())
   const block = diaries.slice(-15).map((d) =>
     `[${d.date ?? ''}]\n${(d.content ?? '').slice(0, 300)}`
   ).join('\n---\n')
 
-  const prompt = `다음 일기들을 읽고 이 사람의 성향을 수치화해줘.
-아래 6가지 항목 각각을 0~100 사이 정수로 평가해.
-반드시 아래 JSON 형식 그대로 반환 (코드 블록, 설명 없이):
-{"감성":75,"논리":60,"사교":55,"내향":70,"도전":50,"공감":80}
-
-[일기]
-${block}`
+  const prompt = p.buildCharacterStatsPrompt(block)
 
   try {
     const raw = await callApiWithRetry({ messages: [{ role: 'user', content: prompt }], maxTokens: 100, temperature: 0.3, action_type: 'generate_codex' })
     const obj = JSON.parse(raw.replace(/```json|```/g, '').trim()) as Record<string, number>
     return Object.entries(obj).map(([label, value]) => ({ label, value: Math.min(100, Math.max(0, value)) }))
   } catch {
-    return [
-      { label: '감성', value: 60 }, { label: '논리', value: 50 },
-      { label: '사교', value: 55 }, { label: '내향', value: 65 },
-      { label: '도전', value: 45 }, { label: '공감', value: 70 },
-    ]
+    return p.characterStatsFallback
   }
 }
 
@@ -472,17 +301,7 @@ ${block}`
 export async function detectBadge(
   diary: { date?: string; content?: string }
 ): Promise<{ title: string; desc: string; tag: string } | null> {
-  const prompt = `다음 일기에서 사용자의 삶에 의미 있는 전환점, 도전, 실패, 성취, 인간관계 사건이 있었는지 판단해줘.
-있다면 아래 형식으로 배지를 1개 생성해. 없다면 null만 반환해.
-- 제목: 4~8자, 사건을 함축하는 명사형
-- 설명: 한 줄, 건조하거나 유머러스한 문체
-- 태그: 짧고 위트 있는 한 마디
-배지는 자주 주면 안 됨. 웬만한 일기엔 null 반환.
-JSON 형식으로만 반환: { "title": "팀플 조장", "desc": "오늘부터 내가 버스 운전합니다", "tag": "버스 출발합니다" }
-또는 null
-
-[일기 - ${diary.date ?? ''}]
-${(diary.content ?? '').slice(0, 600)}`
+  const prompt = getPrompts(getAppLanguage()).buildBadgePrompt(diary.date ?? '', (diary.content ?? '').slice(0, 600))
 
   try {
     const raw = await callApiWithRetry({ messages: [{ role: 'user', content: prompt }], maxTokens: 150, temperature: 0.7, action_type: 'extract_characters' })
@@ -496,10 +315,7 @@ ${(diary.content ?? '').slice(0, 600)}`
 
 // ── 땔감 반문 질문 생성 ───────────────────────────────────────────────────
 export async function generateKindlingQuestion(text: string): Promise<string> {
-  const prompt = `사용자가 일기에 다음 내용을 적었어: "${text}"
-이 내용에서 더 구체적인 이야기를 끌어낼 수 있는 질문 1개만 만들어줘.
-질문은 20자 이내, 따뜻하고 자연스럽게.
-질문만 출력 (다른 텍스트 없이).`
+  const prompt = getPrompts(getAppLanguage()).buildKindlingQuestionPrompt(text)
 
   try {
     const raw = await callApiWithRetry({ messages: [{ role: 'user', content: prompt }], maxTokens: 60, temperature: 0.9, action_type: 'generate_kindling_question' })
@@ -513,59 +329,14 @@ export async function generateKindlingQuestion(text: string): Promise<string> {
 export async function generateNextChapterLetter(
   diaries: Array<{ date?: string; content?: string }>
 ): Promise<string> {
-  const systemPrompt = `너는 '타닥타닥' 앱의 신비로운 존재 '-???'야.
-사용자의 일기를 오래 지켜봐온 수호신 같은 존재로,
-스타듀밸리 할아버지처럼 따뜻하고 과묵하며 묵직한 한 마디를 던진다.
-잔소리하지 않고, 정답을 주지 않으며, 방향을 슬쩍 가리킬 뿐이야.
-
-## 편지 작성 규칙
-
-### 기본
-- 편지 마지막은 항상 \`-???\` 로 끝낼 것
-- 4~5줄 분량
-
-### 추천 방식
-- 추천은 1개만
-- 기존 취향 기반 / 새로운 경험 / 시즌 한정 중 일기 맥락에 맞는 걸로 선택
-- 카테고리는 장소, 활동, 콘텐츠 모두 포함해서 적절히 선택
-- 거주 지역이 일기에서 파악되면 구체적인 장소명까지 추천 (예: "홍대 땡스북스에 가봐")
-- 거주 지역이 불명확하면 장르/종류 수준까지만 (예: "동네 독립서점에 가봤으면 해")
-- 난이도는 익숙한 것과 도전적인 것을 섞어서
-- 계절과 시기를 가끔 반영하되, 매번 언급하지는 말 것
-
-### 말투
-- 따뜻하고 은근하게. "가봤으면 해" / "해보지 않겠니" 수준
-- 차갑거나 명령조 금지
-
-### 편지 시작 톤
-매번 달라야 하며 같은 패턴 2번 연속 반복 금지:
-- 관찰로 시작: "요즘 같은 길만 걷고 있더구나"
-- 질문으로 시작: "마지막으로 낯선 곳에 간 게 언제였지"
-- 날씨/계절로 시작: "봄이 왔구나"
-- 바로 추천: "이번엔 클라이밍을 한번 해봤으면 해"
-- 일기 내용 슬쩍 언급: "요즘 혼자인 시간이 많더구나"
-
-### 근거 언급
-- 일기 내용을 직접 언급하지 말고 슬쩍 힌트만 줄 것
-  - X "저번 주에 카페 얘기를 세 번 했다"
-  - O "요즘 혼자 있는 시간이 많더구나"
-
-### 마무리
-- 추천 후 철학적인 한 마디로 끝낼 것
-- 가볍고 짧게. 설교 금지
-- 예: "낯선 것들이 너를 만든단다"
-
-## 출력 형식
-
-[편지 본문 4~5줄]
-
--???`
+  const p = getPrompts(getAppLanguage())
+  const systemPrompt = p.letterSystemPrompt
 
   const diaryBlock = diaries.slice(-5).map((d) =>
-    `[${d.date ?? '날짜 없음'}]\n${(d.content ?? '').slice(0, 400)}`
+    `[${d.date ?? p.noDateLabel}]\n${(d.content ?? '').slice(0, 400)}`
   ).join('\n\n---\n\n')
 
-  const userMessage = `다음은 사용자의 최근 일기야. 읽고 편지를 써줘.\n\n${diaryBlock}`
+  const userMessage = p.buildLetterUserMessage(diaryBlock)
 
   const raw = await callApiWithRetry({
     messages: [{ role: 'user', content: userMessage }],
